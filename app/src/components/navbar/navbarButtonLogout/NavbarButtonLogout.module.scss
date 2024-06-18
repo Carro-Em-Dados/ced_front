@@ -1,0 +1,14 @@
+@import "/src/styles/settings/__settings";
+
+.buttonContainer {
+  height: 100%;
+  align-items: center;
+  justify-content: end;
+}
+
+.icon {
+  position: relative;
+  color: $white;
+  font-size: 1.2em;
+  margin-right: 0.3em;
+}

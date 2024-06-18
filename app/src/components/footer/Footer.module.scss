@@ -1,0 +1,54 @@
+@import "/src/styles/settings/__settings";
+
+.footer {
+  height: 30vh;
+  width: 100%;
+  background-color: $black;
+  padding: 3% 8%;
+  flex-direction: row;
+  justify-content: space-between;
+  position:relative;
+}
+
+.logoContainer {
+  display: flex;
+  position: relative;
+  $width: 8rem;
+  width: $width;
+  height: ($width*46/160);
+  margin-bottom: 3rem;
+}
+
+.first, .second, .third {
+    width:33%;
+    padding:0 2rem;
+    flex-direction: column;
+}
+
+.footerTitle {
+    color: $very-light-gray;
+    font-weight: 600;
+    font-size: 1em;
+    margin-bottom:0.5em;
+}
+
+.footerText {
+    color: $very-light-gray;
+    font-size: 0.8em;
+    margin-bottom: 0.3em;
+}
+
+.hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid $background;
+    margin: 1em 0;
+    padding: 0;
+}
+
+.icon {
+    color: $very-light-gray;
+    font-size: 2em;
+    margin-right: 0.2em;
+}

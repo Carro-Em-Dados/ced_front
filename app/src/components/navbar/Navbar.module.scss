@@ -1,0 +1,26 @@
+@import "/src/styles/settings/__settings";
+
+.navbar {
+  position: sticky;
+  width: 100%;
+  height: 5rem;
+  padding: 0 3% 0 3%;
+  background-color: $black;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buttonsContainer {
+  display: flex;
+  position: relative;
+  right: 0;
+  flex-direction: row;
+}
+
+.logoContainer {
+  $width: 11rem;
+  width: $width;
+  height: ($width*46/160);
+  display: flex;
+  position: relative;
+}

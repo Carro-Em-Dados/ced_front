@@ -1,0 +1,24 @@
+@import "/src/styles/settings/__settings";
+
+.calendarTitle {
+    color: $barely-white;
+    font-size: 1.5em;
+    font-weight: 500;
+    flex-direction: row;
+}
+
+.calendarTitleYear {
+    color: $secondary;
+    display: inline;
+    margin: 0 0.5em;
+}
+
+.caretContainer {
+    align-items: center;
+    display: inline-flex;
+}
+
+.yearButton {
+    display: flex;
+    flex-direction: row;
+}

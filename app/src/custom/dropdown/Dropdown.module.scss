@@ -1,0 +1,78 @@
+@import "/src/styles/settings/__settings";
+
+.caret {
+  stroke-width: 2px;
+  stroke: $barely-white;
+  width: 15.058px;
+  height: 14.729px;
+  flex-shrink: 0;
+  z-index: 0;
+  align-self: center;
+}
+
+.activeCaret {
+  stroke-width: 2px;
+  stroke: $secondary;
+  width: 15.058px;
+  height: 14.729px;
+  flex-shrink: 0;
+  z-index: 0;
+  align-self: center;
+  rotate: 180deg;
+}
+
+.button {
+  border-color: $white;
+  display: flex;
+  width: 25em;
+  justify-content: space-between;
+  background-color: transparent;
+  color: $barely-white;
+  font-style: italic;
+  padding: 0;
+  padding-left: 1em;
+  font-size: 1em;
+}
+
+.activeButton {
+  border-color: $secondary;
+  display: flex;
+  width: 25em;
+  justify-content: space-between;
+  background-color: transparent;
+  color: $barely-white;
+  font-style: italic;
+  padding: 0;
+  padding-left: 1em;
+  font-size: 1em;
+}
+
+.vl {
+  border-left: 2px solid $white;
+  height: 100%;
+  float: right;
+}
+
+.activevl {
+  border-left: 2px solid $secondary;
+  height: 100%;
+  float: right;
+}
+
+.caretContainer {
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.dropdownMenu {
+  width: 26em;
+}
+
+.dropdownText {
+  color: #484a48;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}

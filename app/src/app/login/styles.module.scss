@@ -1,0 +1,90 @@
+@import "/src/styles/settings/__settings";
+
+.page {
+  display: flex;
+  background-color: $background;
+  flex-direction: row;
+  width: 100svw;
+  height: 100svh;
+}
+
+.imageContainer {
+  width: 45%;
+  height: 100%;
+  position: relative;
+}
+
+.contentContainer {
+  width: 55%;
+  height: 100%;
+  padding: 7% 5%;
+  flex-direction: column;
+}
+
+.logoContainer {
+  $width: 11rem;
+  width: $width;
+  height: ($width * 46/160);
+  position: relative;
+}
+
+.titleContainer {
+  padding-top: 2em;
+  flex-direction: column;
+}
+
+.title {
+  color: $barely-white;
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.hr {
+    margin-top:0.4em;
+    margin-bottom:2em;
+}
+
+.infoLabel {
+    font-size: large;
+    color: $barely-white;
+    font-weight: 300; 
+}
+
+.input {
+    margin: 0.5em 0 2em 0;
+    color:$barely-white;
+    div[data-focus="true"] {
+        border-color: $very-light-green!important;
+        *svg {
+          color:$very-light-green;
+        }
+    }
+}
+
+// .input[data-focus-within="true"] {
+//   >* {
+//     border-color: $very-light-green!important;
+//   }
+// }
+
+.button {
+    color:$barely-white;
+    background: linear-gradient(180deg, #27A338 0%, #0C731A 100%);
+    letter-spacing: 1.2px; 
+    font-size: 1em;
+    font-weight: 500;
+}
+
+.recoveryContainer {
+    flex-direction: row;
+    margin:2em 0;
+}
+.text {
+    color: $barely-white;
+}
+.link {
+    color: #50CB61;
+    font-weight: 500;
+}

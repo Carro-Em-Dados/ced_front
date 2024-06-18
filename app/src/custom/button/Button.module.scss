@@ -1,0 +1,23 @@
+@import "/src/styles/settings/__settings";
+
+.text {
+  color: $white;
+  font-size: 1em;
+}
+
+.customButton {
+  background-color: $black;
+  border-radius: 999px;
+  padding: 0.5em 1em;
+  border: 2px solid $secondary;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  &:hover {
+    background-color: $secondary;
+  }
+  &:active {
+    background-color: $black;
+  }
+}

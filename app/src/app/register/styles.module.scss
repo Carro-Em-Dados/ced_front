@@ -1,0 +1,143 @@
+@import "/src/styles/settings/__settings";
+
+.page {
+  background-color: $background;
+  flex-direction: column;
+  width: 100%;
+  display: flex;
+}
+
+.pageWrap {
+  width: 100%;
+  min-height: 80svh;
+  flex-direction: column;
+  background-color: $background;
+  padding: 5% 10% 0 10%;
+}
+
+.mainTitle {
+  position: relative;
+  font-size: 2.2em;
+  font-weight: 600;
+  color: $barely-white;
+  margin-bottom: 0.2em;
+  left: 0.3em;
+  top: -0.2em;
+}
+
+.subtext {
+  font-size: 1em;
+  font-weight: 400;
+  color: $light-gray;
+}
+.rectangleContainer {
+  $width: 2em;
+  position: absolute;
+  width: $width;
+  height: $width * 28/31;
+}
+
+.driverTab {
+  width: 100%;
+  padding-top: 2em;
+  flex-direction: column;
+}
+
+.driverTabTitle {
+  color: $barely-white;
+}
+
+.tabs {
+  margin-top: 2em;
+  > div {
+    background-color: transparent;
+  }
+  > *button {
+    background-color: transparent;
+    box-shadow: none;
+    font-size: 1.5em;
+    font-weight: 700;
+    $color: $light-gray;
+    > * {
+      background-color: transparent;
+      box-shadow: none;
+    }
+  }
+}
+
+.button {
+  color: $barely-white;
+  background: linear-gradient(180deg, #27a338 0%, #0c731a 100%);
+  font-size: 1em;
+  font-weight: 500;
+  border-radius: 2em;
+  font-size: 0.8em;
+  font-weight: 400;
+  width: 17em;
+  justify-content: space-around;
+}
+
+.modalButton {
+  color: $barely-white;
+  background: linear-gradient(180deg, #27a338 0%, #0c731a 100%);
+  font-size: 1em;
+  font-weight: 500;
+  border-radius: 2em;
+  font-size: 0.8em;
+  font-weight: 400;
+  width: 10em;
+  justify-content: space-around;
+}
+
+.addIcon {
+  font-size: 1.5em;
+}
+
+.buttonContainer {
+  margin-top: 2em;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+
+.tabButton[aria-selected="true"] > *{
+    color: $barely-white!important;
+}
+
+.modal {
+  background-color: $background;
+  padding:0.8em 1.8em;
+}
+
+.modalTitle {
+  color:$barely-white;
+}
+
+.modalInput {
+  border: 2px solid $barely-white;
+  border-radius: 1em;
+  background: none;
+  color:$barely-white;
+  padding:0.8em;
+  flex-grow: 1;
+  margin-bottom: 1.2em;
+  outline-style:none!important;
+}
+
+.form {
+  flex-direction: column;
+}
+
+.horizontalSpace {
+  width:1em;
+}
+
+.modalLabel {
+  color:$barely-white;
+  margin: 0.5em 0 0.75em 0;
+  font-weight: 600;
+}
+
+.modalText {
+  color:$barely-white;
+}

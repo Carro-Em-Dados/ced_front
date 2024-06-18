@@ -1,0 +1,44 @@
+@import "/src/styles/settings/__settings";
+
+.page {
+  background-color: $background;
+  flex-direction: column;
+  width: 100%;
+}
+.pageWrap {
+  width: 100%;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+.header {
+    flex-direction: column;
+    padding: 3em 6em 3em 6em;
+}   
+
+.rectangleContainer {
+  $width: 2em;
+  position: absolute;
+  width: $width;
+  height: $width * 28/31;
+}
+
+.mainTitle {
+  position: relative;
+  font-size: 2.2em;
+  font-weight: 600;
+  color: $barely-white;
+  margin-bottom: 0.5em;
+  left: 0.3em;
+  top: -0.2em;
+}
+
+.subtext {
+  font-size: 1em;
+  font-weight: 400;
+  color: $light-gray;
+}
+
+.content {
+    padding: 0 6em 3em 6em;
+}

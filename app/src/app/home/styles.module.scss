@@ -1,0 +1,7 @@
+@import "/src/styles/settings/__settings";
+
+.page {
+  background-color: $background;
+  flex-direction: column;
+  width:100%;
+}
