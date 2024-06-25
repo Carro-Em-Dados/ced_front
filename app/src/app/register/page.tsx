@@ -14,8 +14,8 @@ import { AppUser } from "../../interfaces/appUser.type";
 import { Timestamp, addDoc, collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { Workshop } from "../../interfaces/workshop.type";
 import { Client } from "../../interfaces/client.type";
-import { AuthContext } from "../contexts/auth.context";
 import { User } from "../../interfaces/user.type";
+import { AuthContext } from "@/contexts/auth.context";
 interface IDriver {
   name: string;
   email: string;
