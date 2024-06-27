@@ -1,7 +1,8 @@
 export interface User {
-    uid: string,
-    email: string,
-    name:string,
-    role: string,
-    workshops?: string[]
+	id?: string;
+	uid: string;
+	email: string;
+	name: string;
+	role: string;
+	workshops?: string[];
 }

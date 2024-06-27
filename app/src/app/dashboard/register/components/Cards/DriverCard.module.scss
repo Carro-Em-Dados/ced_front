@@ -1,0 +1,109 @@
+@import "/src/styles/settings/__settings";
+
+.personIcon {
+	color: $light-gray;
+	font-size: 3.5em;
+	margin-right: 0.2em;
+}
+
+.accordion {
+	background-color: $almost-black;
+	flex-direction: column;
+	border-radius: 30px;
+	padding: 0 1em;
+	> * {
+		flex-direction: column;
+	}
+}
+
+.item {
+	width: 100%;
+	margin: 0;
+	* > span {
+		// word-spacing: 20em;
+	}
+	> * {
+		width: 100%;
+		> button {
+			padding: 0.5em 0;
+		}
+	}
+	* {
+		color: $very-light-gray;
+	}
+	> section {
+		> * {
+			padding: 0 0.5em 1em 0.5em;
+		}
+	}
+}
+
+.contentContainer {
+	width: 100%;
+	margin: 1em;
+	flex-direction: column;
+}
+
+.cardsContainer {
+	flex-direction: row;
+}
+
+.card {
+	background-color: #484a4880;
+	padding: 2em 1.5em;
+	flex-direction: column;
+	align-items: start;
+}
+
+.infoCard {
+	width: 40%;
+	border-radius: 15px;
+	margin-right: 1em;
+}
+
+.vehiclesCard {
+	width: 60%;
+	border-radius: 30px;
+}
+
+.cardTitle {
+	font-weight: 600;
+	font-size: 1.2em;
+}
+
+.cardText {
+	font-size: 0.8em;
+}
+
+.row {
+	flex-direction: column;
+	margin-top: 1em;
+}
+.contentFooter {
+	margin-top: 1.3em;
+	justify-content: space-between;
+	align-items: center;
+}
+.deleteBtnWrap {
+	// justify-content: center;
+	// align-items: center;
+	// width:2em;
+	// height:2em;
+	// background-color: rgba(255, 0, 0, 0.515);
+	border-radius: 30px;
+}
+.trashIcon {
+	font-size: 1.5em;
+}
+.addVehicleBtnWrap {
+	justify-content: center;
+}
+.addVehicleBtn {
+	border-radius: 35px;
+	border: 1px solid #0c731a;
+	background: linear-gradient(180deg, #27a338 0%, #178425 100%);
+	padding: 0em 2em;
+	font-size: 0.8em;
+	color: $barely-white;
+	height: 2.4em;
+}
