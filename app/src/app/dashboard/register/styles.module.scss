@@ -150,3 +150,26 @@
 	color: $barely-white;
 	height: 2.4em;
 }
+
+.deleteBtn {
+	border-radius: 35px;
+	border: 1px solid #dc1b1b;
+	background-color: transparent;
+	color: #dc1b1b !important;
+	padding: 0em 2em;
+	font-size: 0.8em;
+	color: $barely-white;
+	height: 2.4em;
+	> svg {
+		fill: #dc1b1b;
+		transition: fill 0.2s ease-in-out;
+	}
+}
+
+.deleteBtn:hover {
+	background-color: #dc1b1b;
+	color: white !important;
+	> svg {
+		fill: white;
+	}
+}

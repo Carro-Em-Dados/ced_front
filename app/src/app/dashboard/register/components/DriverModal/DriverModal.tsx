@@ -69,6 +69,7 @@ export default function DriverModal({ setDrivers }: Props) {
 				onOpenChange={onOpenChange}
 				className={styles.modal}
 				size="2xl"
+				scrollBehavior="outside"
 			>
 				<ModalContent>
 					{(onClose) => (
@@ -87,9 +88,6 @@ export default function DriverModal({ setDrivers }: Props) {
 											value={name}
 											onChange={(e) => setName(e.target.value)}
 										/>
-										{/* <span className={styles.horizontalSpace} /> */}
-										{/* <input className={styles.modalInput}
-                                            placeholder='Sobrenome' /> */}
 									</div>
 									<div>
 										<input

@@ -29,35 +29,11 @@ import OrganizationCard from "./components/Cards/OrganizationCard";
 import UserCard from "./components/Cards/UserCard";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
-
-interface Driver {
-	id: string;
-	name: string;
-	email: string;
-	address_commercial: string;
-	address_residential?: string;
-	age?: number;
-	gender?: string;
-	phone_commercial?: string;
-	phone_residential?: string;
-	register?: string;
-	cnh?: string;
-}
-
-interface Vehicle {
-	id: string;
-	car_model: string;
-	license_plate: string;
-	owner: string;
-	gas_capacity: number;
-	gps_mac: string;
-	obd2_mac: string;
-	vin: string;
-	initial_km: number;
-}
+import { Driver } from "@/interfaces/driver.type";
+import { Vehicle } from "@/interfaces/vehicle.type";
 
 const Register = () => {
-	const { db } = useContext(AuthContext);
+	const { db, currentUser } = useContext(AuthContext);
 	const [drivers, setDrivers] = useState<Driver[]>([]);
 	const [users, setUsers] = useState<User[]>([]);
 	const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -134,6 +110,9 @@ const Register = () => {
 				<Tabs
 					aria-label="config-tabs"
 					className={styles.tabs}
+					disabledKeys={
+						(currentUser?.role !== "master" && ["organizations", "users"]) || []
+					}
 				>
 					<Tab
 						className={styles.tabButton}
@@ -188,7 +167,7 @@ const Register = () => {
 								/>
 							))}
 							<div className={styles.buttonContainer}>
-								<UserModal />
+								<UserModal setUsers={setUsers} />
 							</div>
 						</div>
 					</Tab>

@@ -2,38 +2,14 @@
 import React from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
-import { Accordion, AccordionItem, Button } from "@nextui-org/react";
+import { Accordion, AccordionItem } from "@nextui-org/react";
 import clsx from "clsx";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import VehicleModal from "../VehicleModal/VehicleModal";
-import { FaEye } from "react-icons/fa";
 import EditDriverModal from "../DriverModal/EditDriverModal";
-
-interface Driver {
-	id: string;
-	name: string;
-	email: string;
-	address_commercial: string;
-	address_residential?: string;
-	age?: number;
-	gender?: string;
-	phone_commercial?: string;
-	phone_residential?: string;
-	register?: string;
-	cnh?: string;
-}
-
-interface Vehicle {
-	id: string;
-	car_model: string;
-	license_plate: string;
-	owner: string;
-	gas_capacity: number;
-	gps_mac: string;
-	obd2_mac: string;
-	vin: string;
-	initial_km: number;
-}
+import SeeVehicleModal from "../VehicleModal/SeeVehicleModal";
+import { Driver } from "@/interfaces/driver.type";
+import { Vehicle } from "@/interfaces/vehicle.type";
 
 interface Props {
 	driver: Driver;
@@ -89,6 +65,7 @@ export default function DriverCard({
 						</div>
 						<div className={styles.row}>
 							<p className={styles.cardText}>CNH: {driver.cnh}</p>
+							<p className={styles.cardText}>Registro: {driver.register}</p>
 						</div>
 					</div>
 					<div className={`${clsx(styles.card, styles.vehiclesCard)} gap-2`}>
@@ -106,9 +83,12 @@ export default function DriverCard({
 									>
 										<p>{vehicle?.car_model}</p>
 										<p>{vehicle?.license_plate}</p>
-										<button className="justify-self-end text-2xl">
-											<FaEye />
-										</button>
+										<div className="justify-self-end text-xl">
+											<SeeVehicleModal
+												vehicle={vehicle}
+												setVehicles={setVehicles}
+											/>
+										</div>
 									</div>
 								))}
 							</div>

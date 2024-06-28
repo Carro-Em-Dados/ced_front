@@ -18,6 +18,7 @@ export enum DeleteModalTypes {
 	driver = "driver",
 	user = "user",
 	organization = "organization",
+	vehicle = "vehicle",
 }
 
 interface Props {
@@ -31,46 +32,48 @@ export default function EraseModal({ id, type, name, state }: Props) {
 	const { db } = useContext(AuthContext);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-	const deleteDriver = async () => {
-		await deleteDoc(doc(db, "clients", id)).then(() => {
-			state((state) => {
-				return state.filter((item) => item.id !== id);
-			});
-			onOpenChange();
-		});
-	};
+	const deleteItem = async () => {
+		let collectionName;
+		switch (type) {
+			case DeleteModalTypes.driver:
+				collectionName = "clients";
+				break;
+			case DeleteModalTypes.user:
+				collectionName = "users";
+				break;
+			case DeleteModalTypes.organization:
+				collectionName = "workshops";
+				break;
+			case DeleteModalTypes.vehicle:
+				collectionName = "vehicles";
+				break;
+			default:
+				throw new Error("Invalid delete type");
+		}
 
-	const deleteOrganization = async () => {
-		await deleteDoc(doc(db, "workshops", id)).then(() => {
-			state((state) => {
-				return state.filter((item) => item.id !== id);
+		await deleteDoc(doc(db, collectionName, id))
+			.then(() => {
+				state((prevState) => prevState.filter((item) => item.id !== id));
+				onOpenChange();
+			})
+			.catch((error) => {
+				console.error("Error deleting document: ", error);
 			});
-			onOpenChange();
-		});
-	};
-
-	const deleteUsers = async () => {
-		await deleteDoc(doc(db, "users", id)).then(() => {
-			state((state) => {
-				return state.filter((item) => item.id !== id);
-			});
-			onOpenChange();
-		});
 	};
 
 	return (
 		<>
-			<button
-				color="success"
+			<Button
 				className={styles.deleteBtn}
 				onClick={onOpen}
 			>
-				<FaRegTrashAlt className={styles.addIcon} />
-			</button>
+				<FaRegTrashAlt />
+				Excluir
+			</Button>
 			<Modal
 				isOpen={isOpen}
 				className={styles.modal}
-				size={"lg"}
+				size="lg"
 				onOpenChange={onOpenChange}
 			>
 				<ModalContent>
@@ -94,15 +97,9 @@ export default function EraseModal({ id, type, name, state }: Props) {
 									Cancelar
 								</Button>
 								<Button
-									color="success"
+									color="danger"
 									className={styles.modalButton}
-									onPress={
-										type === DeleteModalTypes.driver
-											? deleteDriver
-											: type === DeleteModalTypes.organization
-											? deleteOrganization
-											: deleteDriver
-									}
+									onPress={deleteItem}
 								>
 									Excluir
 								</Button>

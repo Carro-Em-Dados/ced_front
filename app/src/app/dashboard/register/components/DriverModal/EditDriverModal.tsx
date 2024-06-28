@@ -71,7 +71,7 @@ export default function EditDriverModal({ id, setDrivers }: Props) {
 			workshops: [""],
 		};
 
-		const docRef = doc(db, "clients", id); // Referência ao documento pelo ID
+		const docRef = doc(db, "clients", id);
 
 		await updateDoc(docRef, updatedDriver).then(() => {
 			setDrivers((drivers) =>
@@ -93,6 +93,7 @@ export default function EditDriverModal({ id, setDrivers }: Props) {
 				onOpenChange={onOpenChange}
 				className={styles.modal}
 				size="2xl"
+				scrollBehavior="outside"
 			>
 				<ModalContent>
 					{(onClose) => (
