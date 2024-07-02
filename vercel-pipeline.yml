@@ -5,7 +5,7 @@ pool:
   name: 'Default'
   vmImage: ubuntu-latest
   demands:
-    - agent.name -equals $(SELF_HOSTED_AGENT_NAME)
+    - agent.name -equals marcos
 steps:
 - task: vercel-deployment-task@1
   inputs:
