@@ -164,6 +164,7 @@ const Register = () => {
 									key={key}
 									user={driver}
 									setUsers={setUsers}
+									workshops={workshops}
 								/>
 							))}
 							<div className={styles.buttonContainer}>

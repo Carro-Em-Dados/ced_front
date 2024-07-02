@@ -4,5 +4,5 @@ export interface User {
 	email: string;
 	name: string;
 	role: string;
-	workshops?: string[];
+	workshops?: string;
 }

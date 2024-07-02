@@ -81,7 +81,9 @@ export default function DriverCard({
 										key={index}
 										className="grid grid-cols-3 items-center gap-2 w-full bg-[#2D2F2D] px-6 py-3 rounded-full"
 									>
-										<p>{vehicle?.car_model}</p>
+										<p>
+											{vehicle?.manufacturer} {vehicle?.car_model}
+										</p>
 										<p>{vehicle?.license_plate}</p>
 										<div className="justify-self-end text-xl">
 											<SeeVehicleModal

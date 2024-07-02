@@ -21,7 +21,7 @@ interface Props {
 
 export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 	const { db } = useContext(AuthContext);
-	//const [manufacturer, setManufacturer] = useState(vehicle.manufacturer || "");
+	const [manufacturer, setManufacturer] = useState(vehicle.manufacturer || "");
 	const [carModel, setCarModel] = useState(vehicle.car_model || "");
 	const [initialKm, setInitialKm] = useState(vehicle.initial_km || 0);
 	const [licensePlate, setLicensePlate] = useState(vehicle.license_plate || "");
@@ -31,7 +31,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 
 	const updateVehicle = async () => {
 		const updatedVehicle = {
-			//manufacturer,
+			manufacturer,
 			car_model: carModel,
 			initial_km: initialKm,
 			license_plate: licensePlate,
@@ -77,29 +77,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 							</ModalHeader>
 							<ModalBody className="text-white">
 								<div className={styles.form}>
-									{/* <div>
-										<input
-											className={styles.modalInput}
-											placeholder="Fabricante"
-											value={manufacturer}
-											onChange={(e) => setManufacturer(e.target.value)}
-										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="Modelo"
-											value={carModel}
-											onChange={(e) => setCarModel(e.target.value)}
-										/>
-									</div> */}
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Modelo"
-											value={carModel}
-											onChange={(e) => setCarModel(e.target.value)}
-										/>
-										<span className={styles.horizontalSpace} />
 										<input
 											className={styles.modalInput}
 											placeholder="Placa"
@@ -107,27 +85,41 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 											onChange={(e) => setLicensePlate(e.target.value)}
 										/>
 									</div>
-									<div>
+									<div className="flex gap-2">
+										<input
+											className={styles.modalInput}
+											placeholder="Fabricante"
+											value={manufacturer}
+											onChange={(e) => setManufacturer(e.target.value)}
+										/>
+										<input
+											className={styles.modalInput}
+											placeholder="Modelo"
+											value={carModel}
+											onChange={(e) => setCarModel(e.target.value)}
+										/>
+									</div>
+									<div className="flex gap-2">
+										<input
+											className={styles.modalInput}
+											placeholder="Chassi"
+											value={vin}
+											onChange={(e) => setVin(e.target.value)}
+										/>
+
 										<input
 											className={styles.modalInput}
 											placeholder="Ano"
 											value={year}
 											onChange={(e) => setYear(Number(e.target.value))}
 										/>
-										<span className={styles.horizontalSpace} />
+									</div>
+									<div>
 										<input
 											className={styles.modalInput}
 											placeholder="Odômetro"
 											value={initialKm}
 											onChange={(e) => setInitialKm(Number(e.target.value))}
-										/>
-									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Chassi"
-											value={vin}
-											onChange={(e) => setVin(e.target.value)}
 										/>
 									</div>
 								</div>

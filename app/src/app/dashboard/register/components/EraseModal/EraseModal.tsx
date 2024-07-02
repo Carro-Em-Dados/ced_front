@@ -12,7 +12,7 @@ import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useContext } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { deleteDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, arrayRemove, deleteDoc } from "firebase/firestore";
 
 export enum DeleteModalTypes {
 	driver = "driver",
@@ -33,10 +33,18 @@ export default function EraseModal({ id, type, name, state }: Props) {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
 	const deleteItem = async () => {
+		console.log(type);
 		let collectionName;
+		let updateData;
+
 		switch (type) {
 			case DeleteModalTypes.driver:
 				collectionName = "clients";
+				updateData = { workshops: arrayRemove() };
+				break;
+			case DeleteModalTypes.vehicle:
+				collectionName = "vehicles";
+				updateData = { owner: "" };
 				break;
 			case DeleteModalTypes.user:
 				collectionName = "users";
@@ -44,21 +52,23 @@ export default function EraseModal({ id, type, name, state }: Props) {
 			case DeleteModalTypes.organization:
 				collectionName = "workshops";
 				break;
-			case DeleteModalTypes.vehicle:
-				collectionName = "vehicles";
-				break;
 			default:
 				throw new Error("Invalid delete type");
 		}
 
-		await deleteDoc(doc(db, collectionName, id))
-			.then(() => {
-				state((prevState) => prevState.filter((item) => item.id !== id));
-				onOpenChange();
-			})
-			.catch((error) => {
-				console.error("Error deleting document: ", error);
-			});
+		const docRef = doc(db, collectionName, id);
+
+		try {
+			if (updateData) {
+				await updateDoc(docRef, updateData);
+			} else {
+				await deleteDoc(docRef);
+			}
+			state((prevState) => prevState.filter((item) => item.id !== id));
+			onOpenChange();
+		} catch (error) {
+			console.error("Erro ao deletar: ", error);
+		}
 	};
 
 	return (

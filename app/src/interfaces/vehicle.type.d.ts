@@ -1,5 +1,6 @@
 export interface Vehicle {
 	id: string;
+	manufacturer: string;
 	car_model: string;
 	license_plate: string;
 	owner: string;

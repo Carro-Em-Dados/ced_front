@@ -10,7 +10,15 @@ import {
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { useContext, useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import {
+	addDoc,
+	collection,
+	query,
+	where,
+	getDocs,
+	updateDoc,
+	doc,
+} from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 
 interface Props {
@@ -30,6 +38,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 
 	const addVehicle = async () => {
 		let vehicle = {
+			manufacturer: manufacturer,
 			car_model: carModel,
 			initial_km: initialKm,
 			license_plate: licensePlate,
@@ -37,12 +46,87 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 			year: year,
 			owner: ownerId,
 		};
-		const docRef = await addDoc(collection(db, "vehicles"), vehicle).then(
-			() => {
-				setVehicles((vehicles) => [...vehicles, vehicle]);
+
+		try {
+			const q = query(
+				collection(db, "vehicles"),
+				where("license_plate", "==", licensePlate)
+			);
+			const querySnapshot = await getDocs(q);
+
+			if (!querySnapshot.empty) {
+				const existingVehicleDoc = querySnapshot.docs[0];
+				const existingVehicle = existingVehicleDoc.data();
+
+				if (existingVehicle.owner) {
+					alert(
+						"Já existe um veículo com a mesma placa associado a um proprietário."
+					);
+					return;
+				}
+
+				const updatedVehicle = {
+					manufacturer: manufacturer || existingVehicle.manufacturer,
+					car_model: carModel || existingVehicle.car_model,
+					initial_km: initialKm || existingVehicle.initial_km,
+					license_plate: licensePlate,
+					vin: vin || existingVehicle.vin,
+					year: year || existingVehicle.year,
+					owner: ownerId,
+				};
+
+				await updateDoc(
+					doc(db, "vehicles", existingVehicleDoc.id),
+					updatedVehicle
+				);
+
+				setVehicles((vehicles) =>
+					vehicles.map((veh) =>
+						veh.id === existingVehicleDoc.id
+							? { ...veh, ...updatedVehicle }
+							: veh
+					)
+				);
 				onOpenChange();
+				return;
 			}
-		);
+
+			const docRef = await addDoc(collection(db, "vehicles"), vehicle);
+			setVehicles((vehicles) => [...vehicles, { ...vehicle, id: docRef.id }]);
+			onOpenChange();
+		} catch (error) {
+			console.error("Error adding vehicle: ", error);
+		}
+	};
+
+	const queryVehicles = async () => {
+		try {
+			const q = query(
+				collection(db, "vehicles"),
+				where("license_plate", "==", licensePlate),
+				where("owner", "==", "")
+			);
+			const querySnapshot = await getDocs(q);
+			if (!querySnapshot.empty) {
+				querySnapshot.forEach((doc) => {
+					const vehicleData = doc.data();
+					console.log(vehicleData);
+					setManufacturer(vehicleData.manufacturer || "");
+					setCarModel(vehicleData.car_model || "");
+					setVin(vehicleData.vin || "");
+					setYear(vehicleData.year || 0);
+					setInitialKm(vehicleData.initial_km || 0);
+				});
+			} else {
+				setManufacturer("");
+				setCarModel("");
+				setVin("");
+				setYear(0);
+				setInitialKm(0);
+			}
+		} catch (error) {
+			console.error("Error querying vehicles:", error);
+		}
 	};
 
 	return (
@@ -73,26 +157,39 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 									<div>
 										<input
 											className={styles.modalInput}
+											placeholder="Placa"
+											value={licensePlate}
+											onChange={(e) => setLicensePlate(e.target.value)}
+											onBlur={queryVehicles}
+										/>
+									</div>
+									<div className="flex gap-2">
+										<input
+											className={styles.modalInput}
 											placeholder="Fabricante"
+											value={manufacturer}
 											onChange={(e) => setManufacturer(e.target.value)}
 										/>
-										<span className={styles.horizontalSpace} />
 										<input
 											className={styles.modalInput}
 											placeholder="Modelo"
+											value={carModel}
 											onChange={(e) => setCarModel(e.target.value)}
 										/>
 									</div>
-									<div>
+									<div className="flex gap-2">
 										<input
 											className={styles.modalInput}
-											placeholder="Placa"
-											onChange={(e) => setLicensePlate(e.target.value)}
+											placeholder="Chassi"
+											value={vin}
+											onChange={(e) => setVin(e.target.value)}
 										/>
-										<span className={styles.horizontalSpace} />
+
 										<input
 											className={styles.modalInput}
 											placeholder="Ano"
+											type="date"
+											value={year}
 											onChange={(e) => setYear(Number(e.target.value))}
 										/>
 									</div>
@@ -100,14 +197,8 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 										<input
 											className={styles.modalInput}
 											placeholder="Odômetro"
+											value={initialKm}
 											onChange={(e) => setInitialKm(Number(e.target.value))}
-										/>
-									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Chassi"
-											onChange={(e) => setVin(e.target.value)}
 										/>
 									</div>
 								</div>
