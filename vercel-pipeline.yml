@@ -2,8 +2,10 @@ trigger:
 - main
  
 pool:
+  name: 'Default'
   vmImage: ubuntu-latest
- 
+  demands:
+    - agent.name -equals $(SELF_HOSTED_AGENT_NAME)
 steps:
 - task: vercel-deployment-task@1
   inputs:
