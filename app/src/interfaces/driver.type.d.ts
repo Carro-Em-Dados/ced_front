@@ -10,4 +10,5 @@ export interface Driver {
 	phone_residential?: string;
 	register?: string;
 	cnh?: string;
+	workshops: string;
 }

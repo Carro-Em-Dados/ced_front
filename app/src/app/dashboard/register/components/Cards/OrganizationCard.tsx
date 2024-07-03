@@ -9,31 +9,25 @@ import VehicleModal from "../VehicleModal/VehicleModal";
 import { FaEye } from "react-icons/fa";
 import { Workshop } from "@/interfaces/workshop.type";
 import { User } from "@/interfaces/user.type";
-
-interface Driver {
-	id: string;
-	name: string;
-	email: string;
-	address_commercial: string;
-	address_residential?: string;
-	age?: number;
-	gender?: string;
-	phone_commercial?: string;
-	phone_residential?: string;
-	register?: string;
-	cnh?: string;
-}
+import EditOrganization from "../OrganizationModal/EditOrganizationModal";
+import AssociateWorkshop from "../OrganizationModal/AssociateWorkshop";
+import { Driver } from "@/interfaces/driver.type";
+import SeeDriverModal from "../DriverModal/SeeDriverModal";
 
 interface Props {
 	workshop: Workshop;
 	setWorkshops: React.Dispatch<React.SetStateAction<Workshop[]>>;
+	setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
 	drivers: Driver[];
+	workshopDrivers: Driver[];
 }
 
 export default function OrganizationCard({
 	workshop,
 	setWorkshops,
 	drivers,
+	setDrivers,
+	workshopDrivers,
 }: Props) {
 	console.log(drivers);
 	const Content = () => {
@@ -41,9 +35,15 @@ export default function OrganizationCard({
 			<div className={styles.contentContainer}>
 				<div className={styles.cardsContainer}>
 					<div className={clsx(styles.card, styles.infoCard)}>
-						<h4 className={styles.cardTitle}>Dados</h4>
+						<div className="flex flex-row justify-between w-full">
+							<h4 className={styles.cardTitle}>Dados</h4>
+							<EditOrganization
+								workshop={workshop}
+								setWorkshops={setWorkshops}
+							/>
+						</div>
 						<div className={styles.row}>
-							<p className={styles.cardText}>Nome: {workshop.company_name}</p>
+							<p className={styles.cardText}>Nome: {workshop.fantasy_name}</p>
 						</div>
 						<div className={styles.row}>
 							<p className={styles.cardText}>Email: {workshop.email}</p>
@@ -59,12 +59,12 @@ export default function OrganizationCard({
 						</div>
 						<div className={styles.row}>
 							<p className={styles.cardText}>
-								Razão social: {workshop.fantasy_name}
+								Razão social: {workshop.company_name}
 							</p>
 						</div>
 						<div className={styles.row}>
 							<p className={styles.cardText}>
-								N° de cadastro: {workshop.cnae1}
+								N° de cadastro: {workshop.registration_number}
 							</p>
 						</div>
 					</div>
@@ -76,7 +76,7 @@ export default function OrganizationCard({
 								<p className="font-bold">Email</p>
 							</div>
 							<div className="w-full flex flex-col gap-2">
-								{drivers?.map((driver, index) => (
+								{workshopDrivers?.map((driver, index) => (
 									<div
 										key={index}
 										className="grid grid-cols-3 items-center gap-2 w-full bg-[#2D2F2D] px-6 py-3 rounded-full"
@@ -84,7 +84,10 @@ export default function OrganizationCard({
 										<p>{driver.name}</p>
 										<p>{driver.email}</p>
 										<button className="justify-self-end text-2xl">
-											<FaEye />
+											<SeeDriverModal
+												id={driver.id}
+												setDrivers={setDrivers}
+											/>
 										</button>
 									</div>
 								))}
@@ -96,12 +99,18 @@ export default function OrganizationCard({
 					<div className={styles.deleteBtnWrap}>
 						<EraseModal
 							type={DeleteModalTypes.organization}
-							name={workshop.company_name}
+							name={workshop.fantasy_name}
 							id={workshop.id}
 							state={setWorkshops}
 						/>
 					</div>
-					<div className={styles.addVehicleBtnWrap}>Add usuário</div>
+					<div className={styles.addVehicleBtnWrap}>
+						<AssociateWorkshop
+							drivers={drivers}
+							workshop={workshop}
+							setDrivers={setDrivers}
+						/>
+					</div>
 				</div>
 			</div>
 		);
@@ -111,7 +120,7 @@ export default function OrganizationCard({
 		<div style={{ margin: "0.5em 0" }}>
 			<Accordion className={styles.accordion}>
 				<AccordionItem
-					title={`${workshop.company_name}`}
+					title={`${workshop.fantasy_name}`}
 					className={styles.item}
 					startContent={<IoPersonCircle className={styles.personIcon} />}
 				>

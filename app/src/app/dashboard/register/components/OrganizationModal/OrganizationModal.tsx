@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
 	Button,
 	Modal,
@@ -15,8 +15,15 @@ import {
 import clsx from "clsx";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
+import { addDoc, collection } from "firebase/firestore";
+import { AuthContext } from "@/contexts/auth.context";
 
-export default function OrganizationModal() {
+interface Props {
+	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
+}
+
+export default function OrganizationModal({ setWorkshops }: Props) {
+	const { db } = useContext(AuthContext);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [tab, setTab] = useState("tab1");
 	const [fantasyName, setFantasyName] = useState("");
@@ -34,7 +41,13 @@ export default function OrganizationModal() {
 	const [vehicleCount, setVehicleCount] = useState("");
 	const [alarmCount, setAlarmCount] = useState("");
 	const [maintenanceAlarmCount, setMaintenanceAlarmCount] = useState("");
-	const [notificationFactor, setNotificationFactor] = useState("");
+	const [workshopKmNotificationFactor, setWorkshopKmNotificationFactor] =
+		useState("");
+	const [workshopDateNotificationFactor, setWorkshopDateNotificationFactor] =
+		useState("");
+	const [userKmNotificationFactor, setUserKmNotificationFactor] = useState("");
+	const [userDateNotificationFactor, setUserDateNotificationFactor] =
+		useState("");
 	const [address, setAddress] = useState("");
 	const [website, setWebsite] = useState("");
 	const [cnae, setCnae] = useState("");
@@ -58,13 +71,19 @@ export default function OrganizationModal() {
 		setVehicleCount("");
 		setAlarmCount("");
 		setMaintenanceAlarmCount("");
-		setNotificationFactor("");
+		setWorkshopKmNotificationFactor("");
+		setWorkshopDateNotificationFactor("");
+		setUserKmNotificationFactor("");
+		setUserDateNotificationFactor("");
 		if (profileType === "basic") {
 			setClientMotoristCount("10");
 			setVehicleCount("10");
 			setAlarmCount("10");
 			setMaintenanceAlarmCount("10");
-			setNotificationFactor("10");
+			setWorkshopKmNotificationFactor("10");
+			setWorkshopDateNotificationFactor("10");
+			setUserKmNotificationFactor("10");
+			setUserDateNotificationFactor("10");
 		}
 	}, [profileType]);
 
@@ -100,8 +119,20 @@ export default function OrganizationModal() {
 				name: "Qtd. de alarmes de manutenção por cliente",
 			},
 			{
-				value: notificationFactor,
-				name: "Fator de disparo de notificação à oficina",
+				value: workshopKmNotificationFactor,
+				name: "Fator de notificação KM por Workshop",
+			},
+			{
+				value: workshopDateNotificationFactor,
+				name: "Fator de notificação Data por Workshop",
+			},
+			{
+				value: userKmNotificationFactor,
+				name: "Fator de notificação KM por Usuário",
+			},
+			{
+				value: userDateNotificationFactor,
+				name: "Fator de notificação Data por Usuário",
 			},
 		],
 		tab3: [
@@ -136,6 +167,64 @@ export default function OrganizationModal() {
 		const currentIndex = tabs.indexOf(tab);
 		if (currentIndex > 0) {
 			setTab(tabs[currentIndex - 1]);
+		}
+	};
+
+	const createWorkshop = async () => {
+		const workshop = {
+			fantasy_name: fantasyName,
+			contract_number: +contractNumber,
+			registration_number: +registrationNumber,
+			company_name: corporateName,
+			cnpj: cnpj,
+			email: email,
+			phone: phone,
+			contact: contact,
+			address: address,
+			website: website,
+			cnae1: cnae,
+			cnae2: cnaeOthers,
+			collaborators_amount: +employeesCount,
+			active_workers: +productiveVacanciesCount,
+			branch: branch,
+			average_ticket: +averageTicket,
+			billing: +billing,
+			monthly_goal: +monthlyFinancialGoal,
+			state_registration: stateRegistration,
+			municipal_registration: municipalRegistration,
+			social: {
+				instagram,
+				facebook,
+				youtube,
+				linkedin,
+				twitter,
+				other1,
+				other2,
+			},
+		};
+
+		try {
+			const docRef = await addDoc(collection(db, "workshops"), workshop);
+			setWorkshops((workshops) => [
+				...workshops,
+				{ ...workshop, id: docRef.id },
+			]);
+
+			const contract = {
+				maxAlarmsPerVehicle: +alarmCount,
+				maxDrivers: +clientMotoristCount,
+				maxVehiclesPerDriver: +vehicleCount,
+				workshopKmLimitAlarm: +workshopKmNotificationFactor,
+				workshopDateLimitAlarm: +workshopDateNotificationFactor,
+				userKmLimitAlarm: +userKmNotificationFactor,
+				userDateLimitAlarm: +userDateNotificationFactor,
+				trialPeriod: 7,
+				workshop: docRef.id,
+			};
+			await addDoc(collection(db, "contracts"), contract);
+			onOpenChange();
+		} catch (error) {
+			console.log(error);
 		}
 	};
 
@@ -180,6 +269,7 @@ export default function OrganizationModal() {
 											<input
 												className={styles.modalInput}
 												placeholder="N° Contrato*"
+												type="number"
 												value={contractNumber}
 												onChange={(e) => setContractNumber(e.target.value)}
 											/>
@@ -187,6 +277,7 @@ export default function OrganizationModal() {
 											<input
 												className={styles.modalInput}
 												placeholder="N° Cadastro*"
+												type="number"
 												value={registrationNumber}
 												onChange={(e) => setRegistrationNumber(e.target.value)}
 											/>
@@ -275,100 +366,255 @@ export default function OrganizationModal() {
 											<div className="flex flex-col gap-5 text-white">
 												<p className="text-lg font-medium">Plano básico</p>
 												<div className="flex flex-col gap-2">
-													<p>Qtd. de cadastros de clientes-motoristas: 999</p>
+													<p>
+														Qtd. de cadastros de clientes-motoristas:{" "}
+														{clientMotoristCount}
+													</p>
 													<p>
 														Qtd. de cadastros de veículos por
-														clientes-motoristas: 999
+														clientes-motoristas: {vehicleCount}
 													</p>
 													<p>
 														Qtd. de alarmes por KM limite/Data limite por
-														veículo: 999
+														veículo: {alarmCount}
 													</p>
 													<p>
 														Período (dias) de experimentação do plano
-														customizado: 999
+														customizado: {7}
 													</p>
 												</div>
 											</div>
 										) : (
 											<>
-												<div>
-													<input
-														className={styles.modalInput}
-														placeholder="Qtd. cadastros de clientes-motoristas*"
-														type="number"
-														value={clientMotoristCount}
-														onChange={(e) =>
-															setClientMotoristCount(e.target.value)
-														}
-													/>
+												<div className="flex flex-col">
+													<div>
+														<input
+															className={styles.modalInput}
+															placeholder="Qtd. cadastros de clientes-motoristas*"
+															type="number"
+															value={clientMotoristCount}
+															onChange={(e) =>
+																setClientMotoristCount(e.target.value)
+															}
+														/>
+													</div>
+													<div>
+														<input
+															className={styles.modalInput}
+															placeholder="Qtd. cadastros de veículos por clientes-motoristas*"
+															type="number"
+															value={vehicleCount}
+															onChange={(e) => setVehicleCount(e.target.value)}
+														/>
+													</div>
+													<div>
+														<input
+															className={styles.modalInput}
+															placeholder="Qtd. de alarmes por KM limite/Data limite por veículo*"
+															type="number"
+															value={alarmCount}
+															onChange={(e) => setAlarmCount(e.target.value)}
+														/>
+													</div>
+													<div>
+														<input
+															className={styles.modalInput}
+															placeholder="Qtd. de alarmes de manutenção por cliente*"
+															type="number"
+															value={maintenanceAlarmCount}
+															onChange={(e) =>
+																setMaintenanceAlarmCount(e.target.value)
+															}
+														/>
+													</div>
+													<p className="self-end text-white text-sm">
+														Campos com (*) são obrigatórios
+													</p>
 												</div>
-												<div>
-													<input
-														className={styles.modalInput}
-														placeholder="Qtd. cadastros de veículos por clientes-motoristas*"
-														type="number"
-														value={vehicleCount}
-														onChange={(e) => setVehicleCount(e.target.value)}
-													/>
-												</div>
-												<div>
-													<input
-														className={styles.modalInput}
-														placeholder="Qtd. de alarmes por KM limite/Data limite por veículo*"
-														type="number"
-														value={alarmCount}
-														onChange={(e) => setAlarmCount(e.target.value)}
-													/>
-												</div>
-												<div>
-													<input
-														className={styles.modalInput}
-														placeholder="Qtd. de alarmes de manutenção por cliente*"
-														type="number"
-														value={maintenanceAlarmCount}
-														onChange={(e) =>
-															setMaintenanceAlarmCount(e.target.value)
-														}
-													/>
-												</div>
-												<p className="self-end text-white text-sm">
-													Campos com (*) são obrigatórios
-												</p>
 												<h2 className={styles.modalLabel}>
 													Fator de disparo de notificação à oficina
 												</h2>
-												<Select
-													value={notificationFactor}
-													onChange={(e) =>
-														setNotificationFactor(e.target.value)
-													}
-												>
-													<SelectItem
-														key={"1"}
-														value="1"
-													>
-														1
-													</SelectItem>
-													<SelectItem
-														key={"2"}
-														value="2"
-													>
-														2
-													</SelectItem>
-													<SelectItem
-														key={"3"}
-														value="3"
-													>
-														3
-													</SelectItem>
-													<SelectItem
-														key={"4"}
-														value="4"
-													>
-														4
-													</SelectItem>
-												</Select>
+												<fieldset className="text-white flex gap-2">
+													<div className="flex flex-col gap-2 w-full">
+														<label htmlFor="workshopKmLimitAlarm">
+															KM Limite
+														</label>
+														<Select
+															name="workshopKmLimitAlarm"
+															className="dark"
+															value={workshopKmNotificationFactor}
+															onChange={(e) =>
+																setWorkshopKmNotificationFactor(e.target.value)
+															}
+														>
+															<SelectItem
+																key={"1000"}
+																value="1000"
+															>
+																1000 km
+															</SelectItem>
+															<SelectItem
+																key={"2000"}
+																value="2000"
+															>
+																2000 km
+															</SelectItem>
+															<SelectItem
+																key={"3000"}
+																value="3000"
+															>
+																3000 km
+															</SelectItem>
+															<SelectItem
+																key={"4000"}
+																value="4000"
+															>
+																4000 km
+															</SelectItem>
+															<SelectItem
+																key={"5000"}
+																value="5000"
+															>
+																5000 km
+															</SelectItem>
+														</Select>
+													</div>
+													<div className="flex flex-col gap-2 w-full">
+														<label htmlFor="workshopDateNotificationFactor">
+															Data Limite
+														</label>
+														<Select
+															name="workshopDateNotificationFactor"
+															className="dark"
+															value={workshopKmNotificationFactor}
+															onChange={(e) =>
+																setWorkshopKmNotificationFactor(e.target.value)
+															}
+														>
+															<SelectItem
+																key={"1"}
+																value="1"
+															>
+																1 dia
+															</SelectItem>
+															<SelectItem
+																key={"5"}
+																value="5"
+															>
+																5 dias
+															</SelectItem>
+															<SelectItem
+																key={"10"}
+																value="10"
+															>
+																10 dias
+															</SelectItem>
+															<SelectItem
+																key={"15 dias"}
+																value="15 dias"
+															>
+																15 dias
+															</SelectItem>
+														</Select>
+													</div>
+												</fieldset>
+												<h2>Fator de disparo de notificação ao usuário</h2>
+												<fieldset className="text-white flex gap-2">
+													<div className="flex flex-col gap-2 w-full">
+														<label htmlFor="userKmLimitNotificationFactor">
+															KM Limite
+														</label>
+														<Select
+															name="userKmLimitNotificationFactor"
+															className="dark"
+															value={userKmNotificationFactor}
+															onChange={(e) =>
+																setUserKmNotificationFactor(e.target.value)
+															}
+														>
+															<SelectItem
+																key={"200"}
+																value="200"
+															>
+																200 km
+															</SelectItem>
+															<SelectItem
+																key={"400"}
+																value="400"
+															>
+																400 km
+															</SelectItem>
+															<SelectItem
+																key={"600"}
+																value="600"
+															>
+																600 km
+															</SelectItem>
+															<SelectItem
+																key={"800"}
+																value="800"
+															>
+																800 km
+															</SelectItem>
+															<SelectItem
+																key={"1000"}
+																value="1000"
+															>
+																1000 km
+															</SelectItem>
+														</Select>
+													</div>
+													<div className="flex flex-col gap-2 w-full">
+														<label htmlFor="userDateNotificationFactor">
+															Data Limite
+														</label>
+														<Select
+															name="userDateNotificationFactor"
+															className="dark"
+															value={userDateNotificationFactor}
+															onChange={(e) =>
+																setUserDateNotificationFactor(e.target.value)
+															}
+														>
+															<SelectItem
+																key={"1"}
+																value="1"
+															>
+																1 dia
+															</SelectItem>
+															<SelectItem
+																key={"2"}
+																value="2"
+															>
+																2 dias
+															</SelectItem>
+															<SelectItem
+																key={"4"}
+																value="4"
+															>
+																4 dias
+															</SelectItem>
+															<SelectItem
+																key={"6"}
+																value="6"
+															>
+																6 dias
+															</SelectItem>
+															<SelectItem
+																key={"8"}
+																value="8"
+															>
+																8 dias
+															</SelectItem>
+															<SelectItem
+																key={"10"}
+																value="10"
+															>
+																10 dias
+															</SelectItem>
+														</Select>
+													</div>
+												</fieldset>
 											</>
 										)}
 									</div>
@@ -570,7 +816,7 @@ export default function OrganizationModal() {
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onClick={tab === "tab4" ? prevPage : nextPage}
+									onClick={tab === "tab4" ? createWorkshop : nextPage}
 								>
 									{tab === "tab4" ? "Adicionar" : "Próximo"}
 								</Button>

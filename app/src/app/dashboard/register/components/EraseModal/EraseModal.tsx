@@ -40,7 +40,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
 		switch (type) {
 			case DeleteModalTypes.driver:
 				collectionName = "clients";
-				updateData = { workshops: arrayRemove() };
+				updateData = { workshops: "" };
 				break;
 			case DeleteModalTypes.vehicle:
 				collectionName = "vehicles";

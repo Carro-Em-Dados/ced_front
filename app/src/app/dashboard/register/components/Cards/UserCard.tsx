@@ -19,7 +19,10 @@ export default function UserCard({ user, setUsers, workshops }: Props) {
 		<div style={{ margin: "0.5em 0" }}>
 			<Accordion className={styles.accordion}>
 				<AccordionItem
-					title={`${user.name} - ${user.email} - ${user.role}`}
+					title={`${user.name} - ${user.email} - ${
+						workshops.find((workshop) => workshop.id === user.workshops)
+							?.fantasy_name || "Nenhuma organização"
+					}`}
 					className={styles.item}
 					startContent={<IoPersonCircle className={styles.personIcon} />}
 				>

@@ -83,9 +83,8 @@ const Register = () => {
 		const workshop = workshops.find((workshop) => workshop.id === id);
 		if (!workshop) return [];
 
-		const clientIds = workshop.clients || [];
-		const matchedDrivers = drivers.filter((driver) =>
-			clientIds.includes(driver.id)
+		const matchedDrivers = drivers.filter(
+			(driver) => driver.workshops === workshop.id
 		);
 		return matchedDrivers;
 	};
@@ -142,14 +141,16 @@ const Register = () => {
 						<div className={styles.driverTab}>
 							{workshops.map((workshop, key) => (
 								<OrganizationCard
-									drivers={getDriversByWorkshop(workshop.id)}
+									workshopDrivers={getDriversByWorkshop(workshop.id)}
 									key={key}
 									workshop={workshop}
 									setWorkshops={setWorkshops}
+									setDrivers={setDrivers}
+									drivers={drivers}
 								/>
 							))}
 							<div className={styles.buttonContainer}>
-								<OrganizationModal />
+								<OrganizationModal setWorkshops={setWorkshops} />
 							</div>
 						</div>
 					</Tab>
