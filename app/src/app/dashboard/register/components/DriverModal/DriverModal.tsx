@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function DriverModal({ setDrivers }: Props) {
-	const { db } = useContext(AuthContext);
+	const { db, currentUser } = useContext(AuthContext);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [name, setName] = useState<string>("");
 	const [age, setAge] = useState<string>("");
@@ -33,25 +33,31 @@ export default function DriverModal({ setDrivers }: Props) {
 	const [cnh, setCNH] = useState<string>("");
 
 	async function handleAddDriver() {
-		let driver = {
-			name: name,
-			age: age,
-			gender: gender,
-			email: email,
-			cnh: cnh,
-			address_commercial: addressCom,
-			address_residential: addressRes,
-			phone_residential: phoneRes,
-			phone_commercial: phoneCom,
-			role: "client",
-			register: register,
-			workshops: [""],
-		};
+		if (currentUser?.workshops || currentUser?.role === "master") {
+			let driver = {
+				name: name,
+				age: age,
+				gender: gender,
+				email: email,
+				cnh: cnh,
+				address_commercial: addressCom,
+				address_residential: addressRes,
+				phone_residential: phoneRes,
+				phone_commercial: phoneCom,
+				role: "client",
+				register: register,
+				workshops: currentUser?.workshops || "",
+			};
 
-		const docRef = await addDoc(collection(db, "clients"), driver).then(() => {
-			setDrivers((drivers) => [...drivers, driver]);
-			onOpenChange();
-		});
+			const docRef = await addDoc(collection(db, "clients"), driver).then(
+				() => {
+					setDrivers((drivers) => [...drivers, driver]);
+					onOpenChange();
+				}
+			);
+			return;
+		}
+		console.log("Nenhuma oficina encontrada no seu usuário");
 	}
 
 	return (

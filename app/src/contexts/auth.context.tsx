@@ -1,4 +1,3 @@
-"use client";
 import {
 	ReactNode,
 	createContext,
@@ -13,7 +12,6 @@ import {
 	signInWithEmailAndPassword,
 	signOut,
 } from "firebase/auth";
-import { FirebaseContext } from "./firebase.context";
 import {
 	addDoc,
 	collection,
@@ -22,15 +20,16 @@ import {
 	getDocs,
 	getFirestore,
 	query,
+	setDoc,
 	where,
 } from "firebase/firestore";
 import { User } from "../interfaces/user.type";
 import { getApps, initializeApp } from "firebase/app";
 
 interface AuthContextData {
-	login: (email: string, password: string) => Promise<any>;
-	logout: () => Promise<any>;
-	signUp: (email: string, password: string) => Promise<any>;
+	login: (email: string, password: string) => Promise<void>;
+	logout: () => Promise<void>;
+	signUp: (email: string, name: string, password: string) => Promise<void>;
 	currentUser: User | undefined;
 	db: any;
 }
@@ -59,73 +58,97 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const db = getFirestore(app);
 
 	const auth = getAuth(app);
-	const [currentUser, setCurrentUser] = useState<User>({
-		email: "teste@teste",
-		uid: "123",
-		role: "master",
-		name: "teste",
-	});
+	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+	const [loading, setLoading] = useState<boolean>(true);
 
-	async function logout() {
-		/* await signOut(auth)
-			.then(() => {
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, async (user) => {
+			if (user) {
+				const docRef = doc(db, "users", user.uid);
+				const docSnap = await getDoc(docRef);
+				if (docSnap.exists()) {
+					setCurrentUser(docSnap.data() as User);
+					localStorage.setItem("user", JSON.stringify(docSnap.data()));
+				}
+			} else {
 				setCurrentUser(undefined);
-			})
-			.catch((error) => {
-				const errorCode = error.code;
-				const errorMessage = error.message;
-				throw `${errorCode}: ${errorMessage}`;
-			}); */
-	}
+				localStorage.removeItem("user");
+			}
+			setLoading(false);
+		});
 
-	async function signUp(email: string, password: string) {
-		/* await createUserWithEmailAndPassword(auth, email, password)
-			.then((userCredential) => {
-				setCurrentUser({
-					email: userCredential.user.email!,
-					name: "Temp",
-					uid: userCredential.user.uid,
-					role: "",
-				});
-			})
-			.catch((error) => {
-				const errorCode = error.code;
-				const errorMessage = error.message;
-				console.log(errorCode, errorMessage);
-			}); */
-	}
+		fetchUserFromLocalStorage();
 
-	async function login(email: string, password: string) {
-		/* let user: User = {
-			email: "",
-			uid: "",
-			role: "",
-			name: "",
-		};
+		return () => unsubscribe();
+	}, [auth, db]);
 
-		await signInWithEmailAndPassword(auth, email, password)
-			.then((userCredential) => {
-				user = {
-					email: userCredential.user.email!,
-					uid: userCredential.user.uid,
-					role: "",
-					name: "",
-				};
-			})
-			.catch((error) => {
-				const errorCode = error.code;
-				const errorMessage = error.message;
-				console.log(errorCode, errorMessage);
-			});
+	const fetchUserFromLocalStorage = () => {
+		const storedUser = localStorage.getItem("user");
+		if (storedUser) {
+			setCurrentUser(JSON.parse(storedUser));
+		}
+	};
 
-		const docRef = doc(db, "users", user.uid);
-		const docSnap = await getDoc(docRef);
+	const logout = async () => {
+		try {
+			await signOut(auth);
+			setCurrentUser(undefined);
+			localStorage.removeItem("user");
+		} catch (error: any) {
+			console.error(`Logout Error (${error.code}): ${error.message}`);
+		}
+	};
 
-		if (docSnap.exists()) {
-			setCurrentUser(docSnap.data() as User);
-			localStorage.setItem("user", JSON.stringify(docSnap.data()));
-		} */
-	}
+	const signUp = async (email: string, name: string, password: string) => {
+		try {
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+
+			const user = {
+				email: userCredential.user.email!,
+				name: name,
+				id: userCredential.user.uid,
+				role: "user",
+			};
+
+			const docRef = doc(db, "users", user.id);
+			await setDoc(docRef, user);
+
+			setCurrentUser(user);
+
+			localStorage.setItem("user", JSON.stringify(user));
+		} catch (error: any) {
+			console.error(`SignUp Error (${error.code}): ${error.message}`);
+		}
+	};
+
+	const login = async (email: string, password: string) => {
+		try {
+			const userCredential = await signInWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+			const user: User = {
+				email: userCredential.user.email!,
+				id: userCredential.user.uid,
+				role: "",
+				name: "",
+			};
+
+			const docRef = doc(db, "users", user.id);
+			const docSnap = await getDoc(docRef);
+			if (docSnap.exists()) {
+				setCurrentUser(docSnap.data() as User);
+				localStorage.setItem("user", JSON.stringify(docSnap.data()));
+			}
+		} catch (error: any) {
+			console.error(`Login Error (${error.code}): ${error.message}`);
+		}
+	};
 
 	return (
 		<AuthContext.Provider value={{ login, logout, signUp, currentUser, db }}>

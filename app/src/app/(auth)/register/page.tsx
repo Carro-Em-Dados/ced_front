@@ -1,6 +1,6 @@
 "use client";
 import React, { useContext, useState } from "react";
-import styles from "./styles.module.scss";
+import styles from "@/app/dashboard/login/styles.module.scss";
 import Image from "next/image";
 import { Input } from "@nextui-org/react";
 import { MdOutlineMailOutline, MdLockOutline } from "react-icons/md";
@@ -8,13 +8,15 @@ import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth.context";
 
-const Login = () => {
-	const { login, currentUser } = useContext(AuthContext);
+const Register = () => {
+	const { signUp } = useContext(AuthContext);
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
+	const [name, setName] = useState<string>("");
 	const [emailValid, setEmailValid] = useState<boolean>(true);
 	const [passwordValid, setPasswordValid] = useState<boolean>(true);
-	const [loginError, setLoginError] = useState<string | null>(null);
+	const [nameValid, setNameValid] = useState<boolean>(true);
+	const [registerError, setRegisterError] = useState<string | null>(null);
 	const router = useRouter();
 
 	const HR = () => {
@@ -55,21 +57,27 @@ const Login = () => {
 		);
 	};
 
-	async function handleLogin() {
+	async function handleSignUp() {
 		if (validateFields()) {
 			try {
-				await login(email, password);
+				await signUp(email, name, password);
 				router.replace("/dashboard");
 			} catch (err) {
-				setEmailValid(false);
-				setPasswordValid(false);
-				setLoginError("Email ou senha inválidos");
+				setRegisterError(
+					"Erro ao registrar usuário. Por favor, tente novamente."
+				);
 			}
 		}
 	}
 
 	function validateFields() {
 		let valid = true;
+		if (!name) {
+			setNameValid(false);
+			valid = false;
+		} else {
+			setNameValid(true);
+		}
 		if (!email) {
 			setEmailValid(false);
 			valid = false;
@@ -90,12 +98,12 @@ const Login = () => {
 			<div className={styles.imageContainer}>
 				<Image
 					src="/car_background1.png"
-					alt="Carro na Página de Login"
+					alt="Carro na Página de Registro"
 					fill
 					style={{ objectFit: "cover" }}
 				/>
 			</div>
-			<div className={styles.contentContainer}>
+			<div className={`${styles.contentContainer} h-full`}>
 				<div className={styles.logoContainer}>
 					<Image
 						src="/logo1.png"
@@ -105,9 +113,18 @@ const Login = () => {
 					/>
 				</div>
 				<div className={styles.titleContainer}>
-					<h1 className={styles.title}>Bem-vindo!</h1>
+					<h1 className={styles.title}>Cadastre-se!</h1>
 					<HR />
 				</div>
+				<h2 className={styles.infoLabel}>Nome</h2>
+				<Input
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					placeholder="Digite seu nome"
+					variant="bordered"
+					isInvalid={!nameValid}
+					className={styles.input}
+				/>
 				<h2 className={styles.infoLabel}>Email</h2>
 				<Input
 					value={email}
@@ -130,17 +147,17 @@ const Login = () => {
 					className={styles.input}
 					endContent={<MdLockOutline style={{ fontSize: "1.8em" }} />}
 				/>
-				{loginError && <p className={styles.error}>{loginError}</p>}
+				{registerError && <p className={styles.error}>{registerError}</p>}
 				<Button
 					color="success"
 					className={styles.button}
-					onClick={handleLogin}
+					onClick={handleSignUp}
 				>
-					ENTRAR
+					REGISTRAR
 				</Button>
 			</div>
 		</div>
 	);
 };
 
-export default Login;
+export default Register;

@@ -45,6 +45,32 @@ const Register = () => {
 		const usersSnapshot = await getDocs(collection(db, "users"));
 		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
 
+		if (currentUser?.role !== "master" && currentUser?.workshops) {
+			const filteredClientsData = clientsSnapshot.docs
+				.map((doc) => {
+					const data = doc.data();
+					return {
+						...data,
+						id: doc.id,
+					} as Driver;
+				})
+				.filter((client) => client.workshops === currentUser.workshops);
+
+			const workshopsData = workshopsSnapshot.docs.map((doc) => ({
+				id: doc.id,
+				...doc.data(),
+			})) as Workshop[];
+
+			const vehiclesData = vehiclesSnapshot.docs.map((doc) => ({
+				id: doc.id,
+				...doc.data(),
+			})) as Vehicle[];
+
+			setDrivers(filteredClientsData);
+			setWorkshops(workshopsData);
+			setVehicles(vehiclesData);
+			return;
+		}
 		const clientsData = clientsSnapshot.docs.map((doc) => ({
 			id: doc.id,
 			...doc.data(),
@@ -118,20 +144,26 @@ const Register = () => {
 						key="drivers"
 						title="Motoristas"
 					>
-						<div className={styles.driverTab}>
-							{drivers.map((driver, key) => (
-								<DriverCard
-									key={key}
-									driver={driver}
-									setDrivers={setDrivers}
-									setVehicles={setVehicles}
-									vehicles={getVehiclesByClient(driver.id)}
-								/>
-							))}
-							<div className={styles.buttonContainer}>
-								<DriverModal setDrivers={setDrivers} />
+						{currentUser?.workshops || currentUser?.role === "master" ? (
+							<div className={styles.driverTab}>
+								{drivers.map((driver, key) => (
+									<DriverCard
+										key={key}
+										driver={driver}
+										setDrivers={setDrivers}
+										setVehicles={setVehicles}
+										vehicles={getVehiclesByClient(driver.id)}
+									/>
+								))}
+								<div className={styles.buttonContainer}>
+									<DriverModal setDrivers={setDrivers} />
+								</div>
 							</div>
-						</div>
+						) : (
+							<p className="text-white text-sm">
+								Você não tem nenhuma oficina cadastrada.
+							</p>
+						)}
 					</Tab>
 					<Tab
 						className={styles.tabButton}
