@@ -7,9 +7,11 @@ import { MdOutlineMailOutline, MdLockOutline } from "react-icons/md";
 import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth.context";
+import { BsGoogle } from "react-icons/bs";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
 
 const Login = () => {
-	const { login, currentUser } = useContext(AuthContext);
+	const { login, loginWithFacebook, loginWithGoogle } = useContext(AuthContext);
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 	const [emailValid, setEmailValid] = useState<boolean>(true);
@@ -108,36 +110,48 @@ const Login = () => {
 					<h1 className={styles.title}>Bem-vindo!</h1>
 					<HR />
 				</div>
-				<h2 className={styles.infoLabel}>Email</h2>
-				<Input
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					type="email"
-					placeholder="Digite seu email"
-					variant="bordered"
-					isInvalid={!emailValid}
-					className={styles.input}
-					endContent={<MdOutlineMailOutline style={{ fontSize: "1.8em" }} />}
-				/>
-				<h2 className={styles.infoLabel}>Senha</h2>
-				<Input
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					type="password"
-					placeholder="Digite sua senha"
-					variant="bordered"
-					isInvalid={!passwordValid}
-					className={styles.input}
-					endContent={<MdLockOutline style={{ fontSize: "1.8em" }} />}
-				/>
-				{loginError && <p className={styles.error}>{loginError}</p>}
-				<Button
-					color="success"
-					className={styles.button}
-					onClick={handleLogin}
-				>
-					ENTRAR
-				</Button>
+				<div className="flex flex-col mb-5">
+					<h2 className={styles.infoLabel}>Email</h2>
+					<Input
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						type="email"
+						placeholder="Digite seu email"
+						variant="bordered"
+						isInvalid={!emailValid}
+						className={styles.input}
+						endContent={<MdOutlineMailOutline style={{ fontSize: "1.8em" }} />}
+					/>
+					<h2 className={styles.infoLabel}>Senha</h2>
+					<Input
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						type="password"
+						placeholder="Digite sua senha"
+						variant="bordered"
+						isInvalid={!passwordValid}
+						className={styles.input}
+						endContent={<MdLockOutline style={{ fontSize: "1.8em" }} />}
+					/>
+					{loginError && <p className={styles.error}>{loginError}</p>}
+					<Button
+						color="success"
+						className={styles.button}
+						onClick={handleLogin}
+					>
+						ENTRAR
+					</Button>
+				</div>
+				<div className="flex flex-row justify-center text-white gap-5">
+					<FaGoogle
+						className="cursor-pointer"
+						onClick={loginWithGoogle}
+					/>
+					<FaFacebook
+						className="cursor-pointer"
+						onClick={loginWithFacebook}
+					/>
+				</div>
 			</div>
 		</div>
 	);

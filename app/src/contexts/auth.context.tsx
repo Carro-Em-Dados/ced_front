@@ -11,23 +11,20 @@ import {
 	onAuthStateChanged,
 	signInWithEmailAndPassword,
 	signOut,
+	signInWithPopup,
+	GoogleAuthProvider,
+	FacebookAuthProvider,
+	setPersistence,
+	browserSessionPersistence,
 } from "firebase/auth";
-import {
-	addDoc,
-	collection,
-	doc,
-	getDoc,
-	getDocs,
-	getFirestore,
-	query,
-	setDoc,
-	where,
-} from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { User } from "../interfaces/user.type";
 import { getApps, initializeApp } from "firebase/app";
 
 interface AuthContextData {
 	login: (email: string, password: string) => Promise<void>;
+	loginWithGoogle: () => Promise<void>;
+	loginWithFacebook: () => Promise<void>;
 	logout: () => Promise<void>;
 	signUp: (email: string, name: string, password: string) => Promise<void>;
 	currentUser: User | undefined;
@@ -44,19 +41,17 @@ export const AuthContext = createContext<AuthContextData>(
 
 export function AuthProvider({ children }: AuthProviderProps) {
 	const firebaseConfig = {
-		apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-		authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-		projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-		storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-		messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-		appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-		measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+		apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+		authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+		projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+		storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+		messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+		appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+		measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 	};
 
-	let app =
-		getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+	const app = initializeApp(firebaseConfig);
 	const db = getFirestore(app);
-
 	const auth = getAuth(app);
 	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -77,7 +72,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			setLoading(false);
 		});
 
-		fetchUserFromLocalStorage();
+		// Configura a persistência da autenticação como SESSION
+		setPersistence(auth, browserSessionPersistence)
+			.then(() => {
+				console.log("Persistência da autenticação configurada com sucesso.");
+			})
+			.catch((error) => {
+				console.error(
+					"Erro ao configurar a persistência da autenticação:",
+					error.message
+				);
+			});
 
 		return () => unsubscribe();
 	}, [auth, db]);
@@ -150,8 +155,88 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 	};
 
+	const loginWithGoogle = async () => {
+		const provider = new GoogleAuthProvider();
+		try {
+			const result = await signInWithPopup(auth, provider);
+			const user = result.user;
+			const docRef = doc(db, "users", user.uid);
+			const docSnap = await getDoc(docRef);
+			if (!docSnap.exists()) {
+				await setDoc(docRef, {
+					email: user.email!,
+					name: user.displayName!,
+					id: user.uid,
+					role: "user",
+				});
+			}
+			setCurrentUser({
+				email: user.email!,
+				name: user.displayName!,
+				id: user.uid,
+				role: "user",
+			});
+			localStorage.setItem(
+				"user",
+				JSON.stringify({
+					email: user.email!,
+					name: user.displayName!,
+					id: user.uid,
+					role: "user",
+				})
+			);
+		} catch (error: any) {
+			console.error(`Google Login Error (${error.code}): ${error.message}`);
+		}
+	};
+
+	const loginWithFacebook = async () => {
+		const provider = new FacebookAuthProvider();
+		try {
+			const result = await signInWithPopup(auth, provider);
+			const user = result.user;
+			const docRef = doc(db, "users", user.uid);
+			const docSnap = await getDoc(docRef);
+			if (!docSnap.exists()) {
+				await setDoc(docRef, {
+					email: user.email!,
+					name: user.displayName!,
+					id: user.uid,
+					role: "user",
+				});
+			}
+			setCurrentUser({
+				email: user.email!,
+				name: user.displayName!,
+				id: user.uid,
+				role: "user",
+			});
+			localStorage.setItem(
+				"user",
+				JSON.stringify({
+					email: user.email!,
+					name: user.displayName!,
+					id: user.uid,
+					role: "user",
+				})
+			);
+		} catch (error: any) {
+			console.error(`Facebook Login Error (${error.code}): ${error.message}`);
+		}
+	};
+
 	return (
-		<AuthContext.Provider value={{ login, logout, signUp, currentUser, db }}>
+		<AuthContext.Provider
+			value={{
+				login,
+				loginWithGoogle,
+				loginWithFacebook,
+				logout,
+				signUp,
+				currentUser,
+				db,
+			}}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

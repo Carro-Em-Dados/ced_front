@@ -1,30 +1,40 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
 import Image from "next/image";
 import { Input } from "@nextui-org/react";
-import { AppUser } from "../../../interfaces/appUser.type";
+import { getDoc, doc } from "firebase/firestore";
+import { User } from "@/interfaces/user.type";
+import { AuthContext } from "@/contexts/auth.context";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Profile = () => {
-	const mockUser: AppUser = {
-		uid: "1",
-		name: "Bruno Miura",
-		role: "user",
-		email: "bruno.miura@conpec.com.br",
-		workshops: [],
-		cpf: "489.044.928-07",
-		phone_residential: "(11)9999-9999",
-		phone_commercial: "(11)99999-9999",
-		address_residential: "Av. Endereço Residencial, 98213",
-		address_commercial: "Av. Endereço Comercial, 1234",
-		gender: "Masculino",
-		age: "23",
-		register: "",
-		cnh: "123456789",
-	};
-	const [currentUser, setCurrentUser] = useState(mockUser);
+	const { db, currentUser: myUser } = useContext(AuthContext);
+	const searchParams = useSearchParams();
+	const userId = searchParams.get("user");
+
+	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+
+	useEffect(() => {
+		const fetchUser = async (id: string) => {
+			const docRef = doc(db, "users", id);
+			const docSnap = await getDoc(docRef);
+			if (docSnap.exists()) {
+				setCurrentUser(docSnap.data() as User);
+			}
+		};
+
+		if (userId) {
+			fetchUser(userId as string);
+		} else {
+			const user = myUser;
+			if (user) {
+				fetchUser(user.id);
+			}
+		}
+	}, [userId]);
 
 	function AdminProfile() {
 		return (
@@ -35,7 +45,7 @@ const Profile = () => {
 					isReadOnly
 					label="Nome"
 					variant="bordered"
-					value={currentUser.name}
+					value={currentUser?.name}
 				/>
 				<Input
 					className={styles.input}
@@ -43,11 +53,12 @@ const Profile = () => {
 					type="email"
 					label="Email"
 					variant="bordered"
-					value={currentUser.email}
+					value={currentUser?.email}
 				/>
 			</>
 		);
 	}
+
 	function UserProfile() {
 		return (
 			<>
@@ -59,7 +70,7 @@ const Profile = () => {
 						type="text"
 						label="Nome"
 						variant="bordered"
-						value={currentUser.name}
+						value={currentUser?.name}
 					/>
 					<span className={styles.horizontalSpace} />
 					<Input
@@ -68,93 +79,7 @@ const Profile = () => {
 						type="email"
 						label="Email"
 						variant="bordered"
-						value={currentUser.email}
-					/>
-				</div>
-				<div className={styles.row}>
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="CPF"
-						variant="bordered"
-						value={currentUser.cpf}
-					/>
-					<span className={styles.horizontalSpace} />
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="CNH"
-						variant="bordered"
-						value={currentUser.cnh}
-					/>
-				</div>
-
-				<div className={styles.row}>
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Telefone Residencial"
-						variant="bordered"
-						value={currentUser.phone_residential}
-					/>
-					<span className={styles.horizontalSpace} />
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Telefone Comercial"
-						variant="bordered"
-						value={currentUser.phone_commercial}
-					/>
-				</div>
-
-				<Input
-					className={styles.input}
-					isReadOnly
-					type="text"
-					label="Endereço Residencial"
-					variant="bordered"
-					value={currentUser.address_residential}
-				/>
-				<Input
-					className={styles.input}
-					isReadOnly
-					type="text"
-					label="Endereço Comercial"
-					variant="bordered"
-					value={currentUser.address_commercial}
-				/>
-				<div className={styles.row}>
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Gênero"
-						variant="bordered"
-						value={currentUser.gender}
-					/>
-					<span className={styles.horizontalSpace} />
-
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Idade"
-						variant="bordered"
-						value={currentUser.age}
-					/>
-				</div>
-				<div className={styles.row}>
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Registro"
-						variant="bordered"
-						value={currentUser.register}
+						value={currentUser?.email}
 					/>
 				</div>
 			</>
@@ -179,9 +104,9 @@ const Profile = () => {
 					</div>
 				</div>
 				<div className={styles.content}>
-					{currentUser.role == "admin" ? (
+					{currentUser?.role == "admin" ? (
 						<AdminProfile />
-					) : currentUser.role == "user" ? (
+					) : currentUser?.role == "user" ? (
 						<UserProfile />
 					) : (
 						<>No user role found</>
