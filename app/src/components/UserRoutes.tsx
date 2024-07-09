@@ -2,15 +2,19 @@
 
 import { AuthContext } from "@/contexts/auth.context";
 import { useRouter } from "next/navigation";
-import { ReactNode, useContext } from "react";
+import { ReactNode, useContext, useEffect } from "react";
 
 interface Props {
-	children?: ReactNode | JSX.Element | JSX.Element[] | string;
+  children?: ReactNode | JSX.Element | JSX.Element[] | string;
 }
 
 export default function UserRoutes({ children }: Props) {
-	const router = useRouter();
-	const { currentUser } = useContext(AuthContext);
+  const router = useRouter();
+  const { currentUser } = useContext(AuthContext);
 
-	return <>{currentUser !== undefined ? children : router.push("/")}</>;
+  useEffect(() => {
+    if (currentUser === undefined) router.push("/");
+  }, [currentUser, router]);
+
+  return children;
 }
