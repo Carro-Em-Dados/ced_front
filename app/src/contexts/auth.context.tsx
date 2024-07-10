@@ -29,6 +29,7 @@ interface AuthContextData {
 	signUp: (email: string, name: string, password: string) => Promise<void>;
 	currentUser: User | undefined;
 	db: any;
+	loading: boolean;
 }
 
 interface AuthProviderProps {
@@ -59,12 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (user) => {
 			if (user) {
-				const docRef = doc(db, "users", user.uid);
-				const docSnap = await getDoc(docRef);
-				if (docSnap.exists()) {
-					setCurrentUser(docSnap.data() as User);
-					localStorage.setItem("user", JSON.stringify(docSnap.data()));
-				}
+				fetchUserFromLocalStorage();
 			} else {
 				setCurrentUser(undefined);
 				localStorage.removeItem("user");
@@ -170,21 +166,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					role: "user",
 				});
 			}
-			setCurrentUser({
-				email: user.email!,
-				name: user.displayName!,
-				id: user.uid,
-				role: "user",
-			});
-			localStorage.setItem(
-				"user",
-				JSON.stringify({
-					email: user.email!,
-					name: user.displayName!,
-					id: user.uid,
-					role: "user",
-				})
-			);
+			if (docSnap.exists()) {
+				setCurrentUser(docSnap.data() as User);
+				localStorage.setItem("user", JSON.stringify(docSnap.data()));
+			}
 		} catch (error: any) {
 			console.error(`Google Login Error (${error.code}): ${error.message}`);
 		}
@@ -205,21 +190,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					role: "user",
 				});
 			}
-			setCurrentUser({
-				email: user.email!,
-				name: user.displayName!,
-				id: user.uid,
-				role: "user",
-			});
-			localStorage.setItem(
-				"user",
-				JSON.stringify({
-					email: user.email!,
-					name: user.displayName!,
-					id: user.uid,
-					role: "user",
-				})
-			);
+			if (docSnap.exists()) {
+				setCurrentUser(docSnap.data() as User);
+				localStorage.setItem("user", JSON.stringify(docSnap.data()));
+			}
 		} catch (error: any) {
 			console.error(`Facebook Login Error (${error.code}): ${error.message}`);
 		}
@@ -235,6 +209,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				signUp,
 				currentUser,
 				db,
+				loading,
 			}}
 		>
 			{children}

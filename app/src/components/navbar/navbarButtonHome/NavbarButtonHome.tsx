@@ -9,7 +9,7 @@ function NavbarButtonHome() {
 	const router = useRouter();
 
 	function handleClick() {
-		router.push("/dashboard/home");
+		router.push("/dashboard/");
 	}
 
 	const icon = () => {

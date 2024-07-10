@@ -4,88 +4,85 @@ import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
 import Image from "next/image";
-import { Input } from "@nextui-org/react";
-import { getDoc, doc } from "firebase/firestore";
+import { Input, Tab, Tabs } from "@nextui-org/react";
+import {
+	getDoc,
+	doc,
+	query,
+	collection,
+	where,
+	getDocs,
+} from "firebase/firestore";
 import { User } from "@/interfaces/user.type";
 import { AuthContext } from "@/contexts/auth.context";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Contract } from "@/interfaces/contract.type";
 
 const Profile = () => {
-	const { db, currentUser: myUser } = useContext(AuthContext);
+	const { db, currentUser: myUser, loading } = useContext(AuthContext);
 	const searchParams = useSearchParams();
 	const userId = searchParams.get("user");
 
 	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+	const [workshop, setWorkshop] = useState<Workshop | undefined>(undefined);
+	const [contract, setContract] = useState<Contract | undefined>(undefined);
 
 	useEffect(() => {
 		const fetchUser = async (id: string) => {
+			if (!db) return;
+
 			const docRef = doc(db, "users", id);
 			const docSnap = await getDoc(docRef);
 			if (docSnap.exists()) {
-				setCurrentUser(docSnap.data() as User);
+				const userData = docSnap.data() as User;
+				setCurrentUser(userData);
+				if (userData.workshops) fetchWorkshop(userData.workshops);
+			}
+		};
+
+		const fetchWorkshop = async (workshopId: string) => {
+			if (!db || !workshopId) return;
+
+			const workshopRef = doc(db, "workshops", workshopId);
+			const workshopSnap = await getDoc(workshopRef);
+			if (workshopSnap.exists()) {
+				setWorkshop(workshopSnap.data() as Workshop);
+				const contractQuery = query(
+					collection(db, "contracts"),
+					where("workshop", "==", workshopId)
+				);
+				const contractSnap = await getDocs(contractQuery);
+				console.log(contractSnap);
+				if (!contractSnap.empty) {
+					setContract(contractSnap.docs[0].data() as Contract);
+				}
 			}
 		};
 
 		if (userId) {
 			fetchUser(userId as string);
+		} else if (myUser) {
+			fetchUser(myUser.id);
 		} else {
-			const user = myUser;
-			if (user) {
-				fetchUser(user.id);
+			const storedUser = localStorage.getItem("user");
+			if (storedUser) {
+				const parsedUser = JSON.parse(storedUser);
+				setCurrentUser(parsedUser);
+				fetchWorkshop(parsedUser.workshops);
 			}
 		}
-	}, [userId]);
-
-	function AdminProfile() {
-		return (
-			<>
-				<p className={styles.subtext}>Minhas informações - Admin</p>
-				<Input
-					className={styles.input}
-					isReadOnly
-					label="Nome"
-					variant="bordered"
-					value={currentUser?.name}
-				/>
-				<Input
-					className={styles.input}
-					isReadOnly
-					type="email"
-					label="Email"
-					variant="bordered"
-					value={currentUser?.email}
-				/>
-			</>
-		);
-	}
+	}, [userId, myUser, db, loading]);
 
 	function UserProfile() {
 		return (
-			<>
-				<p className={styles.subtext}>Minhas informações - Usuário</p>
-				<div className={styles.row}>
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="text"
-						label="Nome"
-						variant="bordered"
-						value={currentUser?.name}
-					/>
-					<span className={styles.horizontalSpace} />
-					<Input
-						className={styles.input}
-						isReadOnly
-						type="email"
-						label="Email"
-						variant="bordered"
-						value={currentUser?.email}
-					/>
+			<div className="flex flex-col gap-5">
+				<div className="flex flex-col text-white">
+					<p>Nome: {currentUser?.name}</p>
 				</div>
-			</>
+			</div>
 		);
 	}
-
 	return (
 		<div className={styles.page}>
 			<Navbar />
@@ -100,18 +97,122 @@ const Profile = () => {
 								style={{ objectFit: "cover" }}
 							/>
 						</div>
-						<h1 className={styles.mainTitle}>Perfil</h1>
+						<div className="flex flex-col gap-0">
+							<h1 className={styles.mainTitle}>Perfil</h1>
+							<p className={styles.subtext}>Minhas informações</p>
+						</div>
 					</div>
 				</div>
-				<div className={styles.content}>
-					{currentUser?.role == "admin" ? (
-						<AdminProfile />
-					) : currentUser?.role == "user" ? (
-						<UserProfile />
-					) : (
-						<>No user role found</>
-					)}
-				</div>
+				<Tabs className={`${styles.tabs} ml-20`}>
+					<Tab
+						className={styles.tabButton}
+						key="profile"
+						title="Perfil"
+					>
+						<div className={`${styles.content} flex flex-col gap-5`}>
+							{currentUser ? (
+								<UserProfile />
+							) : (
+								<p className="text-white">No user found</p>
+							)}
+
+							<div className="text-white w-full flex flex-col">
+								{workshop ? (
+									<div className="flex flex-col gap-10">
+										<div className="flex flex-col gap-5">
+											<p className="text-lg font-bold">Informações básicas</p>
+											<div className="flex flex-col gap-2 text-sm">
+												<p>Número do Contrato: {workshop?.contract_number}</p>
+												<p>
+													Número de Registro: {workshop?.registration_number}
+												</p>
+												<p>Nome Fantasia: {workshop?.fantasy_name}</p>
+												<p>Razão Social: {workshop?.company_name}</p>
+												<p>CNPJ: {workshop?.cnpj}</p>
+												<p>Contato: {workshop?.contact}</p>
+												<p>Telefone: {workshop?.phone}</p>
+												<p>Website: {workshop?.website}</p>
+												<p>Email: {workshop?.email}</p>
+												<p>Código do Estado: {workshop?.state_code}</p>
+												<p>Código da Cidade: {workshop?.city_code}</p>
+												<p>CNAE: {workshop?.cnae1}</p>
+												<p>Endereço: {workshop?.address}</p>
+												<p>Ramo: {workshop?.branch}</p>
+												<p>
+													Quantidade de Colaboradores:{" "}
+													{workshop?.collaborators_amount}
+												</p>
+												<p>Trabalhadores Ativos: {workshop?.active_workers}</p>
+												<p>Ticket Médio: {workshop?.average_ticket}</p>
+												<p>Meta Mensal: {workshop?.monthly_goal}</p>
+												<p>Faturamento: {workshop?.revenue}</p>
+												<p>
+													Inscrição Estadual: {workshop?.state_registration}
+												</p>
+												<p>
+													Inscrição Municipal:{" "}
+													{workshop?.municipal_registration}
+												</p>
+											</div>
+										</div>
+										<div className="flex flex-col gap-5">
+											<p className="text-lg font-bold">Redes sociais</p>
+											<div className="flex flex-col gap-2 text-sm">
+												<p>Instagram: {workshop?.social.instagram}</p>
+												<p>Facebook: {workshop?.social.facebook}</p>
+												<p>YouTube: {workshop?.social.youtube}</p>
+												<p>LinkedIn: {workshop?.social.linkedin}</p>
+												<p>Twitter: {workshop?.social.twitter}</p>
+												<p>Outros: {workshop?.social.others}</p>
+											</div>
+										</div>
+									</div>
+								) : (
+									<p className="text-white">No workshop found</p>
+								)}
+							</div>
+						</div>
+					</Tab>
+
+					<Tab
+						className={styles.tabButton}
+						key="contracts"
+						title="Informações de contrato"
+					>
+						<div className="text-white w-full flex flex-col gap-10 ml-24">
+							{contract ? (
+								<>
+									<div className="flex flex-col gap-5">
+										<p className="text-lg font-bold">Informações de contrato</p>
+										<div className="flex flex-col gap-2 text-sm">
+											<p>
+												Quantidade de cadastros de clientes-motoristas:{" "}
+												{contract.maxDrivers}{" "}
+											</p>
+											<p>
+												Quantidade de cadastros de veículos por
+												clientes-motoristas: {contract.maxVehiclesPerDriver}
+											</p>
+											<p>
+												Quantidade de alarmes por KM limite/Data limite por
+												veículo: {contract.maxAlarmsPerVehicle}
+											</p>
+										</div>
+									</div>
+									<div className="flex flex-col gap-5">
+										<p className="text-lg font-bold">Fator de notificação</p>
+										<div className="flex flex-col gap-2 text-sm">
+											<p>KM Limite: {contract.workshopKmLimitAlarm}</p>
+											<p>Data Limite: {contract.workshopDateLimitAlarm}</p>
+										</div>
+									</div>
+								</>
+							) : (
+								<p className="text-white">No contract found</p>
+							)}
+						</div>
+					</Tab>
+				</Tabs>
 			</div>
 			<Footer />
 		</div>
