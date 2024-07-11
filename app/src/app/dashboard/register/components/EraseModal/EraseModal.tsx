@@ -34,8 +34,8 @@ export default function EraseModal({ id, type, name, state }: Props) {
 
 	const deleteItem = async () => {
 		console.log(type);
-		let collectionName;
-		let updateData;
+		let collectionName: string;
+		let updateData: any;
 
 		switch (type) {
 			case DeleteModalTypes.driver:
@@ -61,10 +61,15 @@ export default function EraseModal({ id, type, name, state }: Props) {
 		try {
 			if (updateData) {
 				await updateDoc(docRef, updateData);
+				state((prevState) =>
+					prevState.map((item) =>
+						item.id === id ? { ...item, ...updateData } : item
+					)
+				);
 			} else {
 				await deleteDoc(docRef);
+				state((prevState) => prevState.filter((item) => item.id !== id));
 			}
-			state((prevState) => prevState.filter((item) => item.id !== id));
 			onOpenChange();
 		} catch (error) {
 			console.error("Erro ao deletar: ", error);

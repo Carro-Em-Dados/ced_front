@@ -68,17 +68,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			setLoading(false);
 		});
 
-		// Configura a persistência da autenticação como SESSION
-		setPersistence(auth, browserSessionPersistence)
-			.then(() => {
-				console.log("Persistência da autenticação configurada com sucesso.");
-			})
-			.catch((error) => {
-				console.error(
-					"Erro ao configurar a persistência da autenticação:",
-					error.message
-				);
-			});
+		setPersistence(auth, browserSessionPersistence).catch((error) => {
+			console.error(
+				"Erro ao configurar a persistência da autenticação:",
+				error.message
+			);
+		});
 
 		return () => unsubscribe();
 	}, [auth, db]);

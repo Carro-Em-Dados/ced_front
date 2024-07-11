@@ -13,8 +13,9 @@ import {
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
 import clsx from "clsx";
-import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 
 interface Props {
 	setUsers: React.Dispatch<React.SetStateAction<any[]>>;
@@ -25,31 +26,39 @@ export default function UserModal({ setUsers }: Props) {
 	const { db } = useContext(AuthContext);
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [role, setRole] = useState("user");
 
 	const addUser = async () => {
 		try {
-			const usersRef = collection(db, "users");
-			const newUserRef = await addDoc(usersRef, {
-				name: name,
-				email: email,
-				role: role,
-				workshops: [],
-			});
+			const auth = getAuth();
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+
 			const newUser = {
-				id: newUserRef.id,
+				email: userCredential.user.email!,
 				name: name,
-				email: email,
+				id: userCredential.user.uid,
 				role: role,
 				workshops: [],
 			};
+
+			const docRef = doc(db, "users", newUser.id);
+			await setDoc(docRef, newUser);
+
 			setUsers((prevUsers) => [...prevUsers, newUser]);
 			setName("");
 			setEmail("");
+			setPassword("");
 			setRole("user");
 			onOpenChange();
-		} catch (error) {
-			console.error("Erro ao adicionar usuário:", error);
+		} catch (error: any) {
+			console.error(
+				`Erro ao adicionar usuário (${error.code}): ${error.message}`
+			);
 		}
 	};
 
@@ -91,8 +100,18 @@ export default function UserModal({ setUsers }: Props) {
 										<input
 											className={styles.modalInput}
 											placeholder="E-mail"
+											type="email"
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
+										/>
+									</div>
+									<div>
+										<input
+											className={styles.modalInput}
+											placeholder="Senha"
+											type="password"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
 										/>
 									</div>
 									<div>
