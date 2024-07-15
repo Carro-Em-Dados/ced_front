@@ -18,6 +18,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
+import EditContractModal from "../register/components/ContractsModal/EditContractModal";
 
 const Profile = () => {
 	const { db, currentUser: myUser, loading } = useContext(AuthContext);
@@ -55,7 +56,12 @@ const Profile = () => {
 				const contractSnap = await getDocs(contractQuery);
 				console.log(contractSnap);
 				if (!contractSnap.empty) {
-					setContract(contractSnap.docs[0].data() as Contract);
+					const contractData = contractSnap.docs[0].data() as Contract;
+					const contractWithId = {
+						...contractData,
+						id: contractSnap.docs[0].id,
+					};
+					setContract(contractWithId);
 				}
 			}
 		};
@@ -103,7 +109,11 @@ const Profile = () => {
 						</div>
 					</div>
 				</div>
-				<Tabs className={`${styles.tabs} ml-20`}>
+				<Tabs
+					className={`${styles.tabs} ml-20`}
+					disabledKeys={(myUser?.role !== "master" && ["profile"]) || []}
+					key={myUser?.role === "master" ? "profile" : "contracts"}
+				>
 					<Tab
 						className={styles.tabButton}
 						key="profile"
@@ -206,6 +216,12 @@ const Profile = () => {
 											<p>Data Limite: {contract.workshopDateLimitAlarm}</p>
 										</div>
 									</div>
+									{myUser?.role === "master" && (
+										<EditContractModal
+											contract={contract}
+											setContract={setContract}
+										/>
+									)}
 								</>
 							) : (
 								<p className="text-white">No contract found</p>

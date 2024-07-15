@@ -1,6 +1,7 @@
 export interface Contract {
 	id: string;
 	maxDrivers: number;
+	maxManuntenanceAlarmsPerUser: number;
 	maxVehiclesPerDriver: number;
 	maxAlarmsPerVehicle: number;
 	workshopKmLimitAlarm: number;

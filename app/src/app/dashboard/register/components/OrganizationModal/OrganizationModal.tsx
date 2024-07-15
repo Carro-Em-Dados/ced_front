@@ -212,6 +212,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 
 			const contract = {
 				maxAlarmsPerVehicle: +alarmCount,
+				maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
 				maxDrivers: +clientMotoristCount,
 				maxVehiclesPerDriver: +vehicleCount,
 				workshopKmLimitAlarm: +workshopKmNotificationFactor,
@@ -486,9 +487,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														<Select
 															name="workshopDateNotificationFactor"
 															className="dark"
-															value={workshopKmNotificationFactor}
+															value={workshopDateNotificationFactor}
 															onChange={(e) =>
-																setWorkshopKmNotificationFactor(e.target.value)
+																setWorkshopDateNotificationFactor(
+																	e.target.value
+																)
 															}
 														>
 															<SelectItem
