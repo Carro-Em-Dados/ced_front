@@ -16,6 +16,7 @@ import {
 	FacebookAuthProvider,
 	setPersistence,
 	browserSessionPersistence,
+	Auth,
 } from "firebase/auth";
 import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { User } from "../interfaces/user.type";
@@ -30,6 +31,7 @@ interface AuthContextData {
 	currentUser: User | undefined;
 	db: any;
 	loading: boolean;
+	auth: Auth;
 }
 
 interface AuthProviderProps {
@@ -205,6 +207,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				currentUser,
 				db,
 				loading,
+				auth,
 			}}
 		>
 			{children}

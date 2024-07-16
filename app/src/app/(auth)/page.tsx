@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth.context";
 import { BsGoogle } from "react-icons/bs";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
+import { sendPasswordResetEmail } from "firebase/auth";
+import ForgotPasswordModal from "./components/ForgotPasswordModal";
 
 const Login = () => {
 	const { login, loginWithFacebook, loginWithGoogle } = useContext(AuthContext);
@@ -141,16 +143,23 @@ const Login = () => {
 					>
 						ENTRAR
 					</Button>
+					<p className="text-white text-sm mt-5">
+						Esqueceu sua senha? <ForgotPasswordModal />
+					</p>
 				</div>
-				<div className="flex flex-row justify-center text-white gap-5">
-					<FaGoogle
-						className="cursor-pointer"
+				<div className="flex flex-row justify-center text-white gap-2">
+					<div
+						className="cursor-pointer p-2 bg-[#27A338] rounded-full"
 						onClick={loginWithGoogle}
-					/>
-					<FaFacebook
-						className="cursor-pointer"
+					>
+						<FaGoogle />
+					</div>
+					<div
+						className="cursor-pointer p-2 bg-[#27A338] rounded-full"
 						onClick={loginWithFacebook}
-					/>
+					>
+						<FaFacebook />
+					</div>
 				</div>
 			</div>
 		</div>
