@@ -6,13 +6,24 @@ import {
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
+	Select,
+	SelectItem,
 	useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
-import { addDoc, collection } from "firebase/firestore";
-import { useContext, useState } from "react";
+import {
+	addDoc,
+	collection,
+	doc,
+	getDocs,
+	query,
+	updateDoc,
+	where,
+} from "firebase/firestore";
+import { useContext, useEffect, useState } from "react";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
+import { Workshop } from "@/interfaces/workshop.type";
 
 interface Props {
 	setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
@@ -31,34 +42,145 @@ export default function DriverModal({ setDrivers }: Props) {
 	const [addressCom, setAddressCom] = useState<string>("");
 	const [register, setRegister] = useState<string>("");
 	const [cnh, setCNH] = useState<string>("");
+	const [workshops, setWorkshops] = useState<Workshop[]>([]);
+	const [selectedWorkshop, setSelectedWorkshop] = useState<string>("");
 
-	async function handleAddDriver() {
+	useEffect(() => {
+		if (currentUser?.role === "master") {
+			loadAllWorkshops();
+		}
+	}, [currentUser?.role]);
+
+	const handleAddDriver = async () => {
 		if (currentUser?.workshops || currentUser?.role === "master") {
-			let driver = {
-				name: name,
-				age: age,
-				gender: gender,
-				email: email,
-				cnh: cnh,
-				address_commercial: addressCom,
-				address_residential: addressRes,
-				phone_residential: phoneRes,
-				phone_commercial: phoneCom,
-				role: "client",
-				register: register,
-				workshops: currentUser?.workshops || "",
-			};
+			try {
+				const querySnapshot = await getDocs(
+					query(collection(db, "clients"), where("email", "==", email))
+				);
 
-			const docRef = await addDoc(collection(db, "clients"), driver).then(
-				() => {
-					setDrivers((drivers) => [...drivers, driver]);
+				if (!querySnapshot.empty) {
+					const existingDriverDoc = querySnapshot.docs[0];
+					const existingDriver = existingDriverDoc.data();
+
+					if (existingDriver.workshops) {
+						alert(
+							"Já existe um motorista com esse email associado a uma oficina."
+						);
+						return;
+					}
+
+					const updatedDriver = {
+						name: name || existingDriver.name,
+						age: age || existingDriver.age,
+						gender: gender || existingDriver.gender,
+						email: email,
+						cnh: cnh || existingDriver.cnh,
+						address_commercial: addressCom || existingDriver.address_commercial,
+						address_residential:
+							addressRes || existingDriver.address_residential,
+						phone_residential: phoneRes || existingDriver.phone_residential,
+						phone_commercial: phoneCom || existingDriver.phone_commercial,
+						role: "client",
+						register: register || existingDriver.register,
+						workshops: selectedWorkshop || existingDriver.workshops,
+					};
+
+					await updateDoc(
+						doc(db, "clients", existingDriverDoc.id),
+						updatedDriver
+					);
+
+					setDrivers((drivers) =>
+						drivers.map((drv) =>
+							drv.email === email ? { ...drv, ...updatedDriver } : drv
+						)
+					);
 					onOpenChange();
+					return;
 				}
-			);
+
+				let driver = {
+					name: name,
+					age: age,
+					gender: gender,
+					email: email,
+					cnh: cnh,
+					address_commercial: addressCom,
+					address_residential: addressRes,
+					phone_residential: phoneRes,
+					phone_commercial: phoneCom,
+					role: "client",
+					register: register,
+					workshops:
+						currentUser?.role === "master"
+							? selectedWorkshop
+							: currentUser?.workshops || "",
+				};
+
+				const docRef = await addDoc(collection(db, "clients"), driver);
+				setDrivers((drivers) => [...drivers, { ...driver, id: docRef.id }]);
+				onOpenChange();
+			} catch (error) {
+				console.log("Erro ao adicionar motorista:", error);
+			}
 			return;
 		}
 		console.log("Nenhuma oficina encontrada no seu usuário");
-	}
+	};
+
+	const queryDrivers = async () => {
+		try {
+			const q = query(
+				collection(db, "clients"),
+				where("email", "==", email),
+				where("workshops", "==", "")
+			);
+			const querySnapshot = await getDocs(q);
+			if (!querySnapshot.empty) {
+				querySnapshot.forEach((doc) => {
+					const driverData = doc.data();
+					console.log(driverData);
+					setName(driverData.name || "");
+					setAge(driverData.age || "");
+					setGender(driverData.gender || "");
+					setPhoneRes(driverData.phone_residential || "");
+					setPhoneCom(driverData.phone_commercial || "");
+					setAddressRes(driverData.address_residential || "");
+					setAddressCom(driverData.address_commercial || "");
+					setRegister(driverData.register || "");
+					setCNH(driverData.cnh || "");
+				});
+			} else {
+				setName("");
+				setAge("");
+				setGender("");
+				setPhoneRes("");
+				setPhoneCom("");
+				setAddressRes("");
+				setAddressCom("");
+				setRegister("");
+				setCNH("");
+			}
+		} catch (error) {
+			console.error("Error querying drivers:", error);
+		}
+	};
+
+	const loadAllWorkshops = async () => {
+		try {
+			const querySnapshot = await getDocs(collection(db, "workshops"));
+			const workshopsList: Workshop[] = querySnapshot.docs.map(
+				(doc) =>
+					({
+						id: doc.id,
+						...doc.data(),
+					} as Workshop)
+			);
+			setWorkshops(workshopsList);
+		} catch (error) {
+			console.error("Error loading workshops: ", error);
+		}
+	};
 
 	return (
 		<>
@@ -90,6 +212,16 @@ export default function DriverModal({ setDrivers }: Props) {
 									<div>
 										<input
 											className={styles.modalInput}
+											placeholder="E-mail"
+											type="email"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											onBlur={queryDrivers}
+										/>
+									</div>
+									<div>
+										<input
+											className={styles.modalInput}
 											placeholder="Nome"
 											value={name}
 											onChange={(e) => setName(e.target.value)}
@@ -108,14 +240,6 @@ export default function DriverModal({ setDrivers }: Props) {
 											placeholder="Gênero"
 											value={gender}
 											onChange={(e) => setGender(e.target.value)}
-										/>
-									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="E-mail"
-											value={email}
-											onChange={(e) => setEmail(e.target.value)}
 										/>
 									</div>
 									<div>
@@ -157,6 +281,25 @@ export default function DriverModal({ setDrivers }: Props) {
 											onChange={(e) => setCNH(e.target.value)}
 										/>
 									</div>
+									{currentUser?.role === "master" && (
+										<div>
+											<Select
+												name="workshops"
+												className="dark"
+												value={selectedWorkshop}
+												onChange={(e) => setSelectedWorkshop(e.target.value)}
+											>
+												{workshops.map((workshop) => (
+													<SelectItem
+														key={workshop.id}
+														value={workshop.id}
+													>
+														{workshop.fantasy_name}
+													</SelectItem>
+												))}
+											</Select>
+										</div>
+									)}
 								</div>
 							</ModalBody>
 							<ModalFooter>
@@ -170,6 +313,7 @@ export default function DriverModal({ setDrivers }: Props) {
 								<Button
 									color="success"
 									className={styles.modalButton}
+									disabled={!email}
 									onPress={() => {
 										handleAddDriver();
 										onClose();

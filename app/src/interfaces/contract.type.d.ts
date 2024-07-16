@@ -9,5 +9,4 @@ export interface Contract {
 	userKmLimitAlarm: number;
 	userDateLimitAlarm: number;
 	trialPeriod: number;
-	workshop: string;
 }

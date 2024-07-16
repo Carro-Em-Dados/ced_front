@@ -30,4 +30,5 @@ export interface Workshop {
 	state_registration: string;
 	municipal_registration: string;
 	clients: string[];
+	contract_id: string;
 }

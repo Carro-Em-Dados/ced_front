@@ -49,12 +49,11 @@ const Profile = () => {
 			const workshopSnap = await getDoc(workshopRef);
 			if (workshopSnap.exists()) {
 				setWorkshop(workshopSnap.data() as Workshop);
-				const contractQuery = query(
+				/* const contractQuery = query(
 					collection(db, "contracts"),
 					where("workshop", "==", workshopId)
 				);
 				const contractSnap = await getDocs(contractQuery);
-				console.log(contractSnap);
 				if (!contractSnap.empty) {
 					const contractData = contractSnap.docs[0].data() as Contract;
 					const contractWithId = {
@@ -62,7 +61,7 @@ const Profile = () => {
 						id: contractSnap.docs[0].id,
 					};
 					setContract(contractWithId);
-				}
+				} */
 			}
 		};
 
@@ -111,8 +110,7 @@ const Profile = () => {
 				</div>
 				<Tabs
 					className={`${styles.tabs} ml-20`}
-					disabledKeys={(myUser?.role !== "master" && ["profile"]) || []}
-					key={myUser?.role === "master" ? "profile" : "contracts"}
+					key="profile"
 				>
 					<Tab
 						className={styles.tabButton}
@@ -181,51 +179,6 @@ const Profile = () => {
 									<p className="text-white">No workshop found</p>
 								)}
 							</div>
-						</div>
-					</Tab>
-
-					<Tab
-						className={styles.tabButton}
-						key="contracts"
-						title="Informações de contrato"
-					>
-						<div className="text-white w-full flex flex-col gap-10 ml-24">
-							{contract ? (
-								<>
-									<div className="flex flex-col gap-5">
-										<p className="text-lg font-bold">Informações de contrato</p>
-										<div className="flex flex-col gap-2 text-sm">
-											<p>
-												Quantidade de cadastros de clientes-motoristas:{" "}
-												{contract.maxDrivers}{" "}
-											</p>
-											<p>
-												Quantidade de cadastros de veículos por
-												clientes-motoristas: {contract.maxVehiclesPerDriver}
-											</p>
-											<p>
-												Quantidade de alarmes por KM limite/Data limite por
-												veículo: {contract.maxAlarmsPerVehicle}
-											</p>
-										</div>
-									</div>
-									<div className="flex flex-col gap-5">
-										<p className="text-lg font-bold">Fator de notificação</p>
-										<div className="flex flex-col gap-2 text-sm">
-											<p>KM Limite: {contract.workshopKmLimitAlarm}</p>
-											<p>Data Limite: {contract.workshopDateLimitAlarm}</p>
-										</div>
-									</div>
-									{myUser?.role === "master" && (
-										<EditContractModal
-											contract={contract}
-											setContract={setContract}
-										/>
-									)}
-								</>
-							) : (
-								<p className="text-white">No contract found</p>
-							)}
 						</div>
 					</Tab>
 				</Tabs>

@@ -171,58 +171,58 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	};
 
 	const createWorkshop = async () => {
-		const workshop = {
-			fantasy_name: fantasyName,
-			contract_number: +contractNumber,
-			registration_number: +registrationNumber,
-			company_name: corporateName,
-			cnpj: cnpj,
-			email: email,
-			phone: phone,
-			contact: contact,
-			address: address,
-			website: website,
-			cnae1: cnae,
-			cnae2: cnaeOthers,
-			collaborators_amount: +employeesCount,
-			active_workers: +productiveVacanciesCount,
-			branch: branch,
-			average_ticket: +averageTicket,
-			billing: +billing,
-			monthly_goal: +monthlyFinancialGoal,
-			state_registration: stateRegistration,
-			municipal_registration: municipalRegistration,
-			social: {
-				instagram,
-				facebook,
-				youtube,
-				linkedin,
-				twitter,
-				other1,
-				other2,
-			},
+		const contract = {
+			maxAlarmsPerVehicle: +alarmCount,
+			maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
+			maxDrivers: +clientMotoristCount,
+			maxVehiclesPerDriver: +vehicleCount,
+			workshopKmLimitAlarm: +workshopKmNotificationFactor,
+			workshopDateLimitAlarm: +workshopDateNotificationFactor,
+			userKmLimitAlarm: +userKmNotificationFactor,
+			userDateLimitAlarm: +userDateNotificationFactor,
+			trialPeriod: 7,
 		};
 
 		try {
-			const docRef = await addDoc(collection(db, "workshops"), workshop);
+			const contractRef = await addDoc(collection(db, "contracts"), contract);
+
+			const workshop = {
+				fantasy_name: fantasyName,
+				contract_number: +contractNumber,
+				registration_number: +registrationNumber,
+				company_name: corporateName,
+				cnpj: cnpj,
+				email: email,
+				phone: phone,
+				contact: contact,
+				address: address,
+				website: website,
+				cnae1: cnae,
+				cnae2: cnaeOthers,
+				collaborators_amount: +employeesCount,
+				active_workers: +productiveVacanciesCount,
+				branch: branch,
+				average_ticket: +averageTicket,
+				billing: +billing,
+				monthly_goal: +monthlyFinancialGoal,
+				state_registration: stateRegistration,
+				municipal_registration: municipalRegistration,
+				social: {
+					instagram,
+					facebook,
+					youtube,
+					linkedin,
+					twitter,
+					other1,
+					other2,
+				},
+				contract: profileType === "basic" ? "basic" : contractRef.id,
+			};
+			const workshopRef = await addDoc(collection(db, "workshops"), workshop);
 			setWorkshops((workshops) => [
 				...workshops,
-				{ ...workshop, id: docRef.id },
+				{ ...workshop, id: workshopRef.id },
 			]);
-
-			const contract = {
-				maxAlarmsPerVehicle: +alarmCount,
-				maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
-				maxDrivers: +clientMotoristCount,
-				maxVehiclesPerDriver: +vehicleCount,
-				workshopKmLimitAlarm: +workshopKmNotificationFactor,
-				workshopDateLimitAlarm: +workshopDateNotificationFactor,
-				userKmLimitAlarm: +userKmNotificationFactor,
-				userDateLimitAlarm: +userDateNotificationFactor,
-				trialPeriod: 7,
-				workshop: docRef.id,
-			};
-			await addDoc(collection(db, "contracts"), contract);
 			onOpenChange();
 		} catch (error) {
 			console.log(error);
@@ -321,6 +321,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 												className={styles.modalInput}
 												placeholder="E-mail*"
 												value={email}
+												type="email"
 												onChange={(e) => setEmail(e.target.value)}
 											/>
 										</div>
