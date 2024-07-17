@@ -19,11 +19,12 @@ import { useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 import EditContractModal from "../register/components/ContractsModal/EditContractModal";
+import EditBasicContract from "./components/EditBasicContract";
 
 const Profile = () => {
 	const { db, currentUser: myUser, loading } = useContext(AuthContext);
-	const searchParams = useSearchParams();
-	const userId = searchParams.get("user");
+	//const searchParams = useSearchParams();
+	//const userId = searchParams.get("user");
 
 	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
 	const [workshop, setWorkshop] = useState<Workshop | undefined>(undefined);
@@ -65,7 +66,7 @@ const Profile = () => {
 			}
 		};
 
-		if (userId) {
+		/* if (userId) {
 			fetchUser(userId as string);
 		} else if (myUser) {
 			fetchUser(myUser.id);
@@ -76,8 +77,19 @@ const Profile = () => {
 				setCurrentUser(parsedUser);
 				fetchWorkshop(parsedUser.workshops);
 			}
+		} */
+
+		if (myUser) {
+			fetchUser(myUser.id);
+		} else {
+			const storedUser = localStorage.getItem("user");
+			if (storedUser) {
+				const parsedUser = JSON.parse(storedUser);
+				setCurrentUser(parsedUser);
+				fetchWorkshop(parsedUser.workshops);
+			}
 		}
-	}, [userId, myUser, db, loading]);
+	}, [/* userId,  */ myUser, db, loading]);
 
 	function UserProfile() {
 		return (
@@ -109,11 +121,15 @@ const Profile = () => {
 					</div>
 				</div>
 				<Tabs
-					className={`${styles.tabs} ml-20`}
+					className={`${styles.tabs} mx-20`}
 					key="profile"
+					disabledKeys={myUser?.role !== "master" ? ["contract"] : []}
+					classNames={{
+						tabContent:
+							"group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
+					}}
 				>
 					<Tab
-						className={styles.tabButton}
 						key="profile"
 						title="Perfil"
 					>
@@ -166,12 +182,12 @@ const Profile = () => {
 										<div className="flex flex-col gap-5">
 											<p className="text-lg font-bold">Redes sociais</p>
 											<div className="flex flex-col gap-2 text-sm">
-												<p>Instagram: {workshop?.social.instagram}</p>
-												<p>Facebook: {workshop?.social.facebook}</p>
-												<p>YouTube: {workshop?.social.youtube}</p>
-												<p>LinkedIn: {workshop?.social.linkedin}</p>
-												<p>Twitter: {workshop?.social.twitter}</p>
-												<p>Outros: {workshop?.social.others}</p>
+												<p>Instagram: {workshop?.social?.instagram}</p>
+												<p>Facebook: {workshop?.social?.facebook}</p>
+												<p>YouTube: {workshop?.social?.youtube}</p>
+												<p>LinkedIn: {workshop?.social?.linkedin}</p>
+												<p>Twitter: {workshop?.social?.twitter}</p>
+												<p>Outros: {workshop?.social?.others}</p>
 											</div>
 										</div>
 									</div>
@@ -180,6 +196,13 @@ const Profile = () => {
 								)}
 							</div>
 						</div>
+					</Tab>
+
+					<Tab
+						key="contract"
+						title="Informações do contrato básico"
+					>
+						<EditBasicContract />
 					</Tab>
 				</Tabs>
 			</div>

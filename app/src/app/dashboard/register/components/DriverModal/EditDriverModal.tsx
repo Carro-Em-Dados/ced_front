@@ -108,6 +108,14 @@ export default function EditDriverModal({ id, setDrivers }: Props) {
 									<div>
 										<input
 											className={styles.modalInput}
+											placeholder="E-mail"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+										/>
+									</div>
+									<div>
+										<input
+											className={styles.modalInput}
 											placeholder="Nome"
 											value={name}
 											onChange={(e) => setName(e.target.value)}
@@ -129,14 +137,6 @@ export default function EditDriverModal({ id, setDrivers }: Props) {
 											placeholder="Gênero"
 											value={gender}
 											onChange={(e) => setGender(e.target.value)}
-										/>
-									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="E-mail"
-											value={email}
-											onChange={(e) => setEmail(e.target.value)}
 										/>
 									</div>
 									<div>

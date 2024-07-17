@@ -138,13 +138,33 @@ const Register = () => {
 					disabledKeys={
 						(currentUser?.role !== "master" && ["organizations", "users"]) || []
 					}
+					classNames={{
+						tabContent:
+							"group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
+					}}
 				>
 					<Tab
-						className={styles.tabButton}
 						key="drivers"
 						title="Motoristas"
 					>
-						{currentUser?.workshops || currentUser?.role === "master" ? (
+						{currentUser?.workshops && currentUser?.role !== "master" ? (
+							<div className={styles.driverTab}>
+								{getDriversByWorkshop(currentUser?.workshops).map(
+									(driver, key) => (
+										<DriverCard
+											key={key}
+											driver={driver}
+											setDrivers={setDrivers}
+											setVehicles={setVehicles}
+											vehicles={getVehiclesByClient(driver.id)}
+										/>
+									)
+								)}
+								<div className={styles.buttonContainer}>
+									<DriverModal setDrivers={setDrivers} />
+								</div>
+							</div>
+						) : currentUser?.role === "master" ? (
 							<div className={styles.driverTab}>
 								{drivers.map((driver, key) => (
 									<DriverCard
@@ -166,7 +186,6 @@ const Register = () => {
 						)}
 					</Tab>
 					<Tab
-						className={styles.tabButton}
 						key="organizations"
 						title="Organizações"
 					>

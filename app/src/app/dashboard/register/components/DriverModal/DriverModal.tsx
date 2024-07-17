@@ -95,6 +95,16 @@ export default function DriverModal({ setDrivers }: Props) {
 							drv.email === email ? { ...drv, ...updatedDriver } : drv
 						)
 					);
+					setName("");
+					setAge("");
+					setGender("");
+					setPhoneRes("");
+					setPhoneCom("");
+					setAddressRes("");
+					setAddressCom("");
+					setRegister("");
+					setCNH("");
+					setEmail("");
 					onOpenChange();
 					return;
 				}

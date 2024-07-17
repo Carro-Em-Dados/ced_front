@@ -398,6 +398,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															onChange={(e) =>
 																setClientMotoristCount(e.target.value)
 															}
+															aria-label="Qtd. cadastros de clientes-motoristas*"
 														/>
 													</div>
 													<div>
@@ -407,6 +408,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															type="number"
 															value={vehicleCount}
 															onChange={(e) => setVehicleCount(e.target.value)}
+															aria-label="Qtd. cadastros de veículos por clientes-motoristas*"
 														/>
 													</div>
 													<div>
@@ -416,6 +418,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															type="number"
 															value={alarmCount}
 															onChange={(e) => setAlarmCount(e.target.value)}
+															aria-label="Qtd. de alarmes por KM limite/Data limite por veículo*"
 														/>
 													</div>
 													<div>
@@ -427,6 +430,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															onChange={(e) =>
 																setMaintenanceAlarmCount(e.target.value)
 															}
+															aria-label="Qtd. de alarmes de manutenção por cliente*"
 														/>
 													</div>
 													<p className="self-end text-white text-sm">
@@ -448,6 +452,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															onChange={(e) =>
 																setWorkshopKmNotificationFactor(e.target.value)
 															}
+															aria-label="workshopKmLimitAlarm"
 														>
 															<SelectItem
 																key={"1000"}
@@ -494,6 +499,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 																	e.target.value
 																)
 															}
+															aria-label="workshopDateNotificationFactor"
 														>
 															<SelectItem
 																key={"1"}
@@ -522,7 +528,9 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														</Select>
 													</div>
 												</fieldset>
-												<h2>Fator de disparo de notificação ao usuário</h2>
+												<h2 className={styles.modalLabel}>
+													Fator de disparo de notificação à oficina
+												</h2>
 												<fieldset className="text-white flex gap-2">
 													<div className="flex flex-col gap-2 w-full">
 														<label htmlFor="userKmLimitNotificationFactor">
@@ -535,6 +543,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															onChange={(e) =>
 																setUserKmNotificationFactor(e.target.value)
 															}
+															aria-label="userKmLimitNotificationFactor"
 														>
 															<SelectItem
 																key={"200"}
@@ -579,6 +588,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 															onChange={(e) =>
 																setUserDateNotificationFactor(e.target.value)
 															}
+															aria-label="userDateNotificationFactor"
 														>
 															<SelectItem
 																key={"1"}
