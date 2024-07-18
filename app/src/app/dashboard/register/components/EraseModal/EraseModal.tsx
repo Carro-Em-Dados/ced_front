@@ -12,13 +12,14 @@ import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useContext } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { updateDoc, doc, arrayRemove, deleteDoc } from "firebase/firestore";
+import { updateDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
 
 export enum DeleteModalTypes {
 	driver = "driver",
 	user = "user",
 	organization = "organization",
 	vehicle = "vehicle",
+	appUser = "appUser",
 }
 
 interface Props {
@@ -52,6 +53,10 @@ export default function EraseModal({ id, type, name, state }: Props) {
 			case DeleteModalTypes.organization:
 				collectionName = "workshops";
 				break;
+			case DeleteModalTypes.appUser:
+				collectionName = "appUsers";
+				updateData = { preferred_workshop: "" };
+				break;
 			default:
 				throw new Error("Invalid delete type");
 		}
@@ -60,12 +65,29 @@ export default function EraseModal({ id, type, name, state }: Props) {
 
 		try {
 			if (updateData) {
-				await updateDoc(docRef, updateData);
-				state((prevState) =>
-					prevState.map((item) =>
-						item.id === id ? { ...item, ...updateData } : item
-					)
-				);
+				const docSnap = await getDoc(docRef);
+				if (docSnap.exists()) {
+					const data = docSnap.data();
+					const hasEmptyFields = Object.keys(updateData).every(
+						(key) => data[key] === ""
+					);
+
+					if (hasEmptyFields) {
+						await deleteDoc(docRef);
+						state((prevState) => prevState.filter((item) => item.id !== id));
+						alert("Item excluído com sucesso");
+					} else {
+						await updateDoc(docRef, updateData);
+						state((prevState) =>
+							prevState.map((item) =>
+								item.id === id ? { ...item, ...updateData } : item
+							)
+						);
+						alert("Item desassociado com sucesso");
+					}
+				} else {
+					console.error("Documento não encontrado");
+				}
 			} else {
 				await deleteDoc(docRef);
 				state((prevState) => prevState.filter((item) => item.id !== id));
@@ -83,7 +105,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
 				onClick={onOpen}
 			>
 				<FaRegTrashAlt />
-				Excluir
+				{type === DeleteModalTypes.appUser ? "Desassociar" : "Excluir"}
 			</Button>
 			<Modal
 				isOpen={isOpen}

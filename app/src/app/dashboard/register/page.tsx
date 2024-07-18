@@ -2,23 +2,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import styles from "./styles.module.scss";
 import Image from "next/image";
-import {
-	Tabs,
-	Tab,
-	Card,
-	CardBody,
-	Button,
-	useDisclosure,
-} from "@nextui-org/react";
+import { Tabs, Tab } from "@nextui-org/react";
 import DriverCard from "./components/Cards/DriverCard";
-import {
-	Timestamp,
-	addDoc,
-	collection,
-	doc,
-	getDoc,
-	getDocs,
-} from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { Workshop } from "../../../interfaces/workshop.type";
 import { AuthContext } from "../../../contexts/auth.context";
 import { User } from "../../../interfaces/user.type";
@@ -31,6 +17,8 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import { Driver } from "@/interfaces/driver.type";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import { AppUser } from "@/interfaces/appUser.type";
+import AppUserCard from "./components/Cards/AppUserCard";
 
 const Register = () => {
 	const { db, currentUser } = useContext(AuthContext);
@@ -38,12 +26,14 @@ const Register = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
+	const [appUsers, setAppUsers] = useState<AppUser[]>([]);
 
 	const fetchData = async () => {
 		const clientsSnapshot = await getDocs(collection(db, "clients"));
 		const workshopsSnapshot = await getDocs(collection(db, "workshops"));
 		const usersSnapshot = await getDocs(collection(db, "users"));
 		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+		const appUsersSnapshot = await getDocs(collection(db, "appUsers"));
 
 		if (currentUser?.role !== "master" && currentUser?.workshops) {
 			const filteredClientsData = clientsSnapshot.docs
@@ -55,6 +45,18 @@ const Register = () => {
 					} as Driver;
 				})
 				.filter((client) => client.workshops === currentUser.workshops);
+
+			const filteredAppUsersData = appUsersSnapshot.docs
+				.map((doc) => {
+					const data = doc.data();
+					return {
+						...data,
+						id: doc.id,
+					} as AppUser;
+				})
+				.filter(
+					(appUser) => appUser.preferred_workshop === currentUser.workshops
+				);
 
 			const workshopsData = workshopsSnapshot.docs.map((doc) => ({
 				id: doc.id,
@@ -69,6 +71,7 @@ const Register = () => {
 			setDrivers(filteredClientsData);
 			setWorkshops(workshopsData);
 			setVehicles(vehiclesData);
+			setAppUsers(filteredAppUsersData);
 			return;
 		}
 		const clientsData = clientsSnapshot.docs.map((doc) => ({
@@ -91,19 +94,25 @@ const Register = () => {
 			...doc.data(),
 		})) as Vehicle[];
 
+		const appUsersData = appUsersSnapshot.docs.map((doc) => ({
+			id: doc.id,
+			...doc.data(),
+		})) as AppUser[];
+
 		setDrivers(clientsData);
 		setWorkshops(workshopsData);
 		setUsers(usersData);
 		setVehicles(vehiclesData);
+		setAppUsers(appUsersData);
 	};
 
 	useEffect(() => {
 		fetchData();
 	}, [db]);
 
-	function getVehiclesByClient(id: string) {
+	const getVehiclesByClient = (id: string) => {
 		return vehicles.filter((vehicle) => vehicle.owner === id);
-	}
+	};
 
 	const getDriversByWorkshop = (id: string) => {
 		const workshop = workshops.find((workshop) => workshop.id === id);
@@ -113,6 +122,10 @@ const Register = () => {
 			(driver) => driver.workshops === workshop.id
 		);
 		return matchedDrivers;
+	};
+
+	const getAppUsersByWorkshop = (id: string) => {
+		return appUsers.filter((appUser) => appUser.preferred_workshop === id);
 	};
 
 	return (
@@ -160,6 +173,16 @@ const Register = () => {
 										/>
 									)
 								)}
+								{getAppUsersByWorkshop(currentUser?.workshops).map(
+									(appUser, key) => (
+										<AppUserCard
+											key={key}
+											appUser={appUser}
+											setAppUsers={setAppUsers}
+											vehicles={getVehiclesByClient(appUser.id)}
+										/>
+									)
+								)}
 								<div className={styles.buttonContainer}>
 									<DriverModal setDrivers={setDrivers} />
 								</div>
@@ -173,6 +196,14 @@ const Register = () => {
 										setDrivers={setDrivers}
 										setVehicles={setVehicles}
 										vehicles={getVehiclesByClient(driver.id)}
+									/>
+								))}
+								{appUsers.map((appUser, key) => (
+									<AppUserCard
+										key={key}
+										appUser={appUser}
+										setAppUsers={setAppUsers}
+										vehicles={getVehiclesByClient(appUser.id)}
 									/>
 								))}
 								<div className={styles.buttonContainer}>

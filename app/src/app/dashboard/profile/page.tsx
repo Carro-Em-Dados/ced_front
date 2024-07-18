@@ -123,7 +123,7 @@ const Profile = () => {
 				<Tabs
 					className={`${styles.tabs} mx-20`}
 					key="profile"
-					disabledKeys={myUser?.role !== "master" ? ["contract"] : []}
+					disabledKeys={myUser?.role !== "master" ? ["contracts"] : []}
 					classNames={{
 						tabContent:
 							"group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
