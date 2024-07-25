@@ -17,6 +17,7 @@ import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
 import { addDoc, collection } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
+import { defaultServices } from "@/constants/defaultServices";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -219,6 +220,17 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 				contract: profileType === "basic" ? "basic" : contractRef.id,
 			};
 			const workshopRef = await addDoc(collection(db, "workshops"), workshop);
+
+			const workshopServices = defaultServices.map((service) => ({
+				...service,
+				workshop: workshopRef.id,
+			}));
+
+			const servicesPromises = workshopServices.map((service) =>
+				addDoc(collection(db, "services"), service)
+			);
+			await Promise.all(servicesPromises);
+
 			setWorkshops((workshops) => [
 				...workshops,
 				{ ...workshop, id: workshopRef.id },

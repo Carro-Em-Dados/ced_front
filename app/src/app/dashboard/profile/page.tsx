@@ -18,11 +18,16 @@ import { AuthContext } from "@/contexts/auth.context";
 import { useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
-import EditContractModal from "../register/components/ContractsModal/EditContractModal";
 import EditBasicContract from "./components/EditBasicContract";
+import Services from "./components/Services";
 
 const Profile = () => {
-	const { db, currentUser: myUser, loading } = useContext(AuthContext);
+	const {
+		db,
+		currentUser: myUser,
+		currentWorkshop,
+		loading,
+	} = useContext(AuthContext);
 	//const searchParams = useSearchParams();
 	//const userId = searchParams.get("user");
 
@@ -91,11 +96,26 @@ const Profile = () => {
 		}
 	}, [/* userId,  */ myUser, db, loading]);
 
+	const getDisabledKeys = () => {
+		const disabledKeys: string[] = [];
+		("");
+		if (myUser?.role !== "master") {
+			disabledKeys.push("contracts");
+		}
+		if (!currentWorkshop) {
+			disabledKeys.push("services");
+		}
+
+		return disabledKeys;
+	};
+
 	function UserProfile() {
 		return (
 			<div className="flex flex-col gap-5">
 				<div className="flex flex-col text-white">
-					<p>Nome: {currentUser?.name}</p>
+					<p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">
+						{currentUser?.name}
+					</p>
 				</div>
 			</div>
 		);
@@ -123,7 +143,7 @@ const Profile = () => {
 				<Tabs
 					className={`${styles.tabs} mx-20`}
 					key="profile"
-					disabledKeys={myUser?.role !== "master" ? ["contracts"] : []}
+					disabledKeys={getDisabledKeys()}
 					classNames={{
 						tabContent:
 							"group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
@@ -203,6 +223,12 @@ const Profile = () => {
 						title="Informações do contrato básico"
 					>
 						<EditBasicContract />
+					</Tab>
+					<Tab
+						key="services"
+						title="Serviços"
+					>
+						<Services />
 					</Tab>
 				</Tabs>
 			</div>

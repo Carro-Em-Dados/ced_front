@@ -1,10 +1,4 @@
-import {
-	ReactNode,
-	createContext,
-	useContext,
-	useEffect,
-	useState,
-} from "react";
+import { ReactNode, createContext, useEffect, useState } from "react";
 import {
 	createUserWithEmailAndPassword,
 	getAuth,
@@ -18,9 +12,20 @@ import {
 	browserSessionPersistence,
 	Auth,
 } from "firebase/auth";
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import {
+	collection,
+	doc,
+	getDoc,
+	getDocs,
+	getFirestore,
+	query,
+	setDoc,
+	where,
+} from "firebase/firestore";
 import { User } from "../interfaces/user.type";
-import { getApps, initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Contract } from "@/interfaces/contract.type";
 
 interface AuthContextData {
 	login: (email: string, password: string) => Promise<void>;
@@ -29,6 +34,7 @@ interface AuthContextData {
 	logout: () => Promise<void>;
 	signUp: (email: string, name: string, password: string) => Promise<void>;
 	currentUser: User | undefined;
+	currentWorkshop: (Workshop & { contract?: Contract | null }) | undefined;
 	db: any;
 	loading: boolean;
 	auth: Auth;
@@ -57,14 +63,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const db = getFirestore(app);
 	const auth = getAuth(app);
 	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+	const [currentWorkshop, setCurrentWorkshop] = useState<
+		(Workshop & { contract?: Contract | null }) | undefined
+	>(undefined);
 	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, async (user) => {
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			if (user) {
 				fetchUserFromLocalStorage();
 			} else {
 				setCurrentUser(undefined);
+				setCurrentWorkshop(undefined);
 				localStorage.removeItem("user");
 			}
 			setLoading(false);
@@ -80,6 +90,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		return () => unsubscribe();
 	}, [auth, db]);
 
+	useEffect(() => {
+		if (currentUser) {
+			fetchCurrentWorkshopAndContract();
+		}
+	}, [currentUser]);
+
 	const fetchUserFromLocalStorage = () => {
 		const storedUser = localStorage.getItem("user");
 		if (storedUser) {
@@ -87,10 +103,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 	};
 
+	const fetchCurrentWorkshopAndContract = async () => {
+		if (!currentUser || !currentUser.workshops) return;
+
+		try {
+			const workshopRef = doc(db, "workshops", currentUser.workshops);
+			const workshopSnap = await getDoc(workshopRef);
+
+			if (workshopSnap.exists()) {
+				const workshopData = workshopSnap.data() as Workshop;
+
+				const contractQuery = collection(db, "contracts");
+				const contractQuerySnapshot = await getDocs(
+					query(contractQuery, where("workshop", "==", workshopSnap.id))
+				);
+
+				let contractData;
+				if (!contractQuerySnapshot.empty) {
+					contractData = contractQuerySnapshot.docs[0].data() as Contract;
+				}
+
+				setCurrentWorkshop({
+					...workshopData,
+					id: workshopSnap.id,
+					contract: contractData || null,
+				});
+			} else {
+				console.warn("Oficina não encontrada para o usuário.");
+			}
+		} catch (error) {
+			console.error("Erro ao buscar oficina e contrato:", error);
+		}
+	};
+
 	const logout = async () => {
 		try {
 			await signOut(auth);
 			setCurrentUser(undefined);
+			setCurrentWorkshop(undefined);
 			localStorage.removeItem("user");
 		} catch (error: any) {
 			console.error(`Logout Error (${error.code}): ${error.message}`);
@@ -116,7 +166,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			await setDoc(docRef, user);
 
 			setCurrentUser(user);
-
 			localStorage.setItem("user", JSON.stringify(user));
 		} catch (error: any) {
 			console.error(`SignUp Error (${error.code}): ${error.message}`);
@@ -205,6 +254,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				logout,
 				signUp,
 				currentUser,
+				currentWorkshop,
 				db,
 				loading,
 				auth,
