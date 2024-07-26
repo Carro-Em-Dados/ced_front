@@ -17,6 +17,7 @@ import styles from "../../dashboard/register/styles.module.scss";
 import { AuthContext } from "@/contexts/auth.context";
 import { clsx } from "clsx";
 import { sendPasswordResetEmail } from "firebase/auth";
+import { toast, Zoom } from "react-toastify";
 
 export default function ForgotPasswordModal() {
 	const { db, auth } = useContext(AuthContext);
@@ -44,7 +45,17 @@ export default function ForgotPasswordModal() {
 				onOpen();
 			})
 			.catch((error) => {
-				console.log(error);
+				toast.error("Algo deu errado!", {
+					position: "bottom-right",
+					autoClose: 5000,
+					hideProgressBar: true,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					progress: undefined,
+					theme: "dark",
+					transition: Zoom,
+				});
 			});
 	};
 

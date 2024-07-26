@@ -29,7 +29,6 @@ export default function OrganizationCard({
 	setDrivers,
 	workshopDrivers,
 }: Props) {
-	console.log(drivers);
 	const Content = () => {
 		return (
 			<div className={styles.contentContainer}>

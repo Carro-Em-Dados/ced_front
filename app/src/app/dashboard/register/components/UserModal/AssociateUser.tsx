@@ -14,6 +14,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
 import { User } from "@/interfaces/user.type";
 import { updateDoc, doc } from "firebase/firestore";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	user: User;
@@ -40,7 +41,17 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 			setWorkshop("");
 			onOpenChange();
 		} catch (error) {
-			console.error("Error associating user to workshop:", error);
+			toast.error("Erro ao associar usuário a organização", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

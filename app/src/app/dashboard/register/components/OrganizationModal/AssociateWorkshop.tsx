@@ -14,6 +14,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
 import { updateDoc, doc } from "firebase/firestore";
 import { Driver } from "@/interfaces/driver.type";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	workshop: Workshop;
@@ -34,7 +35,17 @@ export default function AssociateWorkshop({
 		if (!selectedDriver) return;
 
 		if (selectedDriver.workshops && selectedDriver.workshops.length > 0) {
-			console.log("Driver já possui uma organização associada.");
+			toast.error("Motorista já possui uma organização associada", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 			return;
 		}
 
@@ -49,7 +60,17 @@ export default function AssociateWorkshop({
 			setSelectedDriver(null);
 			onOpenChange();
 		} catch (error) {
-			console.error("Error associating driver to workshop:", error);
+			toast.error("Erro ao associar motorista a organização", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

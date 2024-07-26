@@ -4,6 +4,7 @@ import styles from "../../register/styles.module.scss";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Contract } from "@/interfaces/contract.type";
 import { AuthContext } from "@/contexts/auth.context";
+import { toast, Zoom } from "react-toastify";
 
 export default function EditBasicContract() {
 	const { db } = useContext(AuthContext);
@@ -27,7 +28,6 @@ export default function EditBasicContract() {
 
 		if (contractSnap.exists()) {
 			const contractData = contractSnap.data() as Contract;
-			console.log(contractData);
 			setClientMotoristCount(contractData.maxDrivers);
 			setVehicleCount(contractData.maxVehiclesPerDriver);
 			setAlarmCount(contractData.maxAlarmsPerVehicle);
@@ -40,13 +40,6 @@ export default function EditBasicContract() {
 
 		setLoading(false);
 	};
-
-	console.log(
-		workshopDateNotificationFactor,
-		userDateNotificationFactor,
-		workshopKmNotificationFactor,
-		userKmNotificationFactor
-	);
 
 	useEffect(() => {
 		loadContract();
@@ -77,7 +70,17 @@ export default function EditBasicContract() {
 			setUserKmNotificationFactor(updatedContract.userKmLimitAlarm);
 			setUserDateNotificationFactor(updatedContract.userDateLimitAlarm);
 		} catch (error) {
-			console.log("Error updating contract:", error);
+			toast.error("Erro ao atualizar contrato", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

@@ -16,6 +16,7 @@ import clsx from "clsx";
 import { doc, setDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	setUsers: React.Dispatch<React.SetStateAction<any[]>>;
@@ -56,9 +57,17 @@ export default function UserModal({ setUsers }: Props) {
 			setRole("user");
 			onOpenChange();
 		} catch (error: any) {
-			console.error(
-				`Erro ao adicionar usuário (${error.code}): ${error.message}`
-			);
+			toast.error("Erro ao adicionar usuário", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -87,7 +96,7 @@ export default function UserModal({ setUsers }: Props) {
 								Adicionar Usuário
 							</ModalHeader>
 							<ModalBody>
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
 										<input
 											className={styles.modalInput}

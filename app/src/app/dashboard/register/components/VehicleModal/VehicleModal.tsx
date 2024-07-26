@@ -20,6 +20,7 @@ import {
 	doc,
 } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	ownerId: string;
@@ -59,8 +60,19 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 				const existingVehicle = existingVehicleDoc.data();
 
 				if (existingVehicle.owner) {
-					alert(
-						"Já existe um veículo com a mesma placa associado a um proprietário."
+					toast.error(
+						"Já existe um veículo com a mesma placa associado a um proprietário",
+						{
+							position: "bottom-right",
+							autoClose: 5000,
+							hideProgressBar: true,
+							closeOnClick: true,
+							pauseOnHover: true,
+							draggable: true,
+							progress: undefined,
+							theme: "dark",
+							transition: Zoom,
+						}
 					);
 					return;
 				}
@@ -95,7 +107,17 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 			setVehicles((vehicles) => [...vehicles, { ...vehicle, id: docRef.id }]);
 			onOpenChange();
 		} catch (error) {
-			console.error("Error adding vehicle: ", error);
+			toast.error("Erro ao adicionar veículo", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -110,7 +132,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 			if (!querySnapshot.empty) {
 				querySnapshot.forEach((doc) => {
 					const vehicleData = doc.data();
-					console.log(vehicleData);
 					setManufacturer(vehicleData.manufacturer || "");
 					setCarModel(vehicleData.car_model || "");
 					setVin(vehicleData.vin || "");
@@ -125,7 +146,17 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 				setInitialKm(0);
 			}
 		} catch (error) {
-			console.error("Error querying vehicles:", error);
+			toast.error("Erro ao buscar veículos", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

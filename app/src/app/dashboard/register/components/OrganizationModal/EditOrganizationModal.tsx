@@ -14,6 +14,7 @@ import { useContext, useState } from "react";
 import styles from "../../styles.module.scss";
 import { BiEdit } from "react-icons/bi";
 import { Workshop } from "@/interfaces/workshop.type";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	workshop: Workshop;
@@ -68,7 +69,17 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 			);
 			onOpenChange();
 		} catch (error) {
-			console.log("Error updating workshop:", error);
+			toast.error("Erro ao editar organização", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -93,7 +104,7 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 								Editar Organização
 							</ModalHeader>
 							<ModalBody>
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
 										<input
 											className={styles.modalInput}

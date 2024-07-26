@@ -104,7 +104,7 @@ export default function EditDriverModal({ id, setDrivers }: Props) {
 								Editar Motorista
 							</ModalHeader>
 							<ModalBody>
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
 										<input
 											className={styles.modalInput}

@@ -13,6 +13,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { useContext } from "react";
 import { AuthContext } from "@/contexts/auth.context";
 import { updateDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
+import { toast, Zoom } from "react-toastify";
 
 export enum DeleteModalTypes {
 	driver = "driver",
@@ -34,7 +35,6 @@ export default function EraseModal({ id, type, name, state }: Props) {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
 	const deleteItem = async () => {
-		console.log(type);
 		let collectionName: string;
 		let updateData: any;
 
@@ -75,7 +75,17 @@ export default function EraseModal({ id, type, name, state }: Props) {
 					if (hasEmptyFields) {
 						await deleteDoc(docRef);
 						state((prevState) => prevState.filter((item) => item.id !== id));
-						alert("Item excluído com sucesso");
+						toast.success("Item excluído com sucesso!", {
+							position: "bottom-right",
+							autoClose: 5000,
+							hideProgressBar: true,
+							closeOnClick: true,
+							pauseOnHover: true,
+							draggable: true,
+							progress: undefined,
+							theme: "dark",
+							transition: Zoom,
+						});
 					} else {
 						await updateDoc(docRef, updateData);
 						state((prevState) =>
@@ -83,10 +93,30 @@ export default function EraseModal({ id, type, name, state }: Props) {
 								item.id === id ? { ...item, ...updateData } : item
 							)
 						);
-						alert("Item desassociado com sucesso");
+						toast.success("Item desassociado com sucesso!", {
+							position: "bottom-right",
+							autoClose: 5000,
+							hideProgressBar: true,
+							closeOnClick: true,
+							pauseOnHover: true,
+							draggable: true,
+							progress: undefined,
+							theme: "dark",
+							transition: Zoom,
+						});
 					}
 				} else {
-					console.error("Documento não encontrado");
+					toast.error("Erro ao deletar item", {
+						position: "bottom-right",
+						autoClose: 5000,
+						hideProgressBar: true,
+						closeOnClick: true,
+						pauseOnHover: true,
+						draggable: true,
+						progress: undefined,
+						theme: "dark",
+						transition: Zoom,
+					});
 				}
 			} else {
 				await deleteDoc(docRef);
@@ -94,7 +124,17 @@ export default function EraseModal({ id, type, name, state }: Props) {
 			}
 			onOpenChange();
 		} catch (error) {
-			console.error("Erro ao deletar: ", error);
+			toast.error("Erro ao deletar item", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

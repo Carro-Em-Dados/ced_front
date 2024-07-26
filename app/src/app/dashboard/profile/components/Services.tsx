@@ -11,6 +11,7 @@ import {
 	updateDoc,
 	doc,
 } from "firebase/firestore";
+import { toast, Zoom } from "react-toastify";
 
 export default function Services() {
 	const { db, currentWorkshop } = useContext(AuthContext);
@@ -31,12 +32,19 @@ export default function Services() {
 			})) as Service[];
 			setServices(fetchedServices);
 		} catch (error) {
-			console.error("Erro ao buscar serviços:", error);
+			toast.error("Erro ao buscar serviços", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
-
-	console.log(services);
-	console.log(currentWorkshop?.id);
 
 	const handlePriceChange = (index: number, value: number) => {
 		setServices((prevServices) =>
@@ -56,10 +64,29 @@ export default function Services() {
 				return null;
 			});
 			await Promise.all(promises);
-			alert("Serviços atualizados com sucesso!");
+			toast.success("Servicos atualizados com sucesso!", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		} catch (error) {
-			console.error("Erro ao salvar serviços:", error);
-			alert("Erro ao salvar serviços. Verifique o console para mais detalhes.");
+			toast.error("Erro ao salvar serviços", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

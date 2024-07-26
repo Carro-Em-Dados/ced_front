@@ -18,6 +18,7 @@ import styles from "../../styles.module.scss";
 import { addDoc, collection } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { defaultServices } from "@/constants/defaultServices";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -153,7 +154,20 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 		const currentFields = requiredFields[tab as keyof typeof requiredFields];
 		for (const field of currentFields) {
 			if (!field.value) {
-				alert(`Por favor, preencha o campo: ${field.name}`);
+				toast.error(
+					`Por favor, preencha todos os campos obrigatórios ${field.name}`,
+					{
+						position: "bottom-right",
+						autoClose: 5000,
+						hideProgressBar: true,
+						closeOnClick: true,
+						pauseOnHover: true,
+						draggable: true,
+						progress: undefined,
+						theme: "dark",
+						transition: Zoom,
+					}
+				);
 				return;
 			}
 		}
@@ -237,7 +251,17 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			]);
 			onOpenChange();
 		} catch (error) {
-			console.log(error);
+			toast.error("Erro ao criar organização", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -269,7 +293,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 							</ModalHeader>
 							<ModalBody>
 								{tab === "tab1" && (
-									<div className={styles.form}>
+									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
 											<input
 												className={styles.modalInput}
@@ -400,7 +424,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 											</div>
 										) : (
 											<>
-												<div className="flex flex-col">
+												<div className="flex flex-col gap-4">
 													<div>
 														<input
 															className={styles.modalInput}
@@ -465,6 +489,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 																setWorkshopKmNotificationFactor(e.target.value)
 															}
 															aria-label="workshopKmLimitAlarm"
+															defaultSelectedKeys={["1000"]}
 														>
 															<SelectItem
 																key={"1000"}
@@ -512,6 +537,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 																)
 															}
 															aria-label="workshopDateNotificationFactor"
+															defaultSelectedKeys={["1"]}
 														>
 															<SelectItem
 																key={"1"}
@@ -556,6 +582,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 																setUserKmNotificationFactor(e.target.value)
 															}
 															aria-label="userKmLimitNotificationFactor"
+															defaultSelectedKeys={["200"]}
 														>
 															<SelectItem
 																key={"200"}
@@ -601,6 +628,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 																setUserDateNotificationFactor(e.target.value)
 															}
 															aria-label="userDateNotificationFactor"
+															defaultSelectedKeys={["1"]}
 														>
 															<SelectItem
 																key={"1"}
@@ -646,7 +674,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 									</div>
 								)}
 								{tab === "tab3" && (
-									<div className={styles.form}>
+									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
 											<input
 												className={styles.modalInput}

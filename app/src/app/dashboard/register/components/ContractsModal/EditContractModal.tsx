@@ -17,6 +17,7 @@ import styles from "../../styles.module.scss";
 import { AuthContext } from "@/contexts/auth.context";
 import { clsx } from "clsx";
 import { doc, updateDoc } from "firebase/firestore"; // Importe as funções necessárias do Firebase Firestore
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	contract: Contract;
@@ -67,7 +68,17 @@ export default function EditContractModal({ contract, setContract }: Props) {
 			);
 			onOpenChange();
 		} catch (error) {
-			console.log("Error updating contract:", error);
+			toast.error("Erro ao atualizar contrato", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 

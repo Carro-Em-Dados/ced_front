@@ -31,6 +31,7 @@ import {
 } from "firebase/firestore";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { Maintenance } from "@/interfaces/maintenances.type";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	vehicle: Vehicle;
@@ -61,7 +62,17 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 			});
 			setMaintenances(maintenanceData);
 		} catch (error) {
-			console.error("Erro ao buscar manutenções:", error);
+			toast.error("Erro ao buscar manutenções", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -131,10 +142,29 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 			});
 
 			await Promise.all([...deletions, ...upserts]);
-
-			console.log("Manutenções atualizadas com sucesso!");
+			toast.success("Manutenções atualizadas com sucesso", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		} catch (error) {
-			console.error("Erro ao atualizar manutenções:", error);
+			toast.error("Erro ao atualizar manutenções", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -318,7 +348,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 										key="ecu"
 										title="Limites ECU"
 									>
-										<EcuLimits vin={vehicle.vin} />
+										<EcuLimits id={vehicle.id} />
 									</Tab>
 								</Tabs>
 							</ModalBody>

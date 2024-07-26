@@ -1,14 +1,18 @@
-import React from "react";
+"use client";
+
+import React, { useContext } from "react";
 import styles from "./Navbar.module.scss";
 import NavbarButtonHome from "./navbarButtonHome/NavbarButtonHome";
 import NavbarButtonProfile from "./navbarButtonProfile/NavbarButtonProfile";
 import NavbarButtonLogout from "./navbarButtonLogout/NavbarButtonLogout";
 import Image from "next/image";
-import NavbarButtonConfig from "./navbarButtonConfig/NavbarButtonConfig";
 import NavbarButtonRegistration from "./navbarButtonRegistration/NavbarButtonRegistration";
 import NavbarButtonMonitor from "./navbarButtonMonitor/NavbarButtonMonitor";
+import { AuthContext } from "@/contexts/auth.context";
 
 function Navbar() {
+	const { currentWorkshop } = useContext(AuthContext);
+
 	return (
 		<div className={styles.navbar}>
 			<div className={styles.logoContainer}>
@@ -21,8 +25,7 @@ function Navbar() {
 			</div>
 			<div className={styles.buttonsContainer}>
 				<NavbarButtonHome />
-				<div></div>
-				<NavbarButtonMonitor />
+				{currentWorkshop?.contract?.id !== "basic" && <NavbarButtonMonitor />}
 				<NavbarButtonRegistration />
 				<NavbarButtonProfile />
 				<NavbarButtonLogout />

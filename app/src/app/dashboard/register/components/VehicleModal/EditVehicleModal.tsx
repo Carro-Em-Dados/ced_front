@@ -13,6 +13,7 @@ import { useContext, useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	vehicle: Vehicle;
@@ -48,7 +49,17 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			);
 			onOpenChange();
 		} catch (error) {
-			console.error("Error updating vehicle: ", error);
+			toast.error("Erro ao editar veículo", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		}
 	};
 
@@ -76,7 +87,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 								Editar carro
 							</ModalHeader>
 							<ModalBody className="text-white">
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
 										<input
 											className={styles.modalInput}

@@ -4,10 +4,19 @@ export interface Vehicle {
 	car_model: string;
 	license_plate: string;
 	owner: string;
-	gas_capacity: number;
-	gps_mac: string;
-	obd2_mac: string;
 	vin: string;
-	initial_km: number;
 	year: number;
+	initial_km: number;
+	obd2_mac: string;
+	gps_mac: string;
+	gas_capacity: number;
+	battery_tension: number;
+	engine_temp: number;
+	oil_pressure: number;
+	rpm: number;
+	speed: number;
+	car_id: string;
+	gps_distance: number;
+	tank_level: number;
+	obd2_distance: number;
 }
