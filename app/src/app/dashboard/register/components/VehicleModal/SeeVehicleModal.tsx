@@ -3,22 +3,34 @@ import {
 	Modal,
 	ModalBody,
 	ModalContent,
-	ModalFooter,
 	ModalHeader,
+	Select,
+	SelectItem,
 	Tab,
 	Tabs,
 	useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
-import { useContext, useState } from "react";
-import { doc, deleteDoc } from "firebase/firestore";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaRegEdit } from "react-icons/fa";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import EditVehicleModal from "./EditVehicleModal";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import EcuLimits from "./EcuLimits";
+import { defaultMaintenance } from "@/constants/defaultMaintenance";
+import {
+	collection,
+	getDocs,
+	addDoc,
+	Timestamp,
+	deleteDoc,
+	doc,
+	updateDoc,
+} from "firebase/firestore";
+import { FaRegTrashCan } from "react-icons/fa6";
+import { Maintenance } from "@/interfaces/maintenances.type";
 
 interface Props {
 	vehicle: Vehicle;
@@ -26,8 +38,111 @@ interface Props {
 }
 
 export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
-	const { db } = useContext(AuthContext);
+	const { db, currentWorkshop } = useContext(AuthContext);
+	const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
+	const [maintenancesDeleting, setMaintenancesDeleting] = useState<
+		Maintenance[]
+	>([]);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+	const fetchMaintenances = async () => {
+		try {
+			const querySnapshot = await getDocs(collection(db, "maintenances"));
+			const maintenanceData: Maintenance[] = [];
+			querySnapshot.forEach((doc) => {
+				if (doc.data().car_id === vehicle.id) {
+					const data = doc.data();
+					maintenanceData.push({
+						id: doc.id,
+						...data,
+						dateLimit: data.dateLimit.toDate(),
+					} as Maintenance);
+				}
+			});
+			setMaintenances(maintenanceData);
+		} catch (error) {
+			console.error("Erro ao buscar manutenções:", error);
+		}
+	};
+
+	useEffect(() => {
+		fetchMaintenances();
+	}, []);
+
+	const addMaintenance = () => {
+		if (maintenances.length >= currentWorkshop?.contract?.maxAlarmsPerVehicle!)
+			return;
+		const newMaintenance: Maintenance = {
+			service: "",
+			workshop: currentWorkshop!.id,
+			date: Timestamp.now(),
+			price: 0,
+			car_id: vehicle.id,
+			kmLimit: 0,
+			dateLimit: new Date(),
+		};
+		setMaintenances([...maintenances, newMaintenance]);
+	};
+
+	const updateMaintenance = (
+		index: number,
+		field: keyof Maintenance,
+		value: any
+	) => {
+		const updatedMaintenances = [...maintenances];
+		updatedMaintenances[index] = {
+			...updatedMaintenances[index],
+			[field]: value,
+		};
+		setMaintenances(updatedMaintenances);
+	};
+
+	const saveMaintenancesOnDb = async () => {
+		try {
+			const existingMaintenancesSnapshot = await getDocs(
+				collection(db, "maintenances")
+			);
+			const existingMaintenances: Maintenance[] = [];
+			existingMaintenancesSnapshot.forEach((doc) => {
+				if (doc.data().car_id === vehicle.id) {
+					existingMaintenances.push({
+						id: doc.id,
+						...doc.data(),
+					} as Maintenance);
+				}
+			});
+
+			const deletions = maintenancesDeleting.map((m) =>
+				m.id ? deleteDoc(doc(db, "maintenances", m.id)) : Promise.resolve()
+			);
+
+			const upserts = maintenances.map((maintenance) => {
+				if (maintenance.id) {
+					return updateDoc(doc(db, "maintenances", maintenance.id), {
+						...maintenance,
+						dateLimit: Timestamp.fromDate(maintenance.dateLimit),
+					});
+				} else {
+					return addDoc(collection(db, "maintenances"), {
+						...maintenance,
+						dateLimit: Timestamp.fromDate(maintenance.dateLimit),
+					});
+				}
+			});
+
+			await Promise.all([...deletions, ...upserts]);
+
+			console.log("Manutenções atualizadas com sucesso!");
+		} catch (error) {
+			console.error("Erro ao atualizar manutenções:", error);
+		}
+	};
+
+	const deleteMaintenance = (index: number) => {
+		setMaintenances(maintenances.filter((_, i) => i !== index));
+		setMaintenancesDeleting([...maintenancesDeleting, maintenances[index]]);
+	};
+
 	return (
 		<>
 			<button
@@ -96,7 +211,107 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 										key="alarms"
 										title="Manutenções"
 									>
-										<p>Fazer</p>
+										<div className="flex flex-col gap-5 justify-between w-full">
+											{maintenances?.map((maintenance, index) => (
+												<div
+													className="flex flex-row gap-2 items-center"
+													key={`${maintenance.id} ${index}`}
+												>
+													<Select
+														className="dark w-52"
+														aria-label="maintenance"
+														defaultSelectedKeys={[maintenance.service]}
+														onChange={(e) =>
+															updateMaintenance(
+																index,
+																"service",
+																e.target.value
+															)
+														}
+													>
+														{defaultMaintenance.map((maintenance) => (
+															<SelectItem
+																key={maintenance}
+																value={maintenance}
+															>
+																{maintenance}
+															</SelectItem>
+														))}
+													</Select>
+													<input
+														type="number"
+														id="kmlimit"
+														placeholder="KM Limite"
+														className={clsx(styles.modalInput, "!w-24")}
+														value={maintenance.kmLimit}
+														onChange={(e) =>
+															updateMaintenance(
+																index,
+																"kmLimit",
+																Number(e.target.value)
+															)
+														}
+														aria-label="kmlimit"
+													/>
+													<input
+														type="date"
+														id="date"
+														placeholder="Data Limite"
+														className={clsx(styles.modalInput, "!w-40")}
+														value={
+															maintenance.dateLimit.toISOString().split("T")[0]
+														}
+														onChange={(e) =>
+															updateMaintenance(
+																index,
+																"dateLimit",
+																new Date(e.target.value)
+															)
+														}
+														aria-label="date"
+													/>
+													<input
+														type="number"
+														id="price"
+														placeholder="Valor"
+														className={clsx(styles.modalInput, "!w-20")}
+														value={maintenance.price}
+														onChange={(e) =>
+															updateMaintenance(
+																index,
+																"price",
+																Number(e.target.value)
+															)
+														}
+														aria-label="price"
+													/>
+													<button onClick={() => deleteMaintenance(index)}>
+														<FaRegTrashCan />
+													</button>
+												</div>
+											))}
+											<Button
+												type="button"
+												className={clsx(styles.addVehicleBtn, "w-fit")}
+												onClick={addMaintenance}
+											>
+												<FaRegEdit /> Adicionar manutenção
+											</Button>
+											<div className="flex flex-row justify-between items-center">
+												<p className="text-sm">
+													{currentWorkshop?.contract?.maxAlarmsPerVehicle! -
+														maintenances.length}{" "}
+													alarmes restantes
+												</p>
+												<Button
+													type="button"
+													className={styles.addVehicleBtn}
+													onClick={saveMaintenancesOnDb}
+												>
+													Salvar
+												</Button>
+											</div>
+										</div>
 									</Tab>
 									<Tab
 										className={`${styles.tabButton} !p-0`}

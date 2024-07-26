@@ -122,7 +122,7 @@ export default function EcuLimits({ vin }: Props) {
 			<div className="flex flex-col gap-2">
 				<Button
 					type="button"
-					onClick={saveReading}
+					onPress={saveReading}
 					className={styles.addVehicleBtn}
 				>
 					Salvar
