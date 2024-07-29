@@ -3,56 +3,55 @@ import React, { useContext, useEffect, useState } from "react";
 import styles from "./welcome.module.scss";
 import Image from "next/image";
 import DropdownComponent from "@/custom/dropdown/Dropdown";
-import { redirect } from "next/navigation";
-import CustomTable from "../components/table/table";
 import Dashboard from "../components/dashboard/dashboard";
-import { User } from "@/interfaces/user.type";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { Workshop } from "@/interfaces/workshop.type";
 import { AuthContext } from "@/contexts/auth.context";
+import { toast, Zoom } from "react-toastify";
 
 export default function Welcome() {
-	const [workshops, setWorkshops] = useState<any>([]);
+	const [workshops, setWorkshops] = useState<Workshop[]>([]);
 	const [selectedWorkshop, setSelectedWorkshop] = useState<string | null>(null);
-	const { currentUser, db } = useContext(AuthContext);
+	const { currentUser, currentWorkshop, db } = useContext(AuthContext);
 
 	useEffect(() => {
-		getWorks();
-	}, [currentUser]);
+		getWorkshops();
+	}, [currentUser, currentWorkshop]);
 
-	async function getWorkshop(id: string) {
-		const docRef = doc(db, "workshops", id);
-		const data = (await getDoc(docRef)).data() as Workshop;
-		setWorkshops([
-			...workshops,
-			{
-				label: data.company_name,
-				key: data.id,
-			},
-		]);
-	}
-
-	// async function getWorks() {
-	//   const works = currentUser?.workshops?.forEach((item: string) => {
-	//     getWorkshop(item);
-	//   });
-	// }
-
-	// useEffect(() => {
-	//     console.log(currentUser)
-	// }, [currentUser])
-
-	const WelcomeImage = () => {
-		return (
-			<div className={styles.imageContainer}>
-				<Image
-					src="/car_home1.png"
-					alt="Carro na Home Principal"
-					fill
-					style={{ objectFit: "cover", objectPosition: "right 20% bottom 0" }}
-				/>
-			</div>
-		);
+	const getWorkshops = async () => {
+		if (!currentUser || (!currentWorkshop && currentUser.role !== "master"))
+			return;
+		try {
+			if (currentUser.role === "master") {
+				const querySnapshot = await getDocs(collection(db, "workshops"));
+				if (!querySnapshot.empty) {
+					const data = querySnapshot.docs.map((doc) => ({
+						...(doc.data() as Workshop),
+						id: doc.id,
+					}));
+					setWorkshops(data);
+				}
+			} else {
+				const docRef = doc(db, "workshops", currentWorkshop.id);
+				const docSnap = await getDoc(docRef);
+				if (docSnap.exists()) {
+					const data = { ...(docSnap.data() as Workshop), id: docSnap.id };
+					setWorkshops([data]);
+				}
+			}
+		} catch (error) {
+			toast.error("Algo deu errado!", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
+		}
 	};
 
 	return (
@@ -67,7 +66,11 @@ export default function Welcome() {
 							style={{ objectFit: "cover" }}
 						/>
 					</div>
-					<h1 className={styles.mainTitle}>{`Olá, ${currentUser?.name}!`}</h1>
+					{currentUser?.name ? (
+						<h1 className={styles.mainTitle}>{`Olá, ${currentUser?.name}!`}</h1>
+					) : (
+						<h1 className={styles.mainTitle}>Olá!</h1>
+					)}
 				</div>
 				<p className={styles.subtext}>
 					Gostaria de conferir o status da sua oficina?
@@ -75,7 +78,10 @@ export default function Welcome() {
 				<p className={styles.subtext}>Selecione alguma opção abaixo:</p>
 				<div className={styles.dropdownContainer}>
 					<DropdownComponent
-						options={workshops}
+						options={workshops?.map((workshop) => ({
+							label: workshop.fantasy_name,
+							key: workshop.id,
+						}))}
 						placeholder="Selecione sua oficina"
 						value={selectedWorkshop}
 						onChange={(key) => {
@@ -92,6 +98,16 @@ export default function Welcome() {
 		</div>
 	);
 }
-function getWorks() {
-	//throw new Error("Function not implemented.");
-}
+
+const WelcomeImage = () => {
+	return (
+		<div className={styles.imageContainer}>
+			<Image
+				src="/car_home1.png"
+				alt="Carro na Home Principal"
+				fill
+				style={{ objectFit: "cover", objectPosition: "right 20% bottom 0" }}
+			/>
+		</div>
+	);
+};

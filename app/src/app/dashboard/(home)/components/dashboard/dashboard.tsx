@@ -1,84 +1,168 @@
-"use client";
-import clsx from "clsx";
-import { TbClockExclamation } from "react-icons/tb";
-import { MdDirectionsCar } from "react-icons/md";
-import { MdOutlineSpeed } from "react-icons/md";
-import React, { useContext, useEffect, useState } from "react";
-import styles from "../../tabs/welcome.module.scss";
+import {
+	collection,
+	doc,
+	getDoc,
+	getDocs,
+	query,
+	where,
+	limit,
+	startAfter,
+	orderBy,
+} from "firebase/firestore";
+import { useState, useEffect, useContext } from "react";
+import { Maintenance } from "@/interfaces/maintenances.type";
+import { AppUser } from "@/interfaces/appUser.type";
+import { Driver } from "@/interfaces/driver.type";
+import { Vehicle } from "@/interfaces/vehicle.type";
+import { AuthContext } from "@/contexts/auth.context";
 import CustomTable from "../table/table";
 import CustomChart from "../chart/chart";
-import { Timestamp, doc, getDoc } from "firebase/firestore";
-import { Workshop } from "@/interfaces/workshop.type";
-import { AppUser } from "@/interfaces/appUser.type";
-import { AuthContext } from "@/contexts/auth.context";
+import styles from "../../tabs/welcome.module.scss";
+import clsx from "clsx";
+import { TbClockExclamation } from "react-icons/tb";
+import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
 
 interface DashboardProps {
-	selectedWorkshop: any;
+	selectedWorkshop: string;
 }
 
-interface Client {
-	uid: string;
-	email: string;
-	preferred_workshop: string;
-	name: string;
-	phone: string;
-	createdAt: Timestamp;
-	type: string;
-	vehicles: {
-		id: string;
-		obd2_mac?: string;
-		gps_mac?: string;
-		initial_km: number;
-		vin?: string;
-		gas_capacity?: number;
-	}[];
+interface MaintenanceData {
+	client: string;
+	vehicle: string;
+	maintenance: string;
+	km_current: number;
+	km_threshold: number;
+	date_threshold: string;
+	status: string;
+	appointment?: string;
 }
 
-export default function Dashboard(props: DashboardProps) {
+export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 	const { db } = useContext(AuthContext);
-	const columns = [
-		{ label: "Cliente", value: "client" },
-		{ label: "Veículo", value: "vehicle" },
-		{ label: "Manutenção", value: "maintenance" },
-		{ label: "Km atual", value: "km_current" },
-		{ label: "Km limite", value: "km_threshold" },
-		{ label: "Data limite", value: "date_threshold" },
-		{ label: "Status", value: "status" },
-		{ label: "Agendamento", value: "appointment" },
-	];
+	const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
+	const [currentPage, setCurrentPage] = useState(0);
+	const [lastVisible, setLastVisible] = useState<any>(null);
+	const [totalPending, setTotalPending] = useState(0);
+	const [totalVehicles, setTotalVehicles] = useState(0);
+	const [totalKM, setTotalKM] = useState(0);
 
-	async function getClient(uid: string) {
-		const clientRef = doc(db, "appUsers", uid);
-		const client = (await getDoc(clientRef)).data() as AppUser;
-	}
+	const itemsPerPage = 10;
 
-	async function getClients() {
-		const docRef = doc(db, "workshops", props.selectedWorkshop);
-		const workshop = (await getDoc(docRef)).data() as Workshop;
-		workshop.clients.forEach((item) => {
-			getClient(item);
-		});
-	}
+	const fetchMaintenances = async () => {
+		if (!db) {
+			console.error("Database not initialized");
+			return;
+		}
 
-	useEffect(() => {}, []);
+		try {
+			let q = query(
+				collection(db, "maintenances"),
+				where("workshop", "==", selectedWorkshop),
+				orderBy("date"),
+				limit(itemsPerPage)
+			);
 
-	const mockData = [
-		{
-			client: "José",
-			vehicle: "Fiat Uno",
-			maintenance: "Revisão",
-			km_current: "9500",
-			km_threshold: "10000",
-			date_threshold: "10/06/2024",
-			status: "Próxima",
-			appointment: "Agendar",
-		},
-	];
+			if (lastVisible) {
+				q = query(q, startAfter(lastVisible));
+			}
+
+			const querySnapshot = await getDocs(q);
+			const maintenanceList: MaintenanceData[] = [];
+			const vehiclesMonitorados: Set<string> = new Set();
+			let kmMonitorado = 0;
+
+			for (const docSnap of querySnapshot.docs) {
+				const maintenanceData = docSnap.data() as Maintenance;
+				maintenanceData.id = docSnap.id;
+
+				let clientName = "";
+				let vehicleInfo = "";
+				let kmCurrent = 0;
+
+				const vehicleDoc = await getDoc(
+					doc(db, "vehicles", maintenanceData.car_id)
+				);
+				if (vehicleDoc.exists()) {
+					const vehicleData = vehicleDoc.data() as Vehicle;
+					vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+					kmCurrent = vehicleData.initial_km;
+
+					// Check if the vehicle is associated with an AppUser or Driver
+					const appUserDoc = await getDoc(
+						doc(db, "appUsers", maintenanceData.car_id)
+					);
+					const driverDoc = await getDoc(
+						doc(db, "clients", maintenanceData.car_id)
+					);
+
+					if (appUserDoc.exists()) {
+						const clientData = appUserDoc.data() as AppUser;
+						clientName = clientData.name;
+						if (clientData.preferred_workshop === selectedWorkshop) {
+							vehiclesMonitorados.add(maintenanceData.car_id);
+							kmMonitorado += vehicleData.initial_km;
+						}
+					} else if (driverDoc.exists()) {
+						const driverData = driverDoc.data() as Driver;
+						clientName = driverData.name;
+						if (driverData.workshops === selectedWorkshop) {
+							vehiclesMonitorados.add(maintenanceData.car_id);
+							kmMonitorado += vehicleData.initial_km;
+						}
+					}
+				}
+
+				const status = calculateStatus(maintenanceData, kmCurrent);
+
+				maintenanceList.push({
+					client: clientName,
+					vehicle: vehicleInfo,
+					maintenance: maintenanceData.service,
+					km_current: kmCurrent,
+					km_threshold: maintenanceData.kmLimit,
+					date_threshold: maintenanceData.dateLimit
+						? new Date(
+								maintenanceData.dateLimit.seconds * 1000 +
+									maintenanceData.dateLimit.nanoseconds / 1000000
+						  ).toLocaleDateString("pt-BR")
+						: "",
+					status: status,
+				});
+			}
+
+			setMaintenances(maintenanceList);
+			setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+			setTotalPending(maintenanceList.length);
+			setTotalVehicles(vehiclesMonitorados.size);
+			setTotalKM(kmMonitorado);
+		} catch (error) {
+			console.error("Error fetching maintenances: ", error);
+		}
+	};
+
+	const calculateStatus = (maintenance: Maintenance, kmCurrent: number) => {
+		const now = new Date();
+		if (maintenance.dateLimit && maintenance.dateLimit < now) {
+			return "Vencida";
+		} else if (maintenance.kmLimit && maintenance.kmLimit < kmCurrent) {
+			return "Crítica";
+		}
+		return "Próxima";
+	};
+
+	const handlePageChange = (page: number) => {
+		setCurrentPage(page);
+		fetchMaintenances();
+	};
+
+	useEffect(() => {
+		fetchMaintenances();
+	}, [selectedWorkshop]);
 
 	return (
 		<div className={styles.dashboardContainer}>
 			<div className={styles.dashboardTitleContainer}>
-				<h2 className={styles.dashboardTitle}>{props.selectedWorkshop}</h2>
+				<h2 className={styles.dashboardTitle}>{selectedWorkshop}</h2>
 				<p className={styles.dashboardText}>
 					Confira as informações referentes à sua oficina nas seções a seguir.
 				</p>
@@ -94,28 +178,44 @@ export default function Dashboard(props: DashboardProps) {
 					<div className={clsx(styles.statisticsCard, styles.maintenanceCard)}>
 						<div className={styles.statWrap}>
 							<TbClockExclamation className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>22</h4>
+							<h4 className={styles.statisticsText}>{totalPending}</h4>
 						</div>
 						<p className={styles.statisticsSubtext}>manutenções pendentes</p>
 					</div>
 					<div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
 						<div className={styles.statWrap}>
 							<MdDirectionsCar className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>55</h4>
+							<h4 className={styles.statisticsText}>{totalVehicles}</h4>
 						</div>
 						<p className={styles.statisticsSubtext}>veículos monitorados</p>
 					</div>
 					<div className={clsx(styles.statisticsCard, styles.kmCard)}>
 						<div className={styles.statWrap}>
 							<MdOutlineSpeed className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>38.489</h4>
+							<h4 className={styles.statisticsText}>{totalKM}</h4>
 						</div>
 						<p className={styles.statisticsSubtext}>km monitorados</p>
 					</div>
 				</div>
 			</div>
 			<div className={styles.tableContainer}>
-				<CustomTable data={mockData} />
+				<CustomTable
+					data={maintenances.map((row) => ({
+						...row,
+						appointment: "Agendar",
+					}))}
+				/>
+			</div>
+			<div className={styles.pagination}>
+				<button
+					onClick={() => handlePageChange(currentPage - 1)}
+					disabled={currentPage === 0}
+				>
+					Anterior
+				</button>
+				<button onClick={() => handlePageChange(currentPage + 1)}>
+					Próxima
+				</button>
 			</div>
 		</div>
 	);

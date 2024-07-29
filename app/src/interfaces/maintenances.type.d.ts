@@ -6,5 +6,5 @@ export interface Maintenance {
 	price: number;
 	car_id: string;
 	kmLimit: number;
-	dateLimit: Date;
+	dateLimit: any;
 }
