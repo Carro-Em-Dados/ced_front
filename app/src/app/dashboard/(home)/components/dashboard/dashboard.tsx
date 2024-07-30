@@ -21,7 +21,7 @@ import styles from "../../tabs/welcome.module.scss";
 import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
-import { Button } from "@nextui-org/react";
+import { Button, Radio, RadioGroup } from "@nextui-org/react";
 
 interface DashboardProps {
 	selectedWorkshop: string;
@@ -47,100 +47,207 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 	const [totalVehicles, setTotalVehicles] = useState(0);
 	const [totalKM, setTotalKM] = useState(0);
 	const [totalPages, setTotalPages] = useState(0);
+	const [counterType, setCounterType] = useState("total");
 
 	const itemsPerPage = 10;
 
 	const fetchMaintenances = async () => {
-		if (!db || !selectedWorkshop) {
-			console.error("Database or workshop not initialized");
+		if (!db) {
+			console.error("Database not initialized");
 			return;
 		}
 
 		try {
-			const baseQuery = query(
-				collection(db, "maintenances"),
-				where("workshop", "==", selectedWorkshop)
-			);
+			let baseQuery;
+
+			if (selectedWorkshop === "all") {
+				baseQuery = query(collection(db, "maintenances"));
+			} else {
+				baseQuery = query(
+					collection(db, "maintenances"),
+					where("workshop", "==", selectedWorkshop)
+				);
+			}
 
 			const countSnapshot = await getDocs(baseQuery);
 			const totalItems = countSnapshot.size;
 			setTotalPages(Math.ceil(totalItems / itemsPerPage));
 
-			let q = query(
-				baseQuery,
-				orderBy("date"),
-				limit(itemsPerPage),
-				lastVisible ? startAfter(lastVisible) : limit(itemsPerPage)
-			);
+			if (selectedWorkshop === "all") {
+				const querySnapshot = await getDocs(baseQuery);
+				const maintenanceList: MaintenanceData[] = [];
 
-			const querySnapshot = await getDocs(q);
-			const maintenanceList: MaintenanceData[] = [];
+				for (const docSnap of querySnapshot.docs) {
+					const maintenanceData = docSnap.data() as Maintenance;
+					maintenanceData.id = docSnap.id;
 
-			for (const docSnap of querySnapshot.docs) {
-				const maintenanceData = docSnap.data() as Maintenance;
-				maintenanceData.id = docSnap.id;
-
-				let clientName = "";
-				let vehicleInfo = "";
-				let kmCurrent = 0;
-
-				const vehicleDoc = await getDoc(
-					doc(db, "vehicles", maintenanceData.car_id)
-				);
-				if (vehicleDoc.exists()) {
-					const vehicleData = vehicleDoc.data() as Vehicle;
-					vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
-					kmCurrent = vehicleData.initial_km;
-
-					const appUserDoc = await getDoc(
-						doc(db, "appUsers", vehicleData.owner)
-					);
-					const driverDoc = await getDoc(doc(db, "clients", vehicleData.owner));
-
-					if (appUserDoc.exists()) {
-						const clientData = appUserDoc.data() as AppUser;
-						clientName = clientData.name;
+					if (!maintenanceData.car_id) {
+						console.warn(
+							`Maintenance data missing car_id: ${maintenanceData.id}`
+						);
+						continue;
 					}
 
-					if (driverDoc.exists()) {
-						const driverData = driverDoc.data() as Driver;
-						clientName = driverData.name;
+					let clientName = "";
+					let vehicleInfo = "";
+					let kmCurrent = 0;
+
+					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
+					const vehicleDoc = await getDoc(vehicleDocRef);
+					if (vehicleDoc.exists()) {
+						const vehicleData = vehicleDoc.data() as Vehicle;
+						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+						kmCurrent = vehicleData.initial_km || 0;
+
+						if (!vehicleData.owner && selectedWorkshop !== "all") {
+							console.warn(
+								`Vehicle data missing owner: ${maintenanceData.car_id}`
+							);
+							continue;
+						}
+
+						const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
+						const appUserDoc = await getDoc(appUserDocRef);
+						if (appUserDoc.exists()) {
+							const clientData = appUserDoc.data() as AppUser;
+							clientName = clientData.name || "";
+						}
+
+						const driverDocRef = doc(db, "clients", vehicleData.owner);
+						const driverDoc = await getDoc(driverDocRef);
+						if (driverDoc.exists()) {
+							const driverData = driverDoc.data() as Driver;
+							clientName = driverData.name || "";
+						}
+					} else {
+						console.warn(
+							`Vehicle document not found: ${maintenanceData.car_id}`
+						);
 					}
+
+					const status = calculateStatus(maintenanceData, kmCurrent);
+
+					maintenanceList.push({
+						client: clientName,
+						vehicle: vehicleInfo,
+						maintenance: maintenanceData.service,
+						km_current: kmCurrent,
+						km_threshold: maintenanceData.kmLimit || 0,
+						date_threshold: maintenanceData.dateLimit
+							? new Date(
+									maintenanceData.dateLimit.seconds * 1000 +
+										maintenanceData.dateLimit.nanoseconds / 1000000
+							  ).toLocaleDateString("pt-BR")
+							: "",
+						status: status,
+					});
 				}
 
-				const status = calculateStatus(maintenanceData, kmCurrent);
+				setMaintenances(maintenanceList);
+				setTotalPending(totalItems);
+			} else {
+				let q = query(
+					baseQuery,
+					orderBy("date"),
+					limit(itemsPerPage),
+					lastVisible ? startAfter(lastVisible) : limit(itemsPerPage)
+				);
 
-				maintenanceList.push({
-					client: clientName,
-					vehicle: vehicleInfo,
-					maintenance: maintenanceData.service,
-					km_current: kmCurrent,
-					km_threshold: maintenanceData.kmLimit,
-					date_threshold: maintenanceData.dateLimit
-						? new Date(
-								maintenanceData.dateLimit.seconds * 1000 +
-									maintenanceData.dateLimit.nanoseconds / 1000000
-						  ).toLocaleDateString("pt-BR")
-						: "",
-					status: status,
-				});
+				const querySnapshot = await getDocs(q);
+				const maintenanceList: MaintenanceData[] = [];
+
+				for (const docSnap of querySnapshot.docs) {
+					const maintenanceData = docSnap.data() as Maintenance;
+					maintenanceData.id = docSnap.id;
+
+					if (!maintenanceData.car_id) {
+						console.warn(
+							`Maintenance data missing car_id: ${maintenanceData.id}`
+						);
+						continue;
+					}
+
+					let clientName = "";
+					let vehicleInfo = "";
+					let kmCurrent = 0;
+
+					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
+					const vehicleDoc = await getDoc(vehicleDocRef);
+					if (vehicleDoc.exists()) {
+						const vehicleData = vehicleDoc.data() as Vehicle;
+						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+						kmCurrent = vehicleData.initial_km || 0;
+
+						if (!vehicleData.owner && selectedWorkshop !== "all") {
+							console.warn(
+								`Vehicle data missing owner: ${maintenanceData.car_id}`
+							);
+							continue;
+						}
+
+						const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
+						const appUserDoc = await getDoc(appUserDocRef);
+						if (appUserDoc.exists()) {
+							const clientData = appUserDoc.data() as AppUser;
+							clientName = clientData.name || "";
+						}
+
+						const driverDocRef = doc(db, "clients", vehicleData.owner);
+						const driverDoc = await getDoc(driverDocRef);
+						if (driverDoc.exists()) {
+							const driverData = driverDoc.data() as Driver;
+							clientName = driverData.name || "";
+						}
+					} else {
+						console.warn(
+							`Vehicle document not found: ${maintenanceData.car_id}`
+						);
+					}
+
+					const status = calculateStatus(maintenanceData, kmCurrent);
+
+					maintenanceList.push({
+						client: clientName,
+						vehicle: vehicleInfo,
+						maintenance: maintenanceData.service,
+						km_current: kmCurrent,
+						km_threshold: maintenanceData.kmLimit || 0,
+						date_threshold: maintenanceData.dateLimit
+							? new Date(
+									maintenanceData.dateLimit.seconds * 1000 +
+										maintenanceData.dateLimit.nanoseconds / 1000000
+							  ).toLocaleDateString("pt-BR")
+							: "",
+						status: status,
+					});
+				}
+
+				setMaintenances(maintenanceList);
+				setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+				setTotalPending(totalItems);
 			}
-
-			setMaintenances(maintenanceList);
-			setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-			setTotalPending(totalItems);
 		} catch (error) {
 			console.error("Error fetching maintenances: ", error);
 		}
 	};
 
 	const fetchMonitoredVehicles = async () => {
-		if (!db || !selectedWorkshop) {
+		if (!db) {
+			console.error("Database not initialized");
 			return;
 		}
 
 		try {
-			const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+			let vehiclesSnapshot;
+
+			if (selectedWorkshop === "all") {
+				vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+			} else {
+				vehiclesSnapshot = await getDocs(
+					query(collection(db, "vehicles"), where("owner", "!=", null))
+				);
+			}
+
 			let monitoredVehicles = 0;
 			let totalKM = 0;
 
@@ -148,34 +255,38 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 				const vehicleData = vehicleDoc.data() as Vehicle;
 				const ownerId = vehicleData.owner;
 
-				if (!ownerId) {
+				if (!ownerId && selectedWorkshop !== "all") {
+					console.warn(`Vehicle data missing owner: ${vehicleData.id}`);
 					continue;
 				}
 
 				let isAssociated = false;
 
-				const appUserDocRef = doc(db, "appUsers", ownerId);
-				const appUserDoc = await getDoc(appUserDocRef);
-				if (appUserDoc.exists()) {
-					const appUserData = appUserDoc.data() as AppUser;
-					if (appUserData.preferred_workshop === selectedWorkshop) {
-						isAssociated = true;
+				if (ownerId) {
+					const appUserDocRef = doc(db, "appUsers", ownerId);
+					const appUserDoc = await getDoc(appUserDocRef);
+					if (appUserDoc.exists()) {
+						const appUserData = appUserDoc.data() as AppUser;
+						if (appUserData.preferred_workshop === selectedWorkshop) {
+							isAssociated = true;
+						}
 					}
+
+					const driverDocRef = doc(db, "clients", ownerId);
+					const driverDoc = await getDoc(driverDocRef);
+					if (driverDoc.exists()) {
+						const driverData = driverDoc.data() as Driver;
+						if (driverData.workshops === selectedWorkshop) {
+							isAssociated = true;
+						}
+					}
+				} else {
+					isAssociated = selectedWorkshop === "all";
 				}
 
-				const driverDocRef = doc(db, "clients", ownerId);
-				const driverDoc = await getDoc(driverDocRef);
-				if (driverDoc.exists()) {
-					const driverData = driverDoc.data() as Driver;
-					if (driverData.workshops === selectedWorkshop) {
-						isAssociated = true;
-					}
-				}
-
-				if (isAssociated) {
-					console.log("Veículo monitorado:", vehicleData);
+				if (selectedWorkshop === "all" || isAssociated) {
 					monitoredVehicles++;
-					totalKM += vehicleData.initial_km;
+					totalKM += vehicleData.initial_km || 0;
 				}
 			}
 
@@ -236,14 +347,50 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 		setLastVisible(null);
 		fetchMaintenances();
 		fetchMonitoredVehicles();
+		setCounterType("total");
 	}, [selectedWorkshop]);
 
 	return (
 		<div className={styles.dashboardContainer}>
-			<div className={styles.dashboardTitleContainer}>
-				<p className={styles.dashboardText}>
-					Confira as informações referentes à sua oficina nas seções a seguir.
-				</p>
+			<div
+				className={clsx(
+					styles.dashboardTitleContainer,
+					"text-white flex flex-col gap-2"
+				)}
+			>
+				<div className="w-6 h-2 bg-[#27A338]" />
+				<div className="flex flex-col">
+					{selectedWorkshop === "all" ? (
+						<>
+							<h1 className="text-3xl">Geral</h1>
+							<RadioGroup
+								className="text-sm"
+								label="Selecione abaixo sua opção de visualização."
+								orientation="horizontal"
+								color="success"
+								value={counterType}
+								onChange={(e) => {
+									setCounterType(e.target.value);
+								}}
+							>
+								<Radio value="total">
+									<p className="text-white">Contadores totais</p>
+								</Radio>
+								<Radio value="partial">
+									<p className="text-white">Contadores parciais</p>
+								</Radio>
+							</RadioGroup>
+						</>
+					) : (
+						<>
+							<h2 className="text-xl">Nome da oficina</h2>
+							<p className="text-sm text-[#C7C7C7]">
+								Confira as informações referentes à sua oficina nas seções a
+								seguir.
+							</p>
+						</>
+					)}
+				</div>
 			</div>
 			<div className={styles.graphicsContainer}>
 				<div className={styles.chartBox}>
@@ -253,13 +400,17 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 				<span style={{ width: "3em" }} />
 				<div className={styles.statisticsBox}>
 					<h4 className={styles.boxText}>Outros dados</h4>
-					<div className={clsx(styles.statisticsCard, styles.maintenanceCard)}>
-						<div className={styles.statWrap}>
-							<TbClockExclamation className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>{totalPending}</h4>
+					{counterType === "total" && (
+						<div
+							className={clsx(styles.statisticsCard, styles.maintenanceCard)}
+						>
+							<div className={styles.statWrap}>
+								<TbClockExclamation className={styles.statisticsIcon} />
+								<h4 className={styles.statisticsText}>{maintenances.length}</h4>
+							</div>
+							<p className={styles.statisticsSubtext}>manutenções pendentes</p>
 						</div>
-						<p className={styles.statisticsSubtext}>manutenções pendentes</p>
-					</div>
+					)}
 					<div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
 						<div className={styles.statWrap}>
 							<MdDirectionsCar className={styles.statisticsIcon} />
@@ -276,30 +427,34 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					</div>
 				</div>
 			</div>
-			<div className={styles.tableContainer}>
-				<CustomTable
-					data={maintenances.map((row) => ({
-						...row,
-						appointment: "Agendar",
-					}))}
-				/>
-			</div>
-			<div className="flex gap-2 mb-10">
-				<Button
-					onPress={() => handlePageChange(currentPage - 1)}
-					disabled={currentPage === 0}
-					className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-				>
-					Anterior
-				</Button>
-				<Button
-					onPress={() => handlePageChange(currentPage + 1)}
-					disabled={currentPage >= totalPages - 1}
-					className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-				>
-					Próxima
-				</Button>
-			</div>
+			{selectedWorkshop !== "all" && (
+				<>
+					<div className={styles.tableContainer}>
+						<CustomTable
+							data={maintenances.map((row) => ({
+								...row,
+								appointment: "Agendar",
+							}))}
+						/>
+					</div>
+					<div className="flex gap-2 mb-10">
+						<Button
+							onPress={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage === 0}
+							className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+						>
+							Anterior
+						</Button>
+						<Button
+							onPress={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage >= totalPages - 1}
+							className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+						>
+							Próxima
+						</Button>
+					</div>
+				</>
+			)}
 		</div>
 	);
 }
