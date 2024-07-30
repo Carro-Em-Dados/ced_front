@@ -15,10 +15,11 @@ import {
 import clsx from "clsx";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { defaultServices } from "@/constants/defaultServices";
 import { toast, Zoom } from "react-toastify";
+import { Contract } from "@/interfaces/contract.type";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -68,6 +69,23 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	const [other1, setOther1] = useState("");
 	const [other2, setOther2] = useState("");
 
+	const [basicContractData, setBasicContractData] = useState<Contract>({
+		maxAlarmsPerVehicle: 0,
+		maxDrivers: 0,
+		maxManuntenanceAlarmsPerUser: 0,
+		maxVehiclesPerDriver: 0,
+		trialPeriod: 0,
+		userDateLimitAlarm: 0,
+		userKmLimitAlarm: 0,
+		workshopDateLimitAlarm: 0,
+		workshopKmLimitAlarm: 0,
+		id: "",
+	});
+
+	useEffect(() => {
+		getBasicContract();
+	}, []);
+
 	useEffect(() => {
 		setClientMotoristCount("");
 		setVehicleCount("");
@@ -78,16 +96,26 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 		setUserKmNotificationFactor("");
 		setUserDateNotificationFactor("");
 		if (profileType === "basic") {
-			setClientMotoristCount("10");
-			setVehicleCount("10");
-			setAlarmCount("10");
-			setMaintenanceAlarmCount("10");
-			setWorkshopKmNotificationFactor("10");
-			setWorkshopDateNotificationFactor("10");
-			setUserKmNotificationFactor("10");
-			setUserDateNotificationFactor("10");
+			setClientMotoristCount(basicContractData.maxDrivers.toString());
+			setVehicleCount(basicContractData.maxVehiclesPerDriver.toString());
+			setAlarmCount(basicContractData.maxAlarmsPerVehicle.toString());
+			setMaintenanceAlarmCount(
+				basicContractData.maxManuntenanceAlarmsPerUser.toString()
+			);
+			setWorkshopKmNotificationFactor(
+				basicContractData.workshopKmLimitAlarm.toString()
+			);
+			setWorkshopDateNotificationFactor(
+				basicContractData.workshopDateLimitAlarm.toString()
+			);
+			setUserKmNotificationFactor(
+				basicContractData.userKmLimitAlarm.toString()
+			);
+			setUserDateNotificationFactor(
+				basicContractData.userDateLimitAlarm.toString()
+			);
 		}
-	}, [profileType]);
+	}, [profileType, basicContractData]);
 
 	const tabs = ["tab1", "tab2", "tab3", "tab4"];
 
@@ -199,7 +227,10 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 		};
 
 		try {
-			const contractRef = await addDoc(collection(db, "contracts"), contract);
+			const contractRef =
+				profileType === "basic"
+					? { id: "basic" }
+					: await addDoc(collection(db, "contracts"), contract);
 
 			const workshop = {
 				fantasy_name: fantasyName,
@@ -262,6 +293,17 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		}
+	};
+
+	const getBasicContract = async () => {
+		const contractDocRef = doc(db, "contracts", "basic");
+		const contractDoc = await getDoc(contractDocRef);
+
+		if (contractDoc.exists()) {
+			setBasicContractData(contractDoc.data() as Contract);
+		} else {
+			console.error("Documento 'basic' não encontrado na coleção 'contracts'.");
 		}
 	};
 
@@ -769,7 +811,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 									</div>
 								)}
 								{tab === "tab4" && (
-									<div className={styles.form}>
+									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
 											<input
 												className={styles.modalInput}
