@@ -184,7 +184,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 								Adicionar carro
 							</ModalHeader>
 							<ModalBody className="text-white">
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
 										<input
 											className={styles.modalInput}
