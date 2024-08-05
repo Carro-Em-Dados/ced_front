@@ -180,6 +180,7 @@ const Register = () => {
 											appUser={appUser}
 											setAppUsers={setAppUsers}
 											vehicles={getVehiclesByClient(appUser.id)}
+											setVehicles={setVehicles}
 										/>
 									)
 								)}
@@ -204,6 +205,7 @@ const Register = () => {
 										appUser={appUser}
 										setAppUsers={setAppUsers}
 										vehicles={getVehiclesByClient(appUser.id)}
+										setVehicles={setVehicles}
 									/>
 								))}
 								<div className={styles.buttonContainer}>

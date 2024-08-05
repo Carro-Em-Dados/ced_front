@@ -80,28 +80,31 @@ export default function Monitor() {
 						} as Vehicle);
 					});
 				}
-			} else if (verification === "license_plate" || verification === "vin") {
+			}
+
+			if (verification === "license_plate" || verification === "vin") {
+				console.log(verification, searchValue);
 				const vehicleSnapshot = await getDocs(
 					query(
 						collection(db, "vehicles"),
 						where(verification, "==", searchValue)
 					)
 				);
-				vehicleSnapshot.forEach((vehicleDoc) => {
-					fetchedVehicleIds.push(vehicleDoc.id);
-					fetchedVehicleDetails.push({
-						id: vehicleDoc.id,
-						...vehicleDoc.data(),
-					} as Vehicle);
-				});
+
+				if (!vehicleSnapshot.empty) {
+					setSelectedVehicle(vehicleSnapshot.docs[0].data() as Vehicle);
+					await fetchVehicleStats(
+						vehicleSnapshot.docs[0].id,
+						vehicleSnapshot.docs[0].data() as Vehicle
+					);
+				}
+				return;
 			}
 
 			setVehicleIds(fetchedVehicleIds);
 			setVehicleData(fetchedVehicleDetails);
-			if (
-				fetchedVehicleIds.length === 1 &&
-				fetchedVehicleDetails.length === 1
-			) {
+
+			if (fetchedVehicleIds.length <= 1 && fetchedVehicleDetails.length <= 1) {
 				await fetchVehicleStats(fetchedVehicleIds[0], fetchedVehicleDetails[0]);
 			} else {
 				setShowMonitor(false);
@@ -134,7 +137,7 @@ export default function Monitor() {
 			setVehicleStats(readings);
 			setShowMonitor(true);
 		} catch (error) {
-			toast.error("Erro ao buscarar leituras", {
+			toast.error("Erro ao buscar leituras", {
 				position: "bottom-right",
 				autoClose: 5000,
 				hideProgressBar: true,
@@ -204,7 +207,7 @@ export default function Monitor() {
 					{vehicleData.length > 1 && !showMonitor && (
 						<div className="text-white flex flex-col gap-5 my-5">
 							<h2 className="text-xl font-medium">Selecione um veículo</h2>
-							<ul className="text-sm">
+							<ul className="text-sm flex flex-col gap-2">
 								{vehicleData.map((vehicle) => (
 									<li
 										key={vehicle.id}
@@ -245,42 +248,48 @@ const VehicleStats = ({
 			<span className={styles.greenRectangle} />
 			<h2 className={styles.monitorTitle}>Dados monitorados do veículo</h2>
 			<div className={styles.cardsContainer}>
-				{readings.map((reading) => (
-					<div
-						key={reading.id}
-						className={clsx(
-							styles.cardWrapper,
-							"grid grid-cols-4 items-center justify-center justify-items-center gap-4 w-full"
-						)}
-					>
-						<KmCard
-							km={reading.obd2_distance}
-							limit={vehicle.obd2_distance}
-						/>
-						<TempCard
-							temperature={reading.engine_temp}
-							limit={vehicle.engine_temp}
-						/>
-						<TensionCard
-							tension={reading.battery_tension}
-							limit={vehicle.battery_tension}
-						/>
-						<OilCard
-							oilLevel={reading.oil_pressure}
-							limit={vehicle.oil_pressure}
-						/>
-						<RpmCard
-							rpm={reading.rpm}
-							limit={vehicle.rpm}
-						/>
-						<SpeedCard
-							speed={reading.speed}
-							limit={vehicle.speed}
-						/>
-						<FailCard fails={0} />
-						<LastReadingCard lastRead={reading.created_at} />
-					</div>
-				))}
+				{readings && readings.length ? (
+					readings.map((reading) => (
+						<div
+							key={reading.id}
+							className={clsx(
+								styles.cardWrapper,
+								"grid grid-cols-4 items-center justify-center justify-items-center gap-4 w-full"
+							)}
+						>
+							<KmCard
+								km={reading.obd2_distance}
+								limit={vehicle.obd2_distance}
+							/>
+							<TempCard
+								temperature={reading.engine_temp}
+								limit={vehicle.engine_temp}
+							/>
+							<TensionCard
+								tension={reading.battery_tension}
+								limit={vehicle.battery_tension}
+							/>
+							<OilCard
+								oilLevel={reading.oil_pressure}
+								limit={vehicle.oil_pressure}
+							/>
+							<RpmCard
+								rpm={reading.rpm}
+								limit={vehicle.rpm}
+							/>
+							<SpeedCard
+								speed={reading.speed}
+								limit={vehicle.speed}
+							/>
+							<FailCard fails={0} />
+							<LastReadingCard lastRead={reading.created_at} />
+						</div>
+					))
+				) : (
+					<p className="text-sm text-white">
+						Não foi encontrado nenhuma leitura.
+					</p>
+				)}
 			</div>
 		</div>
 	);

@@ -50,12 +50,10 @@ export default function DriverCard({
 							<p className={styles.cardText}>
 								Endereço residencial: {driver.address_residential}
 							</p>
-							{driver.address_commercial ? (
+							{driver.address_commercial && (
 								<p className={styles.cardText}>
 									Endereço comercial: {driver.address_commercial}
 								</p>
-							) : (
-								<></>
 							)}
 						</div>
 						<div className={styles.row}>

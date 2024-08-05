@@ -7,15 +7,24 @@ import clsx from "clsx";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { AppUser } from "@/interfaces/appUser.type";
+import VehicleModal from "../VehicleModal/VehicleModal";
+import SeeVehicleModal from "../VehicleModal/SeeVehicleModal";
 
 interface Props {
 	appUser: AppUser;
 	setAppUsers: React.Dispatch<React.SetStateAction<AppUser[]>>;
 	vehicles: Vehicle[];
+	setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-export default function AppUserCard({ appUser, setAppUsers, vehicles }: Props) {
+export default function AppUserCard({
+	appUser,
+	setAppUsers,
+	vehicles,
+	setVehicles,
+}: Props) {
 	const AppUsers = () => {
+		console.log(vehicles);
 		return (
 			<div className={styles.contentContainer}>
 				<div className={styles.cardsContainer}>
@@ -50,6 +59,12 @@ export default function AppUserCard({ appUser, setAppUsers, vehicles }: Props) {
 											{vehicle?.manufacturer} {vehicle?.car_model}
 										</p>
 										<p>{vehicle?.license_plate}</p>
+										<div className="justify-self-end text-xl">
+											<SeeVehicleModal
+												vehicle={vehicle}
+												setVehicles={setVehicles}
+											/>
+										</div>
 									</div>
 								))}
 							</div>
@@ -63,6 +78,12 @@ export default function AppUserCard({ appUser, setAppUsers, vehicles }: Props) {
 							name={appUser.name}
 							id={appUser.id}
 							state={setAppUsers}
+						/>
+					</div>
+					<div className={styles.addVehicleBtnWrap}>
+						<VehicleModal
+							ownerId={appUser.id}
+							setVehicles={setVehicles}
 						/>
 					</div>
 				</div>

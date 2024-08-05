@@ -56,12 +56,13 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 					maintenanceData.push({
 						id: doc.id,
 						...data,
-						dateLimit: data.dateLimit.toDate(),
+						dateLimit: data?.dateLimit?.toDate() || null,
 					} as Maintenance);
 				}
 			});
 			setMaintenances(maintenanceData);
 		} catch (error) {
+			console.log(error);
 			toast.error("Erro ao buscar manutenções", {
 				position: "bottom-right",
 				autoClose: 5000,
@@ -289,7 +290,11 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 														placeholder="Data Limite"
 														className={clsx(styles.modalInput, "!w-40")}
 														value={
-															maintenance.dateLimit.toISOString().split("T")[0]
+															maintenance?.dateLimit instanceof Date
+																? maintenance.dateLimit
+																		.toISOString()
+																		.split("T")[0]
+																: ""
 														}
 														onChange={(e) =>
 															updateMaintenance(
@@ -329,8 +334,11 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 											</Button>
 											<div className="flex flex-row justify-between items-center">
 												<p className="text-sm">
-													{currentWorkshop?.contract?.maxAlarmsPerVehicle! -
-														maintenances.length}{" "}
+													{currentWorkshop?.contract?.maxAlarmsPerVehicle !==
+													undefined
+														? currentWorkshop.contract.maxAlarmsPerVehicle -
+														  maintenances.length
+														: 0}{" "}
 													alarmes restantes
 												</p>
 												<Button
