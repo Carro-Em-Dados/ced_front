@@ -25,7 +25,7 @@ function Calendar() {
 					</div>
 					<p className={styles.subtext}>Visualize as manutenções agendadas</p>
 				</div>
-				<div className={styles.content}>
+				<div>
 					<CustomCalendar />
 				</div>
 			</div>
