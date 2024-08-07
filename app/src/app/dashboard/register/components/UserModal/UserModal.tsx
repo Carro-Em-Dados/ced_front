@@ -125,7 +125,11 @@ export default function UserModal({ setUsers }: Props) {
 									</div>
 									<div>
 										<Select
+											variant="bordered"
 											className="dark"
+											classNames={{
+												trigger: "!border-white rounded-[1em]",
+											}}
 											label="Tipo de usuário"
 											value={role}
 											onChange={(e) => setRole(e.target.value)}

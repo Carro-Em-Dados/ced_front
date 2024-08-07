@@ -22,6 +22,7 @@ import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
 import { Button, Radio, RadioGroup } from "@nextui-org/react";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface DashboardProps {
 	selectedWorkshop: string;
@@ -48,6 +49,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 	const [totalKM, setTotalKM] = useState(0);
 	const [totalPages, setTotalPages] = useState(0);
 	const [counterType, setCounterType] = useState("total");
+	const [loading, setLoading] = useState(true);
 
 	const itemsPerPage = 10;
 
@@ -58,6 +60,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 		}
 
 		try {
+			setLoading(true);
 			let baseQuery;
 
 			if (selectedWorkshop === "all") {
@@ -228,6 +231,8 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 			}
 		} catch (error) {
 			console.error("Error fetching maintenances: ", error);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -351,108 +356,124 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 	}, [selectedWorkshop]);
 
 	return (
-		<div className={styles.dashboardContainer}>
-			<div
-				className={clsx(
-					styles.dashboardTitleContainer,
-					"text-white flex flex-col gap-2"
-				)}
-			>
-				<div className="w-6 h-2 bg-[#27A338]" />
-				<div className="flex flex-col">
-					{selectedWorkshop === "all" ? (
-						<>
-							<h1 className="text-3xl">Geral</h1>
-							<RadioGroup
-								className="text-sm"
-								label="Selecione abaixo sua opção de visualização."
-								orientation="horizontal"
-								color="success"
-								value={counterType}
-								onChange={(e) => {
-									setCounterType(e.target.value);
-								}}
-							>
-								<Radio value="total">
-									<p className="text-white">Contadores totais</p>
-								</Radio>
-								<Radio value="partial">
-									<p className="text-white">Contadores parciais</p>
-								</Radio>
-							</RadioGroup>
-						</>
-					) : (
-						<>
-							<h2 className="text-xl">Nome da oficina</h2>
-							<p className="text-sm text-[#C7C7C7]">
-								Confira as informações referentes à sua oficina nas seções a
-								seguir.
-							</p>
-						</>
-					)}
-				</div>
-			</div>
-			<div className={styles.graphicsContainer}>
-				<div className={styles.chartBox}>
-					<h4 className={styles.boxText}>Porcentagem de manutenções</h4>
-					<CustomChart chartData={countMaintenanceStatuses(maintenances)} />
-				</div>
-				<span style={{ width: "3em" }} />
-				<div className={styles.statisticsBox}>
-					<h4 className={styles.boxText}>Outros dados</h4>
-					{counterType === "total" && (
-						<div
-							className={clsx(styles.statisticsCard, styles.maintenanceCard)}
-						>
-							<div className={styles.statWrap}>
-								<TbClockExclamation className={styles.statisticsIcon} />
-								<h4 className={styles.statisticsText}>{maintenances.length}</h4>
-							</div>
-							<p className={styles.statisticsSubtext}>manutenções pendentes</p>
-						</div>
-					)}
-					<div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
-						<div className={styles.statWrap}>
-							<MdDirectionsCar className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>{totalVehicles}</h4>
-						</div>
-						<p className={styles.statisticsSubtext}>veículos monitorados</p>
-					</div>
-					<div className={clsx(styles.statisticsCard, styles.kmCard)}>
-						<div className={styles.statWrap}>
-							<MdOutlineSpeed className={styles.statisticsIcon} />
-							<h4 className={styles.statisticsText}>{totalKM}</h4>
-						</div>
-						<p className={styles.statisticsSubtext}>km monitorados</p>
-					</div>
-				</div>
-			</div>
-			{selectedWorkshop !== "all" && (
+		<div className={clsx(styles.dashboardContainer, "mb-10")}>
+			{loading ? (
+				<AiOutlineLoading
+					size={40}
+					className="text-white animate-spin"
+				/>
+			) : (
 				<>
-					<div className={styles.tableContainer}>
-						<CustomTable
-							data={maintenances.map((row) => ({
-								...row,
-								appointment: "Agendar",
-							}))}
-						/>
+					<div
+						className={clsx(
+							styles.dashboardTitleContainer,
+							"text-white flex flex-col gap-2"
+						)}
+					>
+						<div className="w-6 h-2 bg-[#27A338]" />
+						<div className="flex flex-col">
+							{selectedWorkshop === "all" ? (
+								<>
+									<h1 className="text-3xl">Geral</h1>
+									<RadioGroup
+										className="text-sm"
+										label="Selecione abaixo sua opção de visualização."
+										orientation="horizontal"
+										color="success"
+										value={counterType}
+										onChange={(e) => {
+											setCounterType(e.target.value);
+										}}
+									>
+										<Radio value="total">
+											<p className="text-white">Contadores totais</p>
+										</Radio>
+										<Radio value="partial">
+											<p className="text-white">Contadores parciais</p>
+										</Radio>
+									</RadioGroup>
+								</>
+							) : (
+								<>
+									<h2 className="text-xl">Nome da oficina</h2>
+									<p className="text-sm text-[#C7C7C7]">
+										Confira as informações referentes à sua oficina nas seções a
+										seguir.
+									</p>
+								</>
+							)}
+						</div>
 					</div>
-					<div className="flex gap-2 mb-10">
-						<Button
-							onPress={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage === 0}
-							className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-						>
-							Anterior
-						</Button>
-						<Button
-							onPress={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage >= totalPages - 1}
-							className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-						>
-							Próxima
-						</Button>
+					<div className={styles.graphicsContainer}>
+						<div className={styles.chartBox}>
+							<h4 className={styles.boxText}>Porcentagem de manutenções</h4>
+							<CustomChart chartData={countMaintenanceStatuses(maintenances)} />
+						</div>
+						<span style={{ width: "3em" }} />
+						<div className={styles.statisticsBox}>
+							<h4 className={styles.boxText}>Outros dados</h4>
+							{counterType === "total" && (
+								<div
+									className={clsx(
+										styles.statisticsCard,
+										styles.maintenanceCard
+									)}
+								>
+									<div className={styles.statWrap}>
+										<TbClockExclamation className={styles.statisticsIcon} />
+										<h4 className={styles.statisticsText}>
+											{maintenances.length}
+										</h4>
+									</div>
+									<p className={styles.statisticsSubtext}>
+										manutenções pendentes
+									</p>
+								</div>
+							)}
+							<div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
+								<div className={styles.statWrap}>
+									<MdDirectionsCar className={styles.statisticsIcon} />
+									<h4 className={styles.statisticsText}>{totalVehicles}</h4>
+								</div>
+								<p className={styles.statisticsSubtext}>veículos monitorados</p>
+							</div>
+							<div className={clsx(styles.statisticsCard, styles.kmCard)}>
+								<div className={styles.statWrap}>
+									<MdOutlineSpeed className={styles.statisticsIcon} />
+									<h4 className={styles.statisticsText}>{totalKM}</h4>
+								</div>
+								<p className={styles.statisticsSubtext}>km monitorados</p>
+							</div>
+						</div>
 					</div>
+					{selectedWorkshop !== "all" && (
+						<>
+							<div className={styles.tableContainer}>
+								<CustomTable
+									data={maintenances.map((row) => ({
+										...row,
+										appointment: "Agendar",
+									}))}
+								/>
+							</div>
+							<div className="flex gap-2">
+								<Button
+									onPress={() => handlePageChange(currentPage - 1)}
+									disabled={currentPage === 0}
+									className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+								>
+									Anterior
+								</Button>
+								<Button
+									onPress={() => handlePageChange(currentPage + 1)}
+									disabled={currentPage >= totalPages - 1}
+									className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+								>
+									Próxima
+								</Button>
+							</div>
+						</>
+					)}
 				</>
 			)}
 		</div>

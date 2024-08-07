@@ -141,7 +141,11 @@ export default function EditBasicContract() {
 							<label htmlFor="workshopKmLimitAlarm">KM Limite</label>
 							<Select
 								name="workshopKmLimitAlarm"
+								variant="bordered"
 								className="dark"
+								classNames={{
+									trigger: "!border-white rounded-[1em]",
+								}}
 								defaultSelectedKeys={[workshopKmNotificationFactor.toString()]}
 								onChange={(e) =>
 									setWorkshopKmNotificationFactor(+e.target.value)
@@ -186,7 +190,11 @@ export default function EditBasicContract() {
 							</label>
 							<Select
 								name="workshopDateNotificationFactor"
+								variant="bordered"
 								className="dark"
+								classNames={{
+									trigger: "!border-white rounded-[1em]",
+								}}
 								defaultSelectedKeys={[
 									workshopDateNotificationFactor.toString(),
 								]}
@@ -230,7 +238,11 @@ export default function EditBasicContract() {
 							<label htmlFor="userKmLimitNotificationFactor">KM Limite</label>
 							<Select
 								name="userKmLimitNotificationFactor"
+								variant="bordered"
 								className="dark"
+								classNames={{
+									trigger: "!border-white rounded-[1em]",
+								}}
 								defaultSelectedKeys={[userKmNotificationFactor.toString()]}
 								onChange={(e) => setUserKmNotificationFactor(+e.target.value)}
 								aria-label="userKmLimitNotificationFactor"
@@ -271,7 +283,11 @@ export default function EditBasicContract() {
 							<label htmlFor="userDateNotificationFactor">Data Limite</label>
 							<Select
 								name="userDateNotificationFactor"
+								variant="bordered"
 								className="dark"
+								classNames={{
+									trigger: "!border-white rounded-[1em]",
+								}}
 								defaultSelectedKeys={[userDateNotificationFactor.toString()]}
 								onChange={(e) => setUserDateNotificationFactor(+e.target.value)}
 								aria-label="userDateNotificationFactor"

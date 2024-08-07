@@ -1,6 +1,5 @@
 "use client";
 
-import { Contract } from "@/interfaces/contract.type";
 import {
 	Button,
 	Modal,
@@ -8,8 +7,6 @@ import {
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-	Select,
-	SelectItem,
 	useDisclosure,
 } from "@nextui-org/react";
 import { useContext, useState } from "react";

@@ -249,7 +249,11 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 													key={`${maintenance.id} ${index}`}
 												>
 													<Select
+														variant="bordered"
 														className="dark w-52"
+														classNames={{
+															trigger: "!border-white rounded-[1em]",
+														}}
 														aria-label="maintenance"
 														defaultSelectedKeys={[maintenance.service]}
 														onChange={(e) =>

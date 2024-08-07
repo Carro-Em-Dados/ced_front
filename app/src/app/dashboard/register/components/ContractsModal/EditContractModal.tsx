@@ -165,7 +165,11 @@ export default function EditContractModal({ contract, setContract }: Props) {
 											<Select
 												name="workshopKmLimitAlarm"
 												aria-label="workshopKmLimitAlarm"
+												variant="bordered"
 												className="dark"
+												classNames={{
+													trigger: "!border-white rounded-[1em]",
+												}}
 												value={workshopKmNotificationFactor}
 												onChange={(e) =>
 													setWorkshopKmNotificationFactor(+e.target.value)
@@ -210,7 +214,11 @@ export default function EditContractModal({ contract, setContract }: Props) {
 											<Select
 												name="workshopDateNotificationFactor"
 												aria-label="workshopDateNotificationFactor"
+												variant="bordered"
 												className="dark"
+												classNames={{
+													trigger: "!border-white rounded-[1em]",
+												}}
 												value={workshopDateNotificationFactor}
 												onChange={(e) =>
 													setWorkshopDateNotificationFactor(+e.target.value)
@@ -252,7 +260,11 @@ export default function EditContractModal({ contract, setContract }: Props) {
 											<Select
 												name="userKmLimitNotificationFactor"
 												aria-label="userKmLimitNotificationFactor"
+												variant="bordered"
 												className="dark"
+												classNames={{
+													trigger: "!border-white rounded-[1em]",
+												}}
 												value={userKmNotificationFactor}
 												onChange={(e) =>
 													setUserKmNotificationFactor(+e.target.value)
@@ -297,7 +309,11 @@ export default function EditContractModal({ contract, setContract }: Props) {
 											<Select
 												name="userDateNotificationFactor"
 												aria-label="userDateNotificationFactor"
+												variant="bordered"
 												className="dark"
+												classNames={{
+													trigger: "!border-white rounded-[1em]",
+												}}
 												value={userDateNotificationFactor}
 												onChange={(e) =>
 													setUserDateNotificationFactor(+e.target.value)

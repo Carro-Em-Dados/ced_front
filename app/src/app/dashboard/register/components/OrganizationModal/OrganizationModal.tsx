@@ -525,7 +525,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														</label>
 														<Select
 															name="workshopKmLimitAlarm"
+															variant="bordered"
 															className="dark"
+															classNames={{
+																trigger: "!border-white rounded-[1em]",
+															}}
 															value={workshopKmNotificationFactor}
 															onChange={(e) =>
 																setWorkshopKmNotificationFactor(e.target.value)
@@ -571,7 +575,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														</label>
 														<Select
 															name="workshopDateNotificationFactor"
+															variant="bordered"
 															className="dark"
+															classNames={{
+																trigger: "!border-white rounded-[1em]",
+															}}
 															value={workshopDateNotificationFactor}
 															onChange={(e) =>
 																setWorkshopDateNotificationFactor(
@@ -618,7 +626,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														</label>
 														<Select
 															name="userKmLimitNotificationFactor"
+															variant="bordered"
 															className="dark"
+															classNames={{
+																trigger: "!border-white rounded-[1em]",
+															}}
 															value={userKmNotificationFactor}
 															onChange={(e) =>
 																setUserKmNotificationFactor(e.target.value)
@@ -664,7 +676,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 														</label>
 														<Select
 															name="userDateNotificationFactor"
+															variant="bordered"
 															className="dark"
+															classNames={{
+																trigger: "!border-white rounded-[1em]",
+															}}
 															value={userDateNotificationFactor}
 															onChange={(e) =>
 																setUserDateNotificationFactor(e.target.value)

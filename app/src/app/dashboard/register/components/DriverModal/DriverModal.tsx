@@ -335,7 +335,11 @@ export default function DriverModal({ setDrivers }: Props) {
 										<div>
 											<Select
 												name="workshops"
+												variant="bordered"
 												className="dark"
+												classNames={{
+													trigger: "!border-white rounded-[1em]",
+												}}
 												value={selectedWorkshop}
 												onChange={(e) => setSelectedWorkshop(e.target.value)}
 											>
