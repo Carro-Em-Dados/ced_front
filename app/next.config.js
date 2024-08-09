@@ -2,7 +2,9 @@
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-    /* config options here */
-}
+	/* For more info checkout this issue
+    https://github.com/jquense/react-big-calendar/issues/2455#issuecomment-1767020587 */
+	reactStrictMode: false,
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -3,20 +3,78 @@
 @tailwind utilities;
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 html,
 div,
 body {
-  padding: 0;
-  margin: 0;
+	padding: 0;
+	margin: 0;
 }
 
 div {
-  display: flex;
+	display: flex;
 }
 
 :root {
-  --white: #ffffff;
+	--white: #ffffff;
+}
+
+.rbc-calendar {
+	-webkit-filter: invert(100%) !important;
+	filter: invert(100%) !important;
+}
+
+.rbc-toolbar {
+	color: white;
+}
+
+.rbc-toolbar button {
+	color: black !important;
+	background-color: white !important;
+}
+
+.rbc-header {
+	color: black;
+	font-size: 14px !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 36px !important;
+}
+
+.rbc-allday-cell {
+	display: none;
+}
+
+.rbc-time-header-cell .rbc-today {
+	background-color: #ac349c !important;
+}
+
+.rbc-time-slot {
+	color: black;
+}
+
+.rbc-time-slot:not(.rbc-today .rbc-time-slot) {
+	background-color: white;
+}
+
+.rbc-today {
+	background-color: rgba(172, 52, 156, 0.01) !important;
+}
+
+.rbc-day-slot .rbc-time-slot {
+	border-top: 1px solid transparent !important;
+}
+
+.rbc-current-time-indicator {
+	background-color: #ac349c !important;
+}
+
+.rbc-event,
+.rbc-day-slot .rbc-background-event {
+	color: black !important;
+	font-weight: 700 !important;
+	//box-sizing: content-box !important;
 }
