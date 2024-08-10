@@ -83,7 +83,6 @@ export default function Monitor() {
 			}
 
 			if (verification === "license_plate" || verification === "vin") {
-				console.log(verification, searchValue);
 				const vehicleSnapshot = await getDocs(
 					query(
 						collection(db, "vehicles"),

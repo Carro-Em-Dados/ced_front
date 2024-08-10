@@ -76,7 +76,7 @@ export default function Welcome() {
 					Gostaria de conferir o status da sua oficina?
 				</p>
 				<p className={styles.subtext}>Selecione alguma opção abaixo:</p>
-				<div className={styles.dropdownContainer}>
+				<div className="flex flex-col gap-2 w-[26em] my-[2em]">
 					<DropdownComponent
 						options={
 							currentUser?.role === "master"

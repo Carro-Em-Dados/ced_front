@@ -62,7 +62,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 			});
 			setMaintenances(maintenanceData);
 		} catch (error) {
-			console.log(error);
 			toast.error("Erro ao buscar manutenções", {
 				position: "bottom-right",
 				autoClose: 5000,

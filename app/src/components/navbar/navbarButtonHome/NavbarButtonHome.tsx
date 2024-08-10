@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useEffect } from "react";
+import React from "react";
 import styles from "./NavbarButtonHome.module.scss";
 import Button from "@/custom/button/Button";
 import { FaHome } from "react-icons/fa";

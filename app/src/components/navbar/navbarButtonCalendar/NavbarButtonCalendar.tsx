@@ -1,30 +1,30 @@
 "use client";
 import React from "react";
-import styles from "./NavbarButtonRegistration.module.scss";
+import styles from "./NavbarButtonCalendar.module.scss";
 import Button from "@/custom/button/Button";
 import { useRouter } from "next/navigation";
-import { FaGear } from "react-icons/fa6";
+import { FaCalendar } from "react-icons/fa";
 
-function NavbarButtonRegistration() {
+function NavbarButtonCalendar() {
 	const router = useRouter();
 
 	function handleClick() {
-		router.push("/dashboard/register");
+		router.push("/dashboard/calendar");
 	}
 
 	const icon = () => {
-		return <FaGear className={styles.icon} />;
+		return <FaCalendar className={styles.icon} />;
 	};
 
 	return (
 		<div className={styles.buttonContainer}>
 			<Button
 				Icon={icon}
-				text="Configurações"
+				text="Agendamentos"
 				click={handleClick}
 			/>
 		</div>
 	);
 }
 
-export default NavbarButtonRegistration;
+export default NavbarButtonCalendar;

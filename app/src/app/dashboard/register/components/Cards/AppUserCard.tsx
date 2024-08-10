@@ -24,7 +24,6 @@ export default function AppUserCard({
 	setVehicles,
 }: Props) {
 	const AppUsers = () => {
-		console.log(vehicles);
 		return (
 			<div className={styles.contentContainer}>
 				<div className={styles.cardsContainer}>

@@ -5,12 +5,13 @@ import Navbar from "../../../components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
 import Image from "next/image";
 import CustomCalendar from "./components/customCalendar/customCalendar";
+import clsx from "clsx";
 
 function Calendar() {
 	return (
 		<div className={styles.page}>
 			<Navbar />
-			<div className={styles.pageWrap}>
+			<div className={clsx(styles.pageWrap, "mb-10")}>
 				<div className={styles.header}>
 					<div className={styles.titleContainer}>
 						<div className={styles.rectangleContainer}>

@@ -302,8 +302,6 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 
 		if (contractDoc.exists()) {
 			setBasicContractData(contractDoc.data() as Contract);
-		} else {
-			console.error("Documento 'basic' não encontrado na coleção 'contracts'.");
 		}
 	};
 

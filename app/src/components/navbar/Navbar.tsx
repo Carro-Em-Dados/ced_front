@@ -9,6 +9,7 @@ import Image from "next/image";
 import NavbarButtonRegistration from "./navbarButtonRegistration/NavbarButtonRegistration";
 import NavbarButtonMonitor from "./navbarButtonMonitor/NavbarButtonMonitor";
 import { AuthContext } from "@/contexts/auth.context";
+import NavbarButtonCalendar from "./navbarButtonCalendar/NavbarButtonCalendar";
 
 function Navbar() {
 	const { currentWorkshop } = useContext(AuthContext);
@@ -25,6 +26,7 @@ function Navbar() {
 			</div>
 			<div className={styles.buttonsContainer}>
 				<NavbarButtonHome />
+				<NavbarButtonCalendar />
 				{currentWorkshop?.contract?.id !== "basic" && <NavbarButtonMonitor />}
 				<NavbarButtonRegistration />
 				<NavbarButtonProfile />
