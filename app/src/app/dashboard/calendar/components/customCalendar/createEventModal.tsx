@@ -16,11 +16,14 @@ import { useContext, useState } from "react";
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
+import { createGoogleEvent } from "@/services/google-calendar";
+import { Maintenance } from "@/interfaces/maintenances.type";
+import { MaintenanceWithName } from "./customCalendar";
 
 interface Props {
 	events: any;
 	setEvents: React.Dispatch<React.SetStateAction<any[]>>;
-	maintenances: any[];
+	maintenances: MaintenanceWithName[];
 }
 
 export default function CreateEventModal({
@@ -46,12 +49,14 @@ export default function CreateEventModal({
 		return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
 	});
 	const [note, setNote] = useState("");
-	const [selectedMaintenance, setSelectedMaintenance] = useState("");
+	const [selectedMaintenance, setSelectedMaintenance] =
+		useState<MaintenanceWithName | null>(null);
 	const { db, currentWorkshop } = useContext(AuthContext);
 
 	const createEvent = async () => {
 		if (!currentWorkshop) return;
-		if (!selectedMaintenance) {
+
+		if (!selectedMaintenance || !selectedMaintenance.id) {
 			toast.error("Por favor, selecione uma manutenção", {
 				position: "bottom-right",
 				autoClose: 5000,
@@ -68,6 +73,20 @@ export default function CreateEventModal({
 
 		const newEventStart = new Date(`${maintenanceDate}T${start}`);
 		const newEventEnd = new Date(`${maintenanceDate}T${end}`);
+
+		if (newEventStart.getTime() > newEventEnd.getTime()) {
+			return toast.error("A data final deve ser superior a data inicial", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
+		}
 
 		try {
 			const q = query(
@@ -95,12 +114,24 @@ export default function CreateEventModal({
 
 			const newEvent: Schedules = {
 				allDay: false,
-				maintenance: selectedMaintenance,
+				maintenance: selectedMaintenance.id,
 				note,
 				start: newEventStart,
 				end: newEventEnd,
 				workshop: currentWorkshop.id,
 			};
+
+			if (currentWorkshop.google_calendar_id)
+				newEvent.google_event_id =
+					(await createGoogleEvent(currentWorkshop.google_calendar_id, {
+						end: newEventEnd.toISOString(),
+						start: newEventStart.toISOString(),
+						summary: `[${currentWorkshop.fantasy_name}] ${selectedMaintenance.name}`,
+						description: `Manutenção: ${selectedMaintenance.name}.\nObservações: ${note}.`,
+						location: `${currentWorkshop?.address ?? ""} - ${
+							currentWorkshop?.city_code ?? ""
+						}, ${currentWorkshop?.state_code ?? ""}`,
+					})) ?? undefined;
 
 			const eventRef = await addDoc(collection(db, "schedules"), {
 				...newEvent,
@@ -121,7 +152,7 @@ export default function CreateEventModal({
 				return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
 			});
 			setNote("");
-			setSelectedMaintenance("");
+			setSelectedMaintenance(null);
 		} catch (error) {
 			toast.error("Erro ao criar agendamento", {
 				position: "bottom-right",

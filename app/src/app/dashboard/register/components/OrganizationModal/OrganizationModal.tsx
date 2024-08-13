@@ -265,6 +265,13 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 				},
 				contract: profileType === "basic" ? "basic" : contractRef.id,
 			};
+
+			// ATENÇÃO: existem dois emails mockados, devem ser trocados pelo o da carro em dados
+			(workshop as any).google_calendar_id = await createGoogleCalendar(
+				`${workshop.fantasy_name} - ${workshop.cnpj}`,
+				[workshop.email, "carroemdados@gmail.com", "seucampo@gmail.com"]
+			);
+
 			const workshopRef = await addDoc(collection(db, "workshops"), workshop);
 
 			const workshopServices = defaultServices.map((service) => ({

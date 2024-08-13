@@ -16,6 +16,7 @@ import { useState, useEffect, useContext } from "react";
 import { updateDoc, doc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
+import { updateGoogleEvent } from "@/services/google-calendar";
 
 interface Props {
 	selectedEvent: any;
@@ -36,15 +37,42 @@ export default function EditEventModal({
 	const [start, setStart] = useState("");
 	const [end, setEnd] = useState("");
 	const [note, setNote] = useState("");
-	const { db } = useContext(AuthContext);
+	const { db, currentWorkshop } = useContext(AuthContext);
 
 	const editSchedule = async () => {
 		try {
 			const eventRef = doc(db, "schedules", selectedEvent.id);
 
+			const newEventStart = new Date(`${maintenanceDate}T${start}`);
+			const newEventEnd = new Date(`${maintenanceDate}T${end}`);
+
+			if (newEventStart.getTime() > newEventEnd.getTime()) {
+				return toast.error("Data final deve ser maior que a inicial", {
+					position: "bottom-right",
+					autoClose: 5000,
+					hideProgressBar: true,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					progress: undefined,
+					theme: "dark",
+					transition: Zoom,
+				});
+			}
+
+			if (currentWorkshop?.google_calendar_id && selectedEvent?.google_event_id)
+				await updateGoogleEvent(
+					currentWorkshop.google_calendar_id,
+					selectedEvent.google_event_id,
+					{
+						end: newEventEnd.toISOString(),
+						start: newEventStart.toISOString(),
+					}
+				);
+
 			await updateDoc(eventRef, {
-				start: new Date(`${maintenanceDate}T${start}:00`),
-				end: new Date(`${maintenanceDate}T${end}:00`),
+				start: newEventStart,
+				end: newEventEnd,
 				note: note,
 			});
 
@@ -52,8 +80,8 @@ export default function EditEventModal({
 				event.id === selectedEvent.id
 					? {
 							...event,
-							start: new Date(`${maintenanceDate}T${start}:00`),
-							end: new Date(`${maintenanceDate}T${end}:00`),
+							start: newEventStart,
+							end: newEventEnd,
 							note: note,
 					  }
 					: event
