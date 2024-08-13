@@ -15,6 +15,11 @@ interface CustomTableProps {
 }
 
 function CustomTable(props: CustomTableProps) {
+	// fazer query para pegar os dados do tooltip nessa parte
+	// const fetchAllUserVehiclesAndKm = () => {};
+	// const fetchAllMaintenancesFromUserVehicle = () => {};
+	// const fetchAllMaintenancesFromUser = () => {};
+
 	return (
 		<Table
 			aria-label="Maintenance info table"
@@ -41,7 +46,7 @@ function CustomTable(props: CustomTableProps) {
 						<TableCell className={styles.cell}>{row.date_threshold}</TableCell>
 						<TableCell className={styles.cell}>{row.status}</TableCell>
 						<TableCell className={styles.cell}>
-							<a href="/dashboard/calendar">{row.appointment}</a>{" "}
+							<a href="/dashboard/calendar">Agendar</a>{" "}
 						</TableCell>
 					</TableRow>
 				))}

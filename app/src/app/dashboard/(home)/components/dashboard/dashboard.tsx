@@ -21,7 +21,7 @@ import styles from "../../tabs/welcome.module.scss";
 import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
-import { Button, Radio, RadioGroup } from "@nextui-org/react";
+import { Button, Radio, RadioGroup, Spinner } from "@nextui-org/react";
 import { AiOutlineLoading } from "react-icons/ai";
 
 interface DashboardProps {
@@ -30,13 +30,14 @@ interface DashboardProps {
 
 interface MaintenanceData {
 	client: string;
+	clientId: string;
 	vehicle: string;
+	vehicleId: string;
 	maintenance: string;
 	km_current: number;
 	km_threshold: number;
 	date_threshold: string;
 	status: string;
-	appointment?: string;
 }
 
 export default function Dashboard({ selectedWorkshop }: DashboardProps) {
@@ -92,7 +93,9 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					}
 
 					let clientName = "";
+					let clientId = "";
 					let vehicleInfo = "";
+					let vehicleId = "";
 					let kmCurrent = 0;
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
@@ -100,27 +103,30 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					if (vehicleDoc.exists()) {
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+						vehicleId = vehicleData.id;
 						kmCurrent = vehicleData.initial_km || 0;
 
-						if (!vehicleData.owner && selectedWorkshop !== "all") {
+						if (vehicleData.owner) {
+							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
+							const appUserDoc = await getDoc(appUserDocRef);
+							if (appUserDoc.exists()) {
+								const clientData = appUserDoc.data() as AppUser;
+								clientName = clientData.name || "";
+								clientId = clientData.id;
+							} else {
+								const driverDocRef = doc(db, "clients", vehicleData.owner);
+								const driverDoc = await getDoc(driverDocRef);
+								if (driverDoc.exists()) {
+									const driverData = driverDoc.data() as Driver;
+									clientName = driverData.name || "";
+									clientId = driverData.id;
+								}
+							}
+						} else if (selectedWorkshop !== "all") {
 							console.warn(
 								`Vehicle data missing owner: ${maintenanceData.car_id}`
 							);
 							continue;
-						}
-
-						const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
-						const appUserDoc = await getDoc(appUserDocRef);
-						if (appUserDoc.exists()) {
-							const clientData = appUserDoc.data() as AppUser;
-							clientName = clientData.name || "";
-						}
-
-						const driverDocRef = doc(db, "clients", vehicleData.owner);
-						const driverDoc = await getDoc(driverDocRef);
-						if (driverDoc.exists()) {
-							const driverData = driverDoc.data() as Driver;
-							clientName = driverData.name || "";
 						}
 					} else {
 						console.warn(
@@ -132,7 +138,9 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 
 					maintenanceList.push({
 						client: clientName,
+						clientId: clientId,
 						vehicle: vehicleInfo,
+						vehicleId: vehicleId,
 						maintenance: maintenanceData.service,
 						km_current: kmCurrent,
 						km_threshold: maintenanceData.kmLimit || 0,
@@ -171,7 +179,9 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					}
 
 					let clientName = "";
+					let clientId = "";
 					let vehicleInfo = "";
+					let vehicleId = "";
 					let kmCurrent = 0;
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
@@ -179,27 +189,30 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					if (vehicleDoc.exists()) {
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+						vehicleId = vehicleData.id;
 						kmCurrent = vehicleData.initial_km || 0;
 
-						if (!vehicleData.owner && selectedWorkshop !== "all") {
+						if (vehicleData.owner) {
+							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
+							const appUserDoc = await getDoc(appUserDocRef);
+							if (appUserDoc.exists()) {
+								const clientData = appUserDoc.data() as AppUser;
+								clientName = clientData.name || "";
+								clientId = clientData.id;
+							} else {
+								const driverDocRef = doc(db, "clients", vehicleData.owner);
+								const driverDoc = await getDoc(driverDocRef);
+								if (driverDoc.exists()) {
+									const driverData = driverDoc.data() as Driver;
+									clientName = driverData.name || "";
+									clientId = driverData.id;
+								}
+							}
+						} else if (selectedWorkshop !== "all") {
 							console.warn(
 								`Vehicle data missing owner: ${maintenanceData.car_id}`
 							);
 							continue;
-						}
-
-						const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
-						const appUserDoc = await getDoc(appUserDocRef);
-						if (appUserDoc.exists()) {
-							const clientData = appUserDoc.data() as AppUser;
-							clientName = clientData.name || "";
-						}
-
-						const driverDocRef = doc(db, "clients", vehicleData.owner);
-						const driverDoc = await getDoc(driverDocRef);
-						if (driverDoc.exists()) {
-							const driverData = driverDoc.data() as Driver;
-							clientName = driverData.name || "";
 						}
 					} else {
 						console.warn(
@@ -211,7 +224,9 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 
 					maintenanceList.push({
 						client: clientName,
+						clientId: clientId,
 						vehicle: vehicleInfo,
+						vehicleId: vehicleId,
 						maintenance: maintenanceData.service,
 						km_current: kmCurrent,
 						km_threshold: maintenanceData.kmLimit || 0,
@@ -355,13 +370,12 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 		setCounterType("total");
 	}, [selectedWorkshop]);
 
+	console.log(countMaintenanceStatuses(maintenances));
+
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
 			{loading ? (
-				<AiOutlineLoading
-					size={40}
-					className="text-white animate-spin"
-				/>
+				<Spinner />
 			) : (
 				<>
 					<div
@@ -452,7 +466,6 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 								<CustomTable
 									data={maintenances.map((row) => ({
 										...row,
-										appointment: "Agendar",
 									}))}
 								/>
 							</div>

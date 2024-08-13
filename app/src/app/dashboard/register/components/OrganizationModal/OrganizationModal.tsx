@@ -22,6 +22,7 @@ import { defaultServices } from "@/constants/defaultServices";
 import { toast, Zoom } from "react-toastify";
 import { Contract } from "@/interfaces/contract.type";
 import InputMask from "react-input-mask";
+import { createGoogleCalendar } from "@/services/google-calendar";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
