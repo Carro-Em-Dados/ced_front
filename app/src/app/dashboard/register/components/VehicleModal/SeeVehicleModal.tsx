@@ -1,5 +1,6 @@
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -81,6 +82,8 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 	}, []);
 
 	const addMaintenance = () => {
+		if (!currentWorkshop) return;
+		if (!currentWorkshop.contract) return;
 		if (maintenances.length >= currentWorkshop?.contract?.maxAlarmsPerVehicle!)
 			return;
 		const newMaintenance: Maintenance = {
@@ -249,9 +252,10 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 												>
 													<Select
 														variant="bordered"
-														className="dark w-52"
+														className="dark"
 														classNames={{
-															trigger: "!border-white rounded-[1em]",
+															trigger: "!border-white rounded-medium",
+															value: "text-white",
 														}}
 														aria-label="maintenance"
 														defaultSelectedKeys={[maintenance.service]}
@@ -272,12 +276,11 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 															</SelectItem>
 														))}
 													</Select>
-													<input
+													<Input
 														type="number"
-														id="kmlimit"
-														placeholder="KM Limite"
-														className={clsx(styles.modalInput, "!w-24")}
-														value={maintenance.kmLimit}
+														min={0}
+														label="KM Limite"
+														value={maintenance.kmLimit.toString()}
 														onChange={(e) =>
 															updateMaintenance(
 																index,
@@ -285,13 +288,19 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 																Number(e.target.value)
 															)
 														}
-														aria-label="kmlimit"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
 													/>
-													<input
+													<Input
 														type="date"
-														id="date"
-														placeholder="Data Limite"
-														className={clsx(styles.modalInput, "!w-40")}
+														min={0}
+														label="Data Limite"
 														value={
 															maintenance?.dateLimit instanceof Date
 																? maintenance.dateLimit
@@ -306,14 +315,20 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 																new Date(e.target.value)
 															)
 														}
-														aria-label="date"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
 													/>
-													<input
+													<Input
 														type="number"
-														id="price"
-														placeholder="Valor"
-														className={clsx(styles.modalInput, "!w-20")}
-														value={maintenance.price}
+														min={0}
+														label="Valor"
+														value={maintenance.price.toString()}
 														onChange={(e) =>
 															updateMaintenance(
 																index,
@@ -321,9 +336,26 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 																Number(e.target.value)
 															)
 														}
-														aria-label="price"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+														startContent={
+															<div className="pointer-events-none flex items-center">
+																<span className="text-default-400 text-small">
+																	R$
+																</span>
+															</div>
+														}
 													/>
-													<button onClick={() => deleteMaintenance(index)}>
+													<button
+														className="p-2 rounded-full hover:bg-white/10"
+														onClick={() => deleteMaintenance(index)}
+													>
 														<FaRegTrashCan />
 													</button>
 												</div>

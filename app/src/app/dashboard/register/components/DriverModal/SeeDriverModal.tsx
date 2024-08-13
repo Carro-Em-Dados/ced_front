@@ -1,20 +1,23 @@
 import { AuthContext } from "@/contexts/auth.context";
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
+	Select,
+	SelectItem,
 	useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { useContext, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import styles from "../../styles.module.scss";
-import { BiEdit } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
+import InputMask from "react-input-mask";
 
 interface Props {
 	id: string;
@@ -106,78 +109,176 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 								Editar Motorista
 							</ModalHeader>
 							<ModalBody>
-								<div className={styles.form}>
+								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Nome"
+										<Input
+											type="text"
+											label="Nome"
 											value={name}
 											onChange={(e) => setName(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-										{/* <span className={styles.horizontalSpace} /> */}
-										{/* <input className={styles.modalInput}
-                                            placeholder='Sobrenome' /> */}
 									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Idade"
+									<div className="flex flex-row gap-5">
+										<Input
+											type="text"
+											label="Idade"
 											value={age}
 											onChange={(e) => setAge(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="Gênero"
+										<Select
+											variant="bordered"
+											className="dark"
+											classNames={{
+												trigger: "!border-white rounded-medium",
+												value: "text-white",
+											}}
+											label="Gênero"
 											value={gender}
 											onChange={(e) => setGender(e.target.value)}
-										/>
+										>
+											<SelectItem
+												key={"m"}
+												value={"m"}
+											>
+												Masculino
+											</SelectItem>
+											<SelectItem
+												key={"f"}
+												value={"f"}
+											>
+												Feminino
+											</SelectItem>
+										</Select>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="E-mail"
+										<Input
+											type="text"
+											label="E-mail"
 											value={email}
-											onChange={(e) => setEmail(e.target.value)}
+											//onChange={(e) => setEmail(e.target.value)}
+											disabled
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Celular"
+									<div className="flex flex-row gap-5">
+										<InputMask
+											mask="(99) 99999-9999"
 											value={phoneRes}
 											onChange={(e) => setPhoneRes(e.target.value)}
-										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="Telefone"
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														{...inputProps}
+														type="text"
+														label="Celular"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
+										<InputMask
+											mask="(99) 99999-9999"
 											value={phoneCom}
 											onChange={(e) => setPhoneCom(e.target.value)}
-										/>
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														{...inputProps}
+														type="text"
+														label="Telefone"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Endereço"
+										<Input
+											type="text"
+											label="Endereço"
 											value={addressRes}
 											onChange={(e) => setAddressRes(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Registro"
+										<Input
+											type="text"
+											label="Registro"
 											value={register}
 											onChange={(e) => setRegister(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="CNH"
+										<Input
+											type="text"
+											label="CNH"
 											value={cnh}
 											onChange={(e) => setCNH(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 								</div>

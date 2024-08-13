@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { ReactNode, useContext, useEffect, useState } from "react";
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -20,6 +21,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { defaultServices } from "@/constants/defaultServices";
 import { toast, Zoom } from "react-toastify";
 import { Contract } from "@/interfaces/contract.type";
+import InputMask from "react-input-mask";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -171,7 +173,6 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			{ value: cnae, name: "CNAE" },
 			{ value: employeesCount, name: "Qtd. Colaboradores" },
 			{ value: productiveVacanciesCount, name: "Qtd. Vagas produtivas" },
-			{ value: branch, name: "Filial (S/N)" },
 			{ value: averageTicket, name: "Ticket médio" },
 			{ value: billing, name: "Faturamento" },
 			{ value: monthlyFinancialGoal, name: "Meta financeira mensal" },
@@ -335,86 +336,190 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 								{tab === "tab1" && (
 									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Nome Fantasia*"
+											<Input
+												type="text"
 												value={fantasyName}
 												onChange={(e) => setFantasyName(e.target.value)}
+												variant="bordered"
+												label="Nome Fantasia*"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
-										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="N° Contrato*"
+										<div className="flex flex-row gap-5">
+											<Input
+												min={0}
+												label="N° Contrato*"
 												type="number"
 												value={contractNumber}
 												onChange={(e) => setContractNumber(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
-											<span className={styles.horizontalSpace} />
-											<input
-												className={styles.modalInput}
-												placeholder="N° Cadastro*"
+											<Input
+												min={0}
 												type="number"
 												value={registrationNumber}
 												onChange={(e) => setRegistrationNumber(e.target.value)}
+												label="N° Cadastro*"
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Razão Social*"
+											<Input
+												type="text"
+												label="Razão Social*"
 												value={corporateName}
 												onChange={(e) => setCorporateName(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="CNPJ*"
+											<InputMask
+												mask="99.999.999/9999-99"
 												value={cnpj}
 												onChange={(e) => setCnpj(e.target.value)}
-											/>
+												maskChar={null}
+											>
+												{
+													((inputProps: any) => (
+														<Input
+															type="text"
+															label="CNPJ*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
+														/>
+													)) as unknown as ReactNode
+												}
+											</InputMask>
 										</div>
-										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Inscrição Estadual"
+										<div className="flex flex-row gap-5">
+											<Input
+												type="text"
+												label="Inscrição Estadual"
 												value={stateRegistration}
 												onChange={(e) => setStateRegistration(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
-											<span className={styles.horizontalSpace} />
-											<input
-												className={styles.modalInput}
-												placeholder="Inscrição Municipal"
+											<Input
+												type="text"
+												label="Inscrição Municipal"
 												value={municipalRegistration}
 												onChange={(e) =>
 													setMunicipalRegistration(e.target.value)
 												}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="E-mail*"
+											<Input
+												label="E-mail*"
 												value={email}
 												type="email"
 												onChange={(e) => setEmail(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
-										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Telefone*"
+										<div className="flex flex-row gap-5">
+											<InputMask
+												mask="(99) 99999-9999"
 												value={phone}
 												onChange={(e) => setPhone(e.target.value)}
-											/>
-											<span className={styles.horizontalSpace} />
-											<input
-												className={styles.modalInput}
-												placeholder="Contato*"
+												maskChar={null}
+											>
+												{
+													((inputProps: any) => (
+														<Input
+															type="tel"
+															label="Telefone*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
+														/>
+													)) as unknown as ReactNode
+												}
+											</InputMask>
+											<InputMask
+												mask="(99) 99999-9999"
 												value={contact}
 												onChange={(e) => setContact(e.target.value)}
-											/>
+												maskChar={null}
+											>
+												{
+													((inputProps: any) => (
+														<Input
+															{...inputProps}
+															type="text"
+															label="Contato*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
+														/>
+													)) as unknown as ReactNode
+												}
+											</InputMask>
 										</div>
 										<p className="self-end text-white text-sm">
 											Campos com (*) são obrigatórios
@@ -466,47 +571,75 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 											<>
 												<div className="flex flex-col gap-4">
 													<div>
-														<input
-															className={styles.modalInput}
-															placeholder="Qtd. cadastros de clientes-motoristas*"
+														<Input
+															min={0}
+															label="Qtd. cadastros de clientes-motoristas*"
 															type="number"
 															value={clientMotoristCount}
 															onChange={(e) =>
 																setClientMotoristCount(e.target.value)
 															}
-															aria-label="Qtd. cadastros de clientes-motoristas*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
 														/>
 													</div>
 													<div>
-														<input
-															className={styles.modalInput}
-															placeholder="Qtd. cadastros de veículos por clientes-motoristas*"
+														<Input
+															min={0}
+															label="Qtd. cadastros de veículos por clientes-motoristas*"
 															type="number"
 															value={vehicleCount}
 															onChange={(e) => setVehicleCount(e.target.value)}
-															aria-label="Qtd. cadastros de veículos por clientes-motoristas*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
 														/>
 													</div>
 													<div>
-														<input
-															className={styles.modalInput}
-															placeholder="Qtd. de alarmes por KM limite/Data limite por veículo*"
+														<Input
+															min={0}
+															label="Qtd. de alarmes por KM limite/Data limite por veículo*"
 															type="number"
 															value={alarmCount}
 															onChange={(e) => setAlarmCount(e.target.value)}
-															aria-label="Qtd. de alarmes por KM limite/Data limite por veículo*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
 														/>
 													</div>
 													<div>
-														<input
-															className={styles.modalInput}
-															placeholder="Qtd. de alarmes de manutenção por cliente*"
+														<Input
+															min={0}
+															label="Qtd. de alarmes de manutenção por cliente*"
 															type="number"
 															value={maintenanceAlarmCount}
 															onChange={(e) =>
 																setMaintenanceAlarmCount(e.target.value)
 															}
-															aria-label="Qtd. de alarmes de manutenção por cliente*"
+															variant="bordered"
+															className="dark"
+															classNames={{
+																input: ["bg-transparent text-white"],
+																inputWrapper: [
+																	"border border-2 !border-white focus:border-white",
+																],
+															}}
 														/>
 													</div>
 													<p className="self-end text-white text-sm">
@@ -732,90 +865,191 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 								{tab === "tab3" && (
 									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Endereço*"
+											<Input
+												type="text"
+												label="Endereço*"
 												value={address}
 												onChange={(e) => setAddress(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Site*"
+											<Input
+												type="text"
+												label="Site*"
 												value={website}
 												onChange={(e) => setWebsite(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="CNAE*"
+											<Input
+												type="text"
+												label="CNAE*"
 												value={cnae}
 												onChange={(e) => setCnae(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="CNAE outros"
+											<Input
+												type="text"
+												label="CNAE outros"
 												value={cnaeOthers}
 												onChange={(e) => setCnaeOthers(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
-										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Qtd. Colaboradores*"
+										<div className="flex flex-row gap-5">
+											<Input
+												min={0}
+												label="Qtd. Colaboradores*"
 												type="number"
 												value={employeesCount}
 												onChange={(e) => setEmployeesCount(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
-											<span className={styles.horizontalSpace} />
-											<input
-												className={styles.modalInput}
-												placeholder="Qtd. Vagas produtivas*"
+											<Input
+												min={0}
+												label="Qtd. Vagas produtivas*"
 												type="number"
 												value={productiveVacanciesCount}
 												onChange={(e) =>
 													setProductiveVacanciesCount(e.target.value)
 												}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Filial (S/N)"
+											<Input
+												min={0}
+												type="text"
+												label="Filial (S/N)"
 												value={branch}
 												onChange={(e) => setBranch(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Ticket médio*"
+											<Input
+												min={0}
+												label="Ticket médio*"
 												value={averageTicket}
 												type="number"
 												onChange={(e) => setAverageTicket(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+												startContent={
+													<div className="pointer-events-none flex items-center">
+														<span className="text-default-400 text-small">
+															R$
+														</span>
+													</div>
+												}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Faturamento*"
+											<Input
+												min={0}
+												label="Faturamento*"
 												value={billing}
 												type="number"
 												onChange={(e) => setBilling(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+												startContent={
+													<div className="pointer-events-none flex items-center">
+														<span className="text-default-400 text-small">
+															R$
+														</span>
+													</div>
+												}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Meta financeira mensal*"
+											<Input
+												min={0}
+												label="Meta financeira mensal*"
 												value={monthlyFinancialGoal}
 												type="number"
 												onChange={(e) =>
 													setMonthlyFinancialGoal(e.target.value)
+												}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+												startContent={
+													<div className="pointer-events-none flex items-center">
+														<span className="text-default-400 text-small">
+															R$
+														</span>
+													</div>
 												}
 											/>
 										</div>
@@ -827,72 +1061,128 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 								{tab === "tab4" && (
 									<div className={clsx(styles.form, "flex flex-col gap-4")}>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Instagram"
+											<Input
+												type="text"
+												label="Instagram"
 												value={instagram}
 												onChange={(e) => {
 													setInstagram(e.target.value);
 												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Facebook"
+											<Input
+												type="text"
+												label="Facebook"
 												value={facebook}
 												onChange={(e) => {
 													setFacebook(e.target.value);
 												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Youtube"
+											<Input
+												type="text"
+												label="Youtube"
 												value={youtube}
 												onChange={(e) => {
 													setYoutube(e.target.value);
 												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="LinkedIn"
+											<Input
+												type="text"
+												label="LinkedIn"
 												value={linkedin}
 												onChange={(e) => {
 													setLinkedin(e.target.value);
 												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Twitter"
+											<Input
+												type="text"
+												label="Twitter"
 												value={twitter}
 												onChange={(e) => {
 													setTwitter(e.target.value);
 												}}
-											/>
-										</div>
-										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Outros 1"
-												value={other1}
-												onChange={(e) => {
-													setOther1(e.target.value);
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
 												}}
 											/>
 										</div>
 										<div>
-											<input
-												className={styles.modalInput}
-												placeholder="Outros 2"
+											<Input
+												type="text"
+												label="Outros 1"
+												value={other1}
+												onChange={(e) => {
+													setOther1(e.target.value);
+												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										</div>
+										<div>
+											<Input
+												type="text"
+												label="Outros 2"
 												value={other2}
 												onChange={(e) => {
 													setOther2(e.target.value);
+												}}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
 												}}
 											/>
 										</div>

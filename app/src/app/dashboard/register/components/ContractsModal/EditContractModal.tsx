@@ -3,6 +3,7 @@
 import { Contract } from "@/interfaces/contract.type";
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -109,47 +110,75 @@ export default function EditContractModal({ contract, setContract }: Props) {
 								<div className={styles.form}>
 									<div className="flex flex-col">
 										<div>
-											<input
-												aria-label="Qtd. cadastros de clientes-motoristas*"
-												className={styles.modalInput}
-												placeholder="Qtd. cadastros de clientes-motoristas*"
+											<Input
+												min={0}
+												label="Qtd. cadastros de clientes-motoristas*"
 												type="number"
-												value={clientMotoristCount}
+												value={clientMotoristCount.toString()}
 												onChange={(e) =>
 													setClientMotoristCount(+e.target.value)
 												}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												aria-label="Qtd. cadastros de veículos por clientes-motoristas*"
-												className={styles.modalInput}
-												placeholder="Qtd. cadastros de veículos por clientes-motoristas*"
+											<Input
+												min={0}
+												label="Qtd. cadastros de veículos por clientes-motoristas*"
 												type="number"
-												value={vehicleCount}
+												value={vehicleCount.toString()}
 												onChange={(e) => setVehicleCount(+e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												aria-label="Qtd. de alarmes por KM limite/Data limite por veículo*"
-												className={styles.modalInput}
-												placeholder="Qtd. de alarmes por KM limite/Data limite por veículo*"
+											<Input
+												min={0}
+												label="Qtd. de alarmes por KM limite/Data limite por veículo*"
 												type="number"
-												value={alarmCount}
+												value={alarmCount.toString()}
 												onChange={(e) => setAlarmCount(+e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div>
-											<input
-												aria-label="Qtd. de alarmes de manutenção por cliente*"
-												className={styles.modalInput}
-												placeholder="Qtd. de alarmes de manutenção por cliente*"
+											<Input
+												min={0}
+												label="Qtd. de alarmes de manutenção por cliente*"
 												type="number"
-												value={maintenanceAlarmCount}
+												value={maintenanceAlarmCount.toString()}
 												onChange={(e) =>
 													setMaintenanceAlarmCount(+e.target.value)
 												}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<p className="self-end text-white text-sm">

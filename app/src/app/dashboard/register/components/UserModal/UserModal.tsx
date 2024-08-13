@@ -9,6 +9,7 @@ import {
 	useDisclosure,
 	Select,
 	SelectItem,
+	Input,
 } from "@nextui-org/react";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
@@ -98,29 +99,51 @@ export default function UserModal({ setUsers }: Props) {
 							<ModalBody>
 								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Nome"
+										<Input
+											type="text"
+											label="Nome"
 											value={name}
 											onChange={(e) => setName(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="E-mail"
+										<Input
+											label="Email"
 											type="email"
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Senha"
+										<Input
+											label="Senha"
 											type="password"
 											value={password}
 											onChange={(e) => setPassword(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>

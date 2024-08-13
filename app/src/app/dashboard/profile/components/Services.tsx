@@ -1,8 +1,6 @@
 import { AuthContext } from "@/contexts/auth.context";
 import { Service } from "@/interfaces/services.type";
-import styles from "../../register/styles.module.scss";
 import { useContext, useState, useEffect } from "react";
-import clsx from "clsx";
 import {
 	collection,
 	query,
@@ -12,6 +10,7 @@ import {
 	doc,
 } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
+import { Input } from "@nextui-org/react";
 
 export default function Services() {
 	const { db, currentWorkshop } = useContext(AuthContext);
@@ -108,13 +107,19 @@ export default function Services() {
 						className="grid grid-cols-2 items-center text-white w-full"
 					>
 						<p className="text-sm">{service.service}</p>
-						<input
-							className={clsx(styles.modalInput, "self-end")}
-							defaultValue={service.price}
-							placeholder="Valor"
+						<Input
+							defaultValue={service.price.toString()}
+							label="Valor"
 							type="number"
-							aria-label="Valor"
 							onChange={(e) => handlePriceChange(index, Number(e.target.value))}
+							variant="bordered"
+							className="dark"
+							classNames={{
+								input: ["bg-transparent text-white"],
+								inputWrapper: [
+									"border border-2 !border-white focus:border-white",
+								],
+							}}
 						/>
 					</div>
 				))}

@@ -6,10 +6,10 @@ import { Accordion, AccordionItem } from "@nextui-org/react";
 import clsx from "clsx";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import VehicleModal from "../VehicleModal/VehicleModal";
-import EditDriverModal from "../DriverModal/EditDriverModal";
 import SeeVehicleModal from "../VehicleModal/SeeVehicleModal";
 import { Driver } from "@/interfaces/driver.type";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import SeeDriverModal from "../DriverModal/SeeDriverModal";
 
 interface Props {
 	driver: Driver;
@@ -31,7 +31,7 @@ export default function DriverCard({
 					<div className={clsx(styles.card, styles.infoCard)}>
 						<div className="flex flex-row justify-between w-full">
 							<h4 className={styles.cardTitle}>Dados</h4>
-							<EditDriverModal
+							<SeeDriverModal
 								id={driver.id}
 								setDrivers={setDrivers}
 							/>

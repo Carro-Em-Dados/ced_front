@@ -1,6 +1,7 @@
 import { AuthContext } from "@/contexts/auth.context";
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -10,11 +11,12 @@ import {
 } from "@nextui-org/react";
 import clsx from "clsx";
 import { doc, updateDoc } from "firebase/firestore";
-import { useContext, useState } from "react";
+import { ReactNode, useContext, useState } from "react";
 import styles from "../../styles.module.scss";
 import { BiEdit } from "react-icons/bi";
 import { Workshop } from "@/interfaces/workshop.type";
 import { toast, Zoom } from "react-toastify";
+import InputMask from "react-input-mask";
 
 interface Props {
 	workshop: Workshop;
@@ -106,83 +108,188 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 							<ModalBody>
 								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Nome Fantasia*"
+										<Input
+											type="text"
 											value={fantasyName}
 											onChange={(e) => setFantasyName(e.target.value)}
+											variant="bordered"
+											label="Nome Fantasia*"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="N° Contrato*"
+									<div className="flex flex-row gap-5">
+										<Input
+											min={0}
+											label="N° Contrato*"
 											type="number"
 											value={contractNumber}
 											onChange={(e) => setContractNumber(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="N° Cadastro*"
+										<Input
+											min={0}
 											type="number"
 											value={registrationNumber}
 											onChange={(e) => setRegistrationNumber(e.target.value)}
+											label="N° Cadastro*"
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Razão Social*"
+										<Input
+											type="text"
+											label="Razão Social*"
 											value={corporateName}
 											onChange={(e) => setCorporateName(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="CNPJ*"
+										<InputMask
+											mask="99.999.999/9999-99"
 											value={cnpj}
 											onChange={(e) => setCnpj(e.target.value)}
-										/>
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														type="text"
+														label="CNPJ*"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
 									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Inscrição Estadual"
+									<div className="flex flex-row gap-5">
+										<Input
+											type="text"
+											label="Inscrição Estadual"
 											value={stateRegistration}
 											onChange={(e) => setStateRegistration(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="Inscrição Municipal"
+										<Input
+											type="text"
+											label="Inscrição Municipal"
 											value={municipalRegistration}
 											onChange={(e) => setMunicipalRegistration(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="E-mail*"
+										<Input
+											label="E-mail*"
 											value={email}
+											type="email"
 											onChange={(e) => setEmail(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
-									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Telefone*"
+									<div className="flex flex-row gap-5">
+										<InputMask
+											mask="(99) 99999-9999"
 											value={phone}
 											onChange={(e) => setPhone(e.target.value)}
-										/>
-										<span className={styles.horizontalSpace} />
-										<input
-											className={styles.modalInput}
-											placeholder="Contato*"
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														type="tel"
+														label="Telefone*"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
+										<InputMask
+											mask="(99) 99999-9999"
 											value={contact}
 											onChange={(e) => setContact(e.target.value)}
-										/>
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														{...inputProps}
+														type="text"
+														label="Contato*"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
 									</div>
 								</div>
 							</ModalBody>

@@ -26,10 +26,10 @@ function Navbar() {
 			</div>
 			<div className={styles.buttonsContainer}>
 				<NavbarButtonHome />
-				<NavbarButtonCalendar />
 				{currentWorkshop?.contract?.id !== "basic" && <NavbarButtonMonitor />}
 				<NavbarButtonRegistration />
 				<NavbarButtonProfile />
+				<NavbarButtonCalendar />
 				<NavbarButtonLogout />
 			</div>
 		</div>

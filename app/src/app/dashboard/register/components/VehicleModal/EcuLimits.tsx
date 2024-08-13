@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
-import { Button } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
 import styles from "../../styles.module.scss";
 import clsx from "clsx";
 import { toast, Zoom } from "react-toastify";
@@ -103,54 +103,84 @@ export default function EcuLimits({ id }: Props) {
 	return (
 		<div className={clsx(styles.form, "flex flex-col gap-5 w-full")}>
 			<div className="flex flex-col gap-4">
-				<div className="grid grid-cols-2 items-center justify-items-end">
-					<label htmlFor="engineTemperature">Temperatura do motor</label>
-					<input
+				<div>
+					<Input
+						label="Temperatura do motor"
 						type="number"
-						id="engineTemperature"
-						className={styles.modalInput}
-						value={engineTemperature}
+						value={engineTemperature.toString()}
 						onChange={(e) => setEngineTemperature(Number(e.target.value))}
+						variant="bordered"
+						className="dark"
+						classNames={{
+							input: ["bg-transparent text-white"],
+							inputWrapper: [
+								"border border-2 !border-white focus:border-white",
+							],
+						}}
 					/>
 				</div>
-				<div className="grid grid-cols-2 items-center justify-items-end">
-					<label htmlFor="batteryTension">Tensão de saída do alternador</label>
-					<input
+				<div>
+					<Input
+						label="Tensão de saída do alternador"
 						type="number"
-						id="batteryTension"
-						className={styles.modalInput}
-						value={batteryTension}
+						value={batteryTension.toString()}
 						onChange={(e) => setBatteryTension(Number(e.target.value))}
+						variant="bordered"
+						className="dark"
+						classNames={{
+							input: ["bg-transparent text-white"],
+							inputWrapper: [
+								"border border-2 !border-white focus:border-white",
+							],
+						}}
 					/>
 				</div>
-				<div className="grid grid-cols-2 items-center justify-items-end">
-					<label htmlFor="oilPressure">Pressão do óleo</label>
-					<input
+				<div>
+					<Input
+						label="Pressão do óleo"
 						type="number"
-						id="oilPressure"
-						className={styles.modalInput}
-						value={oilPressure}
+						value={oilPressure.toString()}
 						onChange={(e) => setOilPressure(Number(e.target.value))}
+						variant="bordered"
+						className="dark"
+						classNames={{
+							input: ["bg-transparent text-white"],
+							inputWrapper: [
+								"border border-2 !border-white focus:border-white",
+							],
+						}}
 					/>
 				</div>
-				<div className="grid grid-cols-2 items-center justify-items-end">
-					<label htmlFor="rpm">Rotação do motor</label>
-					<input
+				<div>
+					<Input
+						label="Rotação do motor"
 						type="number"
-						id="rpm"
-						className={styles.modalInput}
-						value={rpm}
+						value={rpm.toString()}
 						onChange={(e) => setRpm(Number(e.target.value))}
+						variant="bordered"
+						className="dark"
+						classNames={{
+							input: ["bg-transparent text-white"],
+							inputWrapper: [
+								"border border-2 !border-white focus:border-white",
+							],
+						}}
 					/>
 				</div>
-				<div className="grid grid-cols-2 items-center justify-items-end">
-					<label htmlFor="speed">Velocidade</label>
-					<input
+				<div>
+					<Input
+						label="Velocidade"
 						type="number"
-						id="speed"
-						className={styles.modalInput}
-						value={speed}
+						value={speed.toString()}
 						onChange={(e) => setSpeed(Number(e.target.value))}
+						variant="bordered"
+						className="dark"
+						classNames={{
+							input: ["bg-transparent text-white"],
+							inputWrapper: [
+								"border border-2 !border-white focus:border-white",
+							],
+						}}
 					/>
 				</div>
 			</div>

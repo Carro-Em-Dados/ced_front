@@ -9,6 +9,7 @@ import { Vehicle } from "@/interfaces/vehicle.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import VehicleModal from "../VehicleModal/VehicleModal";
 import SeeVehicleModal from "../VehicleModal/SeeVehicleModal";
+import EditAppUser from "../AppUserModal/EditAppUserModal";
 
 interface Props {
 	appUser: AppUser;
@@ -30,6 +31,10 @@ export default function AppUserCard({
 					<div className={clsx(styles.card, styles.infoCard)}>
 						<div className="flex flex-row justify-between w-full">
 							<h4 className={styles.cardTitle}>Dados</h4>
+							<EditAppUser
+								id={appUser.id}
+								setAppUser={setAppUsers}
+							/>
 						</div>
 						<div className={styles.row}>
 							<p className={styles.cardText}>Nome: {appUser.name}</p>

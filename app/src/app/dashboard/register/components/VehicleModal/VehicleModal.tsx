@@ -1,5 +1,6 @@
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -186,50 +187,100 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 							<ModalBody className="text-white">
 								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Placa"
+										<Input
+											type="text"
+											label="Placa"
 											value={licensePlate}
 											onChange={(e) => setLicensePlate(e.target.value)}
 											onBlur={queryVehicles}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
-									<div className="flex gap-2">
-										<input
-											className={styles.modalInput}
-											placeholder="Fabricante"
+									<div className="flex gap-5">
+										<Input
+											type="text"
+											label="Fabricante"
 											value={manufacturer}
 											onChange={(e) => setManufacturer(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-										<input
-											className={styles.modalInput}
-											placeholder="Modelo"
+										<Input
+											type="text"
+											label="Modelo"
 											value={carModel}
 											onChange={(e) => setCarModel(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
-									<div className="flex gap-2">
-										<input
-											className={styles.modalInput}
-											placeholder="Chassi"
+									<div className="flex gap-5">
+										<Input
+											type="text"
+											label="Chassi"
 											value={vin}
 											onChange={(e) => setVin(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
-
-										<input
-											className={styles.modalInput}
-											placeholder="Ano"
-											type="date"
-											value={year}
+										<Input
+											type="number"
+											label="Ano"
+											min="1900"
+											max="2099"
+											step="1"
+											value={year.toString()}
 											onChange={(e) => setYear(Number(e.target.value))}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div>
-										<input
-											className={styles.modalInput}
-											placeholder="Odômetro"
-											value={initialKm}
+										<Input
+											type="number"
+											min={0}
+											label="Odômetro"
+											value={initialKm.toString()}
 											onChange={(e) => setInitialKm(Number(e.target.value))}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 								</div>

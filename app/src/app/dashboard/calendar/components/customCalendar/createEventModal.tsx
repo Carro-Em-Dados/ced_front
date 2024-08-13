@@ -1,10 +1,12 @@
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
+	Textarea,
 	useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
@@ -161,58 +163,68 @@ export default function CreateEventModal({
 							<ModalBody className="text-white">
 								<div className={clsx(styles.form, "flex flex-col gap-4")}>
 									<div className="flex flex-col gap-2">
-										<p>Data da manutenção</p>
-										<input
-											className={styles.modalInput}
-											placeholder="Placa"
+										<Input
+											label="Data de manutenção"
 											type="date"
-											defaultValue={maintenanceDate}
+											value={maintenanceDate}
 											onChange={(e) => setMaintenanceDate(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 									<div className="flex flex-row gap-4">
 										<div className="flex flex-col gap-2 w-full">
-											<p>Horário de início</p>
-											<input
-												className={styles.modalInput}
-												placeholder="Placa"
+											<Input
+												label="Horário de início"
 												type="time"
-												defaultValue={start}
+												value={start}
 												onChange={(e) => setStart(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 										<div className="flex flex-col gap-2 w-full">
-											<p>Horário de término</p>
-											<input
-												className={styles.modalInput}
-												placeholder="Placa"
+											<Input
+												label="Horário de término"
 												type="time"
-												defaultValue={end}
+												value={end}
 												onChange={(e) => setEnd(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
 											/>
 										</div>
 									</div>
 									<div className="flex flex-col gap-2 w-full">
-										<DropdownComponent
-											options={maintenances.map((maintenance) => {
-												return {
-													label: maintenance.name as string,
-													key: maintenance.id as string,
-												};
-											})}
-											placeholder="Manutenção"
-											value={selectedMaintenance}
-											onChange={(key) => {
-												setSelectedMaintenance(key.toString());
-											}}
-										/>
-									</div>
-									<div className="flex flex-col gap-2 w-full">
-										<textarea
-											className={styles.modalInput}
+										<Textarea
 											placeholder="Observação"
 											value={note}
 											onChange={(e) => setNote(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 									</div>
 								</div>

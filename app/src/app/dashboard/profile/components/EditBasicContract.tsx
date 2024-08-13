@@ -1,4 +1,4 @@
-import { Button, Select, SelectItem } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { useContext, useEffect, useState } from "react";
 import styles from "../../register/styles.module.scss";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -90,43 +90,71 @@ export default function EditBasicContract() {
 				<>
 					<fieldset className="flex flex-col">
 						<div>
-							<input
-								className={styles.modalInput}
-								placeholder="Qtd. cadastros de clientes-motoristas*"
+							<Input
+								min={0}
+								label="Qtd. cadastros de clientes-motoristas*"
 								type="number"
-								value={clientMotoristCount}
+								value={clientMotoristCount.toString()}
 								onChange={(e) => setClientMotoristCount(+e.target.value)}
-								aria-label="Qtd. cadastros de clientes-motoristas*"
+								variant="bordered"
+								className="dark"
+								classNames={{
+									input: ["bg-transparent text-white"],
+									inputWrapper: [
+										"border border-2 !border-white focus:border-white",
+									],
+								}}
 							/>
 						</div>
 						<div>
-							<input
-								className={styles.modalInput}
-								placeholder="Qtd. cadastros de veículos por clientes-motoristas*"
+							<Input
+								min={0}
+								label="Qtd. cadastros de veículos por clientes-motoristas*"
 								type="number"
-								value={vehicleCount}
+								value={vehicleCount.toString()}
 								onChange={(e) => setVehicleCount(+e.target.value)}
-								aria-label="Qtd. cadastros de veículos por clientes-motoristas*"
+								variant="bordered"
+								className="dark"
+								classNames={{
+									input: ["bg-transparent text-white"],
+									inputWrapper: [
+										"border border-2 !border-white focus:border-white",
+									],
+								}}
 							/>
 						</div>
 						<div>
-							<input
-								className={styles.modalInput}
-								placeholder="Qtd. de alarmes por KM limite/Data limite por veículo*"
+							<Input
+								min={0}
+								label="Qtd. de alarmes por KM limite/Data limite por veículo*"
 								type="number"
-								value={alarmCount}
+								value={alarmCount.toString()}
 								onChange={(e) => setAlarmCount(+e.target.value)}
-								aria-label="Qtd. de alarmes por KM limite/Data limite por veículo*"
+								variant="bordered"
+								className="dark"
+								classNames={{
+									input: ["bg-transparent text-white"],
+									inputWrapper: [
+										"border border-2 !border-white focus:border-white",
+									],
+								}}
 							/>
 						</div>
 						<div>
-							<input
-								className={styles.modalInput}
-								placeholder="Qtd. de alarmes de manutenção por cliente*"
+							<Input
+								min={0}
+								label="Qtd. de alarmes de manutenção por cliente*"
 								type="number"
-								value={maintenanceAlarmCount}
+								value={maintenanceAlarmCount.toString()}
 								onChange={(e) => setMaintenanceAlarmCount(+e.target.value)}
-								aria-label="Qtd. de alarmes de manutenção por cliente*"
+								variant="bordered"
+								className="dark"
+								classNames={{
+									input: ["bg-transparent text-white"],
+									inputWrapper: [
+										"border border-2 !border-white focus:border-white",
+									],
+								}}
 							/>
 						</div>
 						<p className="self-end text-white text-sm">

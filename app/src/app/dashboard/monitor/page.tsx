@@ -171,38 +171,47 @@ export default function Monitor() {
 						</div>
 						<h1 className={styles.mainTitle}>Monitoramento</h1>
 					</div>
-					<p className={styles.subtext}>
-						Para verificar as condições do veículo, selecione alguma das formas
-						de verificação abaixo
-					</p>
-					<div className={styles.dropdownContainer}>
-						<DropdownComponent
-							options={verificationOptions}
-							placeholder="Selecione forma de verificação"
-							value={verification}
-							onChange={(key) => setVerification(key.toString())}
-						/>
-					</div>
-					<div className={styles.searchbarContainer}>
-						{verification && (
-							<Input
-								aria-label="Pesquisar por veículo"
-								value={searchValue}
-								onChange={(e) => setSearchValue(e.target.value)}
-								type="text"
-								placeholder=""
-								variant="bordered"
-								className={styles.input}
-								size="sm"
-								radius="lg"
-								endContent={
-									<button onClick={handleSearch}>
-										<FaSearch style={{ fontSize: "1.8em" }} />
-									</button>
-								}
+					<div className="flex flex-col gap-5 w-full">
+						<p className={styles.subtext}>
+							Para verificar as condições do veículo, selecione alguma das
+							formas de verificação abaixo
+						</p>
+						<div>
+							<DropdownComponent
+								options={verificationOptions}
+								placeholder="Selecione forma de verificação"
+								value={verification}
+								onChange={(key) => setVerification(key.toString())}
 							/>
-						)}
+						</div>
+						<div className={styles.searchbarContainer}>
+							{verification && (
+								<Input
+									type="text"
+									label="Pesquisar por veículo"
+									value={searchValue}
+									onChange={(e) => setSearchValue(e.target.value)}
+									variant="bordered"
+									className="dark"
+									classNames={{
+										input: ["bg-transparent text-white"],
+										inputWrapper: [
+											"border border-2 !border-white focus:border-white",
+										],
+									}}
+									endContent={
+										<button
+											onClick={handleSearch}
+											className="self-center"
+										>
+											<FaSearch className="text-white text-lg" />
+										</button>
+									}
+								/>
+							)}
+						</div>
 					</div>
+
 					{vehicleData.length > 1 && !showMonitor && (
 						<div className="text-white flex flex-col gap-5 my-5">
 							<h2 className="text-xl font-medium">Selecione um veículo</h2>

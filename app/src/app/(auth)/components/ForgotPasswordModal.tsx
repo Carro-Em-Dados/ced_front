@@ -2,6 +2,7 @@
 
 import {
 	Button,
+	Input,
 	Modal,
 	ModalBody,
 	ModalContent,
@@ -82,13 +83,19 @@ export default function ForgotPasswordModal() {
 							<ModalBody>
 								<div className={`${styles.form} flex flex-col`}>
 									<div className="flex flex-col">
-										<input
-											aria-label="Email"
-											className={styles.modalInput}
-											placeholder="Email"
+										<Input
 											type="email"
+											label="Email"
 											value={email}
-											onChange={(e) => setEmail(e.target.value)}
+											onChange={(e: any) => setEmail(e.target.value)}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
 										/>
 										{message && (
 											<p
