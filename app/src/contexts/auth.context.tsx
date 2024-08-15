@@ -113,21 +113,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			if (workshopSnap.exists()) {
 				const workshopData = workshopSnap.data() as Workshop;
 
-				const contractQuery = collection(db, "contracts");
-				const contractQuerySnapshot = await getDocs(
-					query(contractQuery, where("workshop", "==", workshopSnap.id))
-				);
+				if (workshopData.contract_id) {
+					const contractRef = doc(db, "contracts", workshopData.contract_id);
+					const contractSnap = await getDoc(contractRef);
+					let contractData;
 
-				let contractData;
-				if (!contractQuerySnapshot.empty) {
-					contractData = contractQuerySnapshot.docs[0].data() as Contract;
+					if (contractSnap.exists()) {
+						contractData = contractSnap.data() as Contract;
+					} else {
+						const basicContractRef = doc(db, "contracts", "basic");
+						const basicContractSnap = await getDoc(basicContractRef);
+						contractData = basicContractSnap.data() as Contract;
+					}
+
+					console.log(contractData);
+					setCurrentWorkshop({
+						...workshopData,
+						id: workshopSnap.id,
+						contract: contractData || null,
+					});
+				} else {
+					const basicContractRef = doc(db, "contracts", "basic");
+					const basicContractSnap = await getDoc(basicContractRef);
+					const contractData = basicContractSnap.data() as Contract;
+
+					setCurrentWorkshop({
+						...workshopData,
+						id: workshopSnap.id,
+						contract: contractData || null,
+					});
 				}
-
-				setCurrentWorkshop({
-					...workshopData,
-					id: workshopSnap.id,
-					contract: contractData || null,
-				});
 			} else {
 				console.warn("Oficina não encontrada para o usuário.");
 			}

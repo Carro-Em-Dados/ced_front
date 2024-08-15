@@ -29,6 +29,8 @@ import {
 	deleteDoc,
 	doc,
 	updateDoc,
+	query,
+	where,
 } from "firebase/firestore";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { Maintenance } from "@/interfaces/maintenances.type";
@@ -47,19 +49,25 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 	>([]);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+	console.log(maintenances, maintenancesDeleting);
+
 	const fetchMaintenances = async () => {
 		try {
-			const querySnapshot = await getDocs(collection(db, "maintenances"));
+			const maintenanceCollection = collection(db, "maintenances");
+			const q = query(
+				maintenanceCollection,
+				where("car_id", "==", vehicle.id),
+				where("workshop", "==", currentWorkshop?.id)
+			);
+			const querySnapshot = await getDocs(q);
 			const maintenanceData: Maintenance[] = [];
 			querySnapshot.forEach((doc) => {
-				if (doc.data().car_id === vehicle.id) {
-					const data = doc.data();
-					maintenanceData.push({
-						id: doc.id,
-						...data,
-						dateLimit: data?.dateLimit?.toDate() || null,
-					} as Maintenance);
-				}
+				const data = doc.data();
+				maintenanceData.push({
+					id: doc.id,
+					...data,
+					dateLimit: data?.dateLimit?.toDate() || null,
+				} as Maintenance);
 			});
 			setMaintenances(maintenanceData);
 		} catch (error) {
@@ -126,25 +134,34 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 				}
 			});
 
-			const deletions = maintenancesDeleting.map((m) =>
-				m.id ? deleteDoc(doc(db, "maintenances", m.id)) : Promise.resolve()
-			);
+			const deletions = maintenancesDeleting.map((m) => {
+				if (m.id) {
+					console.log(`Deletando documento com ID: ${m.id}`);
+					return deleteDoc(doc(db, "maintenances", m.id));
+				}
+				return Promise.resolve();
+			});
 
 			const upserts = maintenances.map((maintenance) => {
+				const maintenanceData = {
+					...maintenance,
+					dateLimit: Timestamp.fromDate(maintenance.dateLimit),
+				};
+
 				if (maintenance.id) {
-					return updateDoc(doc(db, "maintenances", maintenance.id), {
-						...maintenance,
-						dateLimit: Timestamp.fromDate(maintenance.dateLimit),
-					});
+					return updateDoc(
+						doc(db, "maintenances", maintenance.id),
+						maintenanceData
+					);
 				} else {
-					return addDoc(collection(db, "maintenances"), {
-						...maintenance,
-						dateLimit: Timestamp.fromDate(maintenance.dateLimit),
-					});
+					return addDoc(collection(db, "maintenances"), maintenanceData);
 				}
 			});
 
 			await Promise.all([...deletions, ...upserts]);
+
+			setMaintenancesDeleting([]);
+
 			toast.success("Manutenções atualizadas com sucesso", {
 				position: "bottom-right",
 				autoClose: 5000,
