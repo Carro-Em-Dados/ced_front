@@ -103,7 +103,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					if (vehicleDoc.exists()) {
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
-						vehicleId = vehicleData.id;
+						vehicleId = vehicleDoc.id;
 						kmCurrent = vehicleData.initial_km || 0;
 
 						if (vehicleData.owner) {
@@ -112,14 +112,14 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 							if (appUserDoc.exists()) {
 								const clientData = appUserDoc.data() as AppUser;
 								clientName = clientData.name || "";
-								clientId = clientData.id;
+								clientId = appUserDoc.id;
 							} else {
 								const driverDocRef = doc(db, "clients", vehicleData.owner);
 								const driverDoc = await getDoc(driverDocRef);
 								if (driverDoc.exists()) {
 									const driverData = driverDoc.data() as Driver;
 									clientName = driverData.name || "";
-									clientId = driverData.id;
+									clientId = driverDoc.id;
 								}
 							}
 						} else if (selectedWorkshop !== "all") {
@@ -189,7 +189,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 					if (vehicleDoc.exists()) {
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
-						vehicleId = vehicleData.id;
+						vehicleId = vehicleDoc.id;
 						kmCurrent = vehicleData.initial_km || 0;
 
 						if (vehicleData.owner) {
@@ -198,14 +198,14 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 							if (appUserDoc.exists()) {
 								const clientData = appUserDoc.data() as AppUser;
 								clientName = clientData.name || "";
-								clientId = clientData.id;
+								clientId = appUserDoc.id;
 							} else {
 								const driverDocRef = doc(db, "clients", vehicleData.owner);
 								const driverDoc = await getDoc(driverDocRef);
 								if (driverDoc.exists()) {
 									const driverData = driverDoc.data() as Driver;
 									clientName = driverData.name || "";
-									clientId = driverData.id;
+									clientId = driverDoc.id;
 								}
 							}
 						} else if (selectedWorkshop !== "all") {
@@ -375,7 +375,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
 			{loading ? (
-				<Spinner />
+				<Spinner color="white" />
 			) : (
 				<>
 					<div

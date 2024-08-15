@@ -63,6 +63,20 @@ function CustomChart({ chartData }: CustomChartProps) {
 								pointStyle: "circle",
 							},
 						},
+						tooltip: {
+							callbacks: {
+								label: function (tooltipItem) {
+									const dataset = tooltipItem.dataset;
+									const total = dataset.data.reduce(
+										(acc, value) => acc + value,
+										0
+									);
+									const currentValue = dataset.data[tooltipItem.dataIndex];
+									const percentage = ((currentValue / total) * 100).toFixed(2);
+									return `${percentage}%`;
+								},
+							},
+						},
 					},
 				}}
 			/>
