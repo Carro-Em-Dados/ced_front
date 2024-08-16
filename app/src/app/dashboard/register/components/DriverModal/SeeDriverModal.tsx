@@ -143,7 +143,7 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 										/>
 										<Select
 											variant="bordered"
-											className="dark"
+											className="dark text-white"
 											classNames={{
 												trigger: "!border-white rounded-medium",
 												value: "text-white",

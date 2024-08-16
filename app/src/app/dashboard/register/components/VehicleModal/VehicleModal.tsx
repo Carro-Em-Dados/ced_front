@@ -1,4 +1,8 @@
+"use client";
+
 import {
+	Autocomplete,
+	AutocompleteItem,
 	Button,
 	Input,
 	Modal,
@@ -10,7 +14,7 @@ import {
 } from "@nextui-org/react";
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
 	addDoc,
 	collection,
@@ -22,6 +26,7 @@ import {
 } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
+import { Vehicle } from "@/interfaces/vehicle.type";
 
 interface Props {
 	ownerId: string;
@@ -30,26 +35,34 @@ interface Props {
 
 export default function VehicleModal({ ownerId, setVehicles }: Props) {
 	const { db } = useContext(AuthContext);
-	const [manufacturer, setManufacturer] = useState("");
-	const [carModel, setCarModel] = useState("");
+	const [manufacturer, setManufacturer] = useState<string>();
+	const [carModel, setCarModel] = useState<string>();
+	const [year, setYear] = useState<string>();
 	const [initialKm, setInitialKm] = useState(0);
 	const [licensePlate, setLicensePlate] = useState("");
 	const [vin, setVin] = useState("");
-	const [year, setYear] = useState(0);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const [vehiclesBrands, setVehiclesBrands] = useState<any[]>([]);
+	const [vehiclesModels, setVehiclesModels] = useState<any[]>([]);
+	const [vehicleYears, setVehicleYears] = useState<any[]>([]);
+	const [loadingFetch, setLoadingFetch] = useState(true);
+
+	const [selectedBrand, setSelectedBrand] = useState<string>();
+	const [selectedModel, setSelectedModel] = useState<string>();
+	const [selectedYear, setSelectedYear] = useState<string>();
 
 	const addVehicle = async () => {
-		let vehicle = {
-			manufacturer: manufacturer,
-			car_model: carModel,
-			initial_km: initialKm,
-			license_plate: licensePlate,
-			vin: vin,
-			year: year,
-			owner: ownerId,
-		};
-
 		try {
+			let vehicle = {
+				manufacturer: manufacturer,
+				car_model: carModel,
+				year: year,
+				initial_km: initialKm,
+				license_plate: licensePlate,
+				vin: vin,
+				owner: ownerId,
+			};
+
 			const q = query(
 				collection(db, "vehicles"),
 				where("license_plate", "==", licensePlate)
@@ -81,10 +94,10 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 				const updatedVehicle = {
 					manufacturer: manufacturer || existingVehicle.manufacturer,
 					car_model: carModel || existingVehicle.car_model,
+					year: year || existingVehicle.year,
 					initial_km: initialKm || existingVehicle.initial_km,
 					license_plate: licensePlate,
 					vin: vin || existingVehicle.vin,
-					year: year || existingVehicle.year,
 					owner: ownerId,
 				};
 
@@ -119,31 +132,96 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+			console.error("Erro ao adicionar veículo:", error);
+		}
+	};
+
+	const fetchVehiclesBrandsApi = async () => {
+		setLoadingFetch(true);
+		try {
+			const response = await fetch(
+				"https://parallelum.com.br/fipe/api/v1/carros/marcas"
+			);
+			const data = await response.json();
+			setVehiclesBrands(data);
+		} catch (error) {
+			console.log("Erro ao resgatar marcas da API ", error);
+		} finally {
+			setLoadingFetch(false);
+		}
+	};
+
+	const fetchVehiclesModelsApi = async (manufacturerCode: string) => {
+		if (!manufacturerCode) return;
+		setLoadingFetch(true);
+		try {
+			const response = await fetch(
+				`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos`
+			);
+			const data = await response.json();
+			setVehiclesModels(data.modelos);
+		} catch (error) {
+			console.log("Erro ao resgatar modelos da API ", error);
+		} finally {
+			setLoadingFetch(false);
+		}
+	};
+
+	const fetchVehicleYears = async (
+		manufacturerCode: string,
+		modelCode: string
+	) => {
+		if (!modelCode) return;
+		setLoadingFetch(true);
+		try {
+			const response = await fetch(
+				`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos/${modelCode}/anos`
+			);
+			const data = await response.json();
+			console.log(data);
+
+			const processedData = data
+				.map((item: any) => ({
+					...item,
+					nome: item.nome.split(" ")[0],
+				}))
+				.filter(
+					(item: any, index: any, self: any) =>
+						index === self.findIndex((t: any) => t.nome === item.nome)
+				);
+
+			setVehicleYears(processedData);
+		} catch (error) {
+			console.log("Erro ao resgatar anos da API ", error);
+		} finally {
+			setLoadingFetch(false);
 		}
 	};
 
 	const queryVehicles = async () => {
 		try {
+			await fetchVehiclesBrandsApi();
+
 			const q = query(
 				collection(db, "vehicles"),
 				where("license_plate", "==", licensePlate),
 				where("owner", "==", "")
 			);
 			const querySnapshot = await getDocs(q);
+
 			if (!querySnapshot.empty) {
-				querySnapshot.forEach((doc) => {
-					const vehicleData = doc.data();
-					setManufacturer(vehicleData.manufacturer || "");
-					setCarModel(vehicleData.car_model || "");
-					setVin(vehicleData.vin || "");
-					setYear(vehicleData.year || 0);
-					setInitialKm(vehicleData.initial_km || 0);
-				});
+				const doc = querySnapshot.docs[0];
+				const vehicleData = doc.data();
+				setManufacturer(vehicleData.manufacturer || "");
+				setCarModel(vehicleData.car_model || "");
+				setYear(vehicleData.year || "");
+				setVin(vehicleData.vin || "");
+				setInitialKm(vehicleData.initial_km || 0);
 			} else {
-				setManufacturer("");
-				setCarModel("");
+				setManufacturer(undefined);
+				setCarModel(undefined);
+				setYear(undefined);
 				setVin("");
-				setYear(0);
 				setInitialKm(0);
 			}
 		} catch (error) {
@@ -160,6 +238,22 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 			});
 		}
 	};
+
+	useEffect(() => {
+		fetchVehiclesBrandsApi();
+	}, []);
+
+	useEffect(() => {
+		fetchVehiclesModelsApi(selectedBrand || "");
+	}, [selectedBrand]);
+
+	useEffect(() => {
+		fetchVehicleYears(selectedBrand || "", selectedModel || "");
+	}, [selectedBrand, selectedModel]);
+
+	console.log(vehiclesBrands, vehiclesModels, vehicleYears);
+	console.log(selectedBrand, selectedModel, selectedYear);
+	console.log(manufacturer, carModel, year, vin, initialKm);
 
 	return (
 		<>
@@ -204,58 +298,82 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 										/>
 									</div>
 									<div className="flex gap-5">
-										<Input
-											type="text"
-											label="Fabricante"
-											value={manufacturer}
-											onChange={(e) => setManufacturer(e.target.value)}
+										<Autocomplete
+											label="Marca"
 											variant="bordered"
 											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setSelectedBrand(
+													vehiclesBrands.find(
+														(brand) => brand.nome == key.toString()
+													)?.codigo || ""
+												);
+												setManufacturer(key.toString() || "");
 											}}
-										/>
-										<Input
-											type="text"
+											selectedKey={manufacturer}
+										>
+											{vehiclesBrands.map((brand) => (
+												<AutocompleteItem
+													value={brand.nome}
+													key={brand.nome}
+												>
+													{brand.nome}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
+										<Autocomplete
 											label="Modelo"
-											value={carModel}
-											onChange={(e) => setCarModel(e.target.value)}
 											variant="bordered"
 											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setSelectedModel(
+													vehiclesModels.find(
+														(model) => model.nome == key.toString()
+													)?.codigo || ""
+												);
+												setManufacturer(key.toString() || "");
 											}}
-										/>
+											disabled={!manufacturer}
+											selectedKey={carModel}
+										>
+											{vehiclesModels?.map((models) => (
+												<AutocompleteItem
+													value={models.nome}
+													key={models.nome}
+												>
+													{models.nome}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
 									</div>
 									<div className="flex gap-5">
+										<Autocomplete
+											label="Ano"
+											variant="bordered"
+											className="dark"
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setYear(key.toString() || "");
+											}}
+											disabled={!manufacturer}
+											selectedKey={year}
+										>
+											{vehicleYears.map((years) => (
+												<AutocompleteItem
+													value={years.nome}
+													key={years.nome}
+												>
+													{years.nome}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
 										<Input
 											type="text"
 											label="Chassi"
 											value={vin}
 											onChange={(e) => setVin(e.target.value)}
-											variant="bordered"
-											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
-											}}
-										/>
-										<Input
-											type="number"
-											label="Ano"
-											min="1900"
-											max="2099"
-											step="1"
-											value={year.toString()}
-											onChange={(e) => setYear(Number(e.target.value))}
 											variant="bordered"
 											className="dark"
 											classNames={{

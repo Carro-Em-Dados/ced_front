@@ -12,6 +12,7 @@ import { toast, Zoom } from "react-toastify";
 export default function Welcome() {
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
 	const [selectedWorkshop, setSelectedWorkshop] = useState<string | null>(null);
+	const [workshopName, setWorkshopName] = useState("");
 	const { currentUser, currentWorkshop, db } = useContext(AuthContext);
 
 	useEffect(() => {
@@ -107,12 +108,18 @@ export default function Welcome() {
 						value={selectedWorkshop}
 						onChange={(key) => {
 							setSelectedWorkshop(key.toString());
+							setWorkshopName(
+								workshops.find((w) => w.id === key)?.fantasy_name!
+							);
 						}}
 					/>
 				</div>
 			</div>
 			{selectedWorkshop ? (
-				<Dashboard selectedWorkshop={selectedWorkshop} />
+				<Dashboard
+					selectedWorkshop={selectedWorkshop}
+					workshopName={workshopName}
+				/>
 			) : (
 				<WelcomeImage />
 			)}

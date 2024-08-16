@@ -149,7 +149,7 @@ export default function UserModal({ setUsers }: Props) {
 									<div>
 										<Select
 											variant="bordered"
-											className="dark"
+											className="dark text-white"
 											classNames={{
 												trigger: "!border-white rounded-[1em]",
 											}}
@@ -159,6 +159,8 @@ export default function UserModal({ setUsers }: Props) {
 										>
 											<SelectItem key="user">Usuário</SelectItem>
 											<SelectItem key="master">Master</SelectItem>
+											<SelectItem key="worker">Funcionário</SelectItem>
+											<SelectItem key="workshop">Oficina</SelectItem>
 										</Select>
 									</div>
 								</div>

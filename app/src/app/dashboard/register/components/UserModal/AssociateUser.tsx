@@ -108,7 +108,7 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 									color="success"
 									disabled={!workshop}
 									className={`${styles.modalButton}`}
-									onPress={associateUser}
+									onClick={associateUser}
 								>
 									Associar
 								</Button>

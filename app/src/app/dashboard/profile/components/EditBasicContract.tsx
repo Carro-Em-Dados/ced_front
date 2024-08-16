@@ -170,7 +170,7 @@ export default function EditBasicContract() {
 							<Select
 								name="workshopKmLimitAlarm"
 								variant="bordered"
-								className="dark"
+								className="dark text-white"
 								classNames={{
 									trigger: "!border-white rounded-[1em]",
 								}}
@@ -219,7 +219,7 @@ export default function EditBasicContract() {
 							<Select
 								name="workshopDateNotificationFactor"
 								variant="bordered"
-								className="dark"
+								className="dark text-white"
 								classNames={{
 									trigger: "!border-white rounded-[1em]",
 								}}
@@ -267,7 +267,7 @@ export default function EditBasicContract() {
 							<Select
 								name="userKmLimitNotificationFactor"
 								variant="bordered"
-								className="dark"
+								className="dark text-white"
 								classNames={{
 									trigger: "!border-white rounded-[1em]",
 								}}
@@ -312,7 +312,7 @@ export default function EditBasicContract() {
 							<Select
 								name="userDateNotificationFactor"
 								variant="bordered"
-								className="dark"
+								className="dark text-white"
 								classNames={{
 									trigger: "!border-white rounded-[1em]",
 								}}

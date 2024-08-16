@@ -195,7 +195,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 												name="workshopKmLimitAlarm"
 												aria-label="workshopKmLimitAlarm"
 												variant="bordered"
-												className="dark"
+												className="dark text-white"
 												classNames={{
 													trigger: "!border-white rounded-[1em]",
 												}}
@@ -244,7 +244,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 												name="workshopDateNotificationFactor"
 												aria-label="workshopDateNotificationFactor"
 												variant="bordered"
-												className="dark"
+												className="dark text-white"
 												classNames={{
 													trigger: "!border-white rounded-[1em]",
 												}}
@@ -290,7 +290,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 												name="userKmLimitNotificationFactor"
 												aria-label="userKmLimitNotificationFactor"
 												variant="bordered"
-												className="dark"
+												className="dark text-white"
 												classNames={{
 													trigger: "!border-white rounded-[1em]",
 												}}
@@ -339,7 +339,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 												name="userDateNotificationFactor"
 												aria-label="userDateNotificationFactor"
 												variant="bordered"
-												className="dark"
+												className="dark text-white"
 												classNames={{
 													trigger: "!border-white rounded-[1em]",
 												}}

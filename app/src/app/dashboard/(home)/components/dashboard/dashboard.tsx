@@ -22,10 +22,10 @@ import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
 import { Button, Radio, RadioGroup, Spinner } from "@nextui-org/react";
-import { AiOutlineLoading } from "react-icons/ai";
 
 interface DashboardProps {
 	selectedWorkshop: string;
+	workshopName: string;
 }
 
 interface MaintenanceData {
@@ -40,7 +40,10 @@ interface MaintenanceData {
 	status: string;
 }
 
-export default function Dashboard({ selectedWorkshop }: DashboardProps) {
+export default function Dashboard({
+	selectedWorkshop,
+	workshopName,
+}: DashboardProps) {
 	const { db } = useContext(AuthContext);
 	const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
 	const [currentPage, setCurrentPage] = useState(0);
@@ -370,7 +373,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 		setCounterType("total");
 	}, [selectedWorkshop]);
 
-	console.log(countMaintenanceStatuses(maintenances));
+	// adicionar função pra filtrar manutenção por modelo de carros fazer manipulacao do estado maintenances
 
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
@@ -409,7 +412,7 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 								</>
 							) : (
 								<>
-									<h2 className="text-xl">Nome da oficina</h2>
+									<h2 className="text-xl">{workshopName}</h2>
 									<p className="text-sm text-[#C7C7C7]">
 										Confira as informações referentes à sua oficina nas seções a
 										seguir.
@@ -471,14 +474,14 @@ export default function Dashboard({ selectedWorkshop }: DashboardProps) {
 							</div>
 							<div className="flex gap-2">
 								<Button
-									onPress={() => handlePageChange(currentPage - 1)}
+									onClick={() => handlePageChange(currentPage - 1)}
 									disabled={currentPage === 0}
 									className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
 								>
 									Anterior
 								</Button>
 								<Button
-									onPress={() => handlePageChange(currentPage + 1)}
+									onClick={() => handlePageChange(currentPage + 1)}
 									disabled={currentPage >= totalPages - 1}
 									className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
 								>

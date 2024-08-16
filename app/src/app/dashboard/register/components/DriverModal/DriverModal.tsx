@@ -237,7 +237,8 @@ export default function DriverModal({ setDrivers }: Props) {
 			<Button
 				color="success"
 				className={styles.button}
-				onPress={onOpen}
+				onClick={onOpen}
+				disabled={currentUser?.role === "worker"}
 			>
 				<MdLibraryAdd className={styles.addIcon} />
 				Adicionar motorista
@@ -312,7 +313,7 @@ export default function DriverModal({ setDrivers }: Props) {
 										/>
 										<Select
 											variant="bordered"
-											className="dark"
+											className="dark text-white"
 											classNames={{
 												trigger: "!border-white rounded-medium",
 												value: "text-white",
@@ -440,7 +441,7 @@ export default function DriverModal({ setDrivers }: Props) {
 											<Select
 												name="workshops"
 												variant="bordered"
-												className="dark"
+												className="dark text-white"
 												classNames={{
 													trigger: "!border-white rounded-[1em]",
 												}}
@@ -472,7 +473,7 @@ export default function DriverModal({ setDrivers }: Props) {
 									color="success"
 									className={styles.modalButton}
 									disabled={!email}
-									onPress={() => {
+									onClick={() => {
 										handleAddDriver();
 										onClose();
 									}}

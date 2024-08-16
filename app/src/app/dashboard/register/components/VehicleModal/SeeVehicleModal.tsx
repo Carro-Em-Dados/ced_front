@@ -269,7 +269,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 												>
 													<Select
 														variant="bordered"
-														className="dark"
+														className="dark text-white"
 														classNames={{
 															trigger: "!border-white rounded-medium",
 															value: "text-white",
