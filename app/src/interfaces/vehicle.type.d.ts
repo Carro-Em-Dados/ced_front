@@ -5,7 +5,7 @@ export interface Vehicle {
 	license_plate: string;
 	owner: string;
 	vin: string;
-	year: number;
+	year: string;
 	initial_km: number;
 	obd2_mac: string;
 	gps_mac: string;

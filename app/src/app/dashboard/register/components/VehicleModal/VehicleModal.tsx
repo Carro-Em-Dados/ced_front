@@ -53,13 +53,13 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 
 	const addVehicle = async () => {
 		try {
-			let vehicle = {
-				manufacturer: manufacturer,
+			const vehicle = {
+				manufacturer,
 				car_model: carModel,
-				year: year,
+				year,
 				initial_km: initialKm,
 				license_plate: licensePlate,
-				vin: vin,
+				vin,
 				owner: ownerId,
 			};
 
@@ -178,7 +178,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 				`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos/${modelCode}/anos`
 			);
 			const data = await response.json();
-			console.log(data);
 
 			const processedData = data
 				.map((item: any) => ({
@@ -244,12 +243,40 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 	}, []);
 
 	useEffect(() => {
-		fetchVehiclesModelsApi(selectedBrand || "");
+		if (manufacturer) {
+			const selectedBrandCode = vehiclesBrands.find(
+				(brand) => brand.nome === manufacturer
+			)?.codigo;
+			setSelectedBrand(selectedBrandCode || "");
+		}
+	}, [manufacturer, vehiclesBrands]);
+
+	useEffect(() => {
+		if (selectedBrand) {
+			fetchVehiclesModelsApi(selectedBrand);
+		}
 	}, [selectedBrand]);
 
 	useEffect(() => {
-		fetchVehicleYears(selectedBrand || "", selectedModel || "");
-	}, [selectedBrand, selectedModel]);
+		if (carModel) {
+			const selectedModelCode = vehiclesModels.find(
+				(model) => model.nome === carModel
+			)?.codigo;
+			setSelectedModel(selectedModelCode || "");
+		}
+	}, [carModel, vehiclesModels]);
+
+	useEffect(() => {
+		if (selectedModel) {
+			fetchVehicleYears(selectedBrand || "", selectedModel);
+		}
+	}, [selectedModel, selectedBrand]);
+
+	useEffect(() => {
+		if (year) {
+			setSelectedYear(vehicleYears.find((yr) => yr.nome === year)?.nome || "");
+		}
+	}, [year, vehicleYears]);
 
 	console.log(vehiclesBrands, vehiclesModels, vehicleYears);
 	console.log(selectedBrand, selectedModel, selectedYear);
@@ -355,7 +382,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 											className="dark"
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
-												setYear(key.toString() || "");
+												setYear(key ? key.toString() : "");
 											}}
 											disabled={!manufacturer}
 											selectedKey={year}
