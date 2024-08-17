@@ -173,7 +173,7 @@ export default function CreateEventModal({
 			<Button
 				color="success"
 				className={clsx(styles.addVehicleBtn, "w-fit")}
-				onPress={onOpen}
+				onClick={onOpen}
 			>
 				Adicionar manutenção
 			</Button>
@@ -264,7 +264,7 @@ export default function CreateEventModal({
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
@@ -272,7 +272,7 @@ export default function CreateEventModal({
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={createEvent}
+									onClick={createEvent}
 								>
 									Salvar
 								</Button>

@@ -17,8 +17,10 @@ export default function EcuLimits({ id }: Props) {
 	const [oilPressure, setOilPressure] = useState(0);
 	const [rpm, setRpm] = useState(0);
 	const [speed, setSpeed] = useState(0);
+	const [loading, setLoading] = useState(false);
 
 	const fetchReading = async () => {
+		setLoading(true);
 		try {
 			const vehicleDoc = doc(db, "vehicles", id);
 			const docSnapshot = await getDoc(vehicleDoc);
@@ -55,10 +57,13 @@ export default function EcuLimits({ id }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	const saveReading = async () => {
+		setLoading(true);
 		try {
 			const vehicleDoc = doc(db, "vehicles", id);
 			const readingData = {
@@ -93,6 +98,8 @@ export default function EcuLimits({ id }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -187,8 +194,9 @@ export default function EcuLimits({ id }: Props) {
 			<div className="flex flex-col gap-2 w-fit ml-auto">
 				<Button
 					type="button"
-					onPress={saveReading}
+					onClick={saveReading}
 					className={styles.addVehicleBtn}
+					disabled={loading}
 				>
 					Salvar
 				</Button>

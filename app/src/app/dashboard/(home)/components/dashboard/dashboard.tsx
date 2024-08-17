@@ -21,7 +21,14 @@ import styles from "../../tabs/welcome.module.scss";
 import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
-import { Button, Radio, RadioGroup, Spinner } from "@nextui-org/react";
+import {
+	Autocomplete,
+	AutocompleteItem,
+	Button,
+	Radio,
+	RadioGroup,
+	Spinner,
+} from "@nextui-org/react";
 
 interface DashboardProps {
 	selectedWorkshop: string;
@@ -33,6 +40,9 @@ interface MaintenanceData {
 	clientId: string;
 	vehicle: string;
 	vehicleId: string;
+	vehicleBrand: string;
+	vehicleModel: string;
+	vehicleYear: string;
 	maintenance: string;
 	km_current: number;
 	km_threshold: number;
@@ -54,6 +64,11 @@ export default function Dashboard({
 	const [totalPages, setTotalPages] = useState(0);
 	const [counterType, setCounterType] = useState("total");
 	const [loading, setLoading] = useState(true);
+	const [filterOptions, setFilterOptions] = useState<any>();
+	const [selectedFilterOption, setSelectedFilterOption] = useState({
+		selected: "",
+		type: "",
+	});
 
 	const itemsPerPage = 10;
 
@@ -100,6 +115,9 @@ export default function Dashboard({
 					let vehicleInfo = "";
 					let vehicleId = "";
 					let kmCurrent = 0;
+					let vehicleBrand = "";
+					let vehicleModel = "";
+					let vehicleYear = "";
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
 					const vehicleDoc = await getDoc(vehicleDocRef);
@@ -108,6 +126,9 @@ export default function Dashboard({
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
 						vehicleId = vehicleDoc.id;
 						kmCurrent = vehicleData.initial_km || 0;
+						vehicleBrand = vehicleData.manufacturer || "";
+						vehicleModel = vehicleData.car_model || "";
+						vehicleYear = vehicleData.year || "";
 
 						if (vehicleData.owner) {
 							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -144,6 +165,9 @@ export default function Dashboard({
 						clientId: clientId,
 						vehicle: vehicleInfo,
 						vehicleId: vehicleId,
+						vehicleBrand: vehicleBrand,
+						vehicleModel: vehicleModel,
+						vehicleYear: vehicleYear,
 						maintenance: maintenanceData.service,
 						km_current: kmCurrent,
 						km_threshold: maintenanceData.kmLimit || 0,
@@ -186,6 +210,9 @@ export default function Dashboard({
 					let vehicleInfo = "";
 					let vehicleId = "";
 					let kmCurrent = 0;
+					let vehicleBrand = "";
+					let vehicleModel = "";
+					let vehicleYear = "";
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
 					const vehicleDoc = await getDoc(vehicleDocRef);
@@ -194,6 +221,9 @@ export default function Dashboard({
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
 						vehicleId = vehicleDoc.id;
 						kmCurrent = vehicleData.initial_km || 0;
+						vehicleBrand = vehicleData.manufacturer || "";
+						vehicleModel = vehicleData.car_model || "";
+						vehicleYear = vehicleData.year || "";
 
 						if (vehicleData.owner) {
 							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -230,6 +260,9 @@ export default function Dashboard({
 						clientId: clientId,
 						vehicle: vehicleInfo,
 						vehicleId: vehicleId,
+						vehicleBrand: vehicleBrand,
+						vehicleModel: vehicleModel,
+						vehicleYear: vehicleYear,
 						maintenance: maintenanceData.service,
 						km_current: kmCurrent,
 						km_threshold: maintenanceData.kmLimit || 0,
@@ -373,7 +406,106 @@ export default function Dashboard({
 		setCounterType("total");
 	}, [selectedWorkshop]);
 
-	// adicionar função pra filtrar manutenção por modelo de carros fazer manipulacao do estado maintenances
+	useEffect(() => {
+		getAllVehicleFilters();
+	}, [maintenances]);
+
+	const getAllVehicleFilters = async () => {
+		const filters = {
+			brand: {
+				options: {} as {
+					[key: string]: {
+						maintenances: MaintenanceData[];
+						totalKm: number;
+						vehiclesCount: number;
+					};
+				},
+			},
+			model: {
+				options: {} as {
+					[key: string]: {
+						maintenances: MaintenanceData[];
+						totalKm: number;
+						vehiclesCount: number;
+					};
+				},
+			},
+			year: {
+				options: {} as {
+					[key: string]: {
+						maintenances: MaintenanceData[];
+						totalKm: number;
+						vehiclesCount: number;
+					};
+				},
+			},
+		};
+
+		const uniqueVehicles = new Map<
+			string,
+			{ brand: string; model: string; year: string; km_current: number }
+		>();
+
+		maintenances.forEach((maintenance) => {
+			const { vehicleBrand, vehicleModel, vehicleYear, vehicleId, km_current } =
+				maintenance;
+
+			if (!filters.brand.options[vehicleBrand]) {
+				filters.brand.options[vehicleBrand] = {
+					maintenances: [],
+					totalKm: 0,
+					vehiclesCount: 0,
+				};
+			}
+			if (!filters.model.options[vehicleModel]) {
+				filters.model.options[vehicleModel] = {
+					maintenances: [],
+					totalKm: 0,
+					vehiclesCount: 0,
+				};
+			}
+			if (!filters.year.options[vehicleYear]) {
+				filters.year.options[vehicleYear] = {
+					maintenances: [],
+					totalKm: 0,
+					vehiclesCount: 0,
+				};
+			}
+
+			filters.brand.options[vehicleBrand].maintenances.push(maintenance);
+			filters.model.options[vehicleModel].maintenances.push(maintenance);
+			filters.year.options[vehicleYear].maintenances.push(maintenance);
+
+			if (!uniqueVehicles.has(vehicleId)) {
+				uniqueVehicles.set(vehicleId, {
+					brand: vehicleBrand,
+					model: vehicleModel,
+					year: vehicleYear,
+					km_current,
+				});
+
+				filters.brand.options[vehicleBrand].totalKm += km_current;
+				filters.model.options[vehicleModel].totalKm += km_current;
+				filters.year.options[vehicleYear].totalKm += km_current;
+
+				filters.brand.options[vehicleBrand].vehiclesCount += 1;
+				filters.model.options[vehicleModel].vehiclesCount += 1;
+				filters.year.options[vehicleYear].vehiclesCount += 1;
+			}
+		});
+
+		setFilterOptions({
+			brand: {
+				options: filters.brand.options,
+			},
+			model: {
+				options: filters.model.options,
+			},
+			year: {
+				options: filters.year.options,
+			},
+		});
+	};
 
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
@@ -409,6 +541,113 @@ export default function Dashboard({
 											<p className="text-white">Contadores parciais</p>
 										</Radio>
 									</RadioGroup>
+									<div className="flex flex-row gap-5 mt-5">
+										<Autocomplete
+											label="Marca"
+											variant="bordered"
+											className="dark"
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setSelectedFilterOption({
+													selected:
+														key.toString() === "none"
+															? ""
+															: key.toString() || "",
+													type: key.toString() === "none" ? "" : "brand",
+												});
+											}}
+											selectedKey={
+												selectedFilterOption.type === "brand"
+													? selectedFilterOption.selected
+													: "none"
+											}
+										>
+											<AutocompleteItem
+												value="none"
+												key="none"
+											>
+												Nenhum
+											</AutocompleteItem>
+											{Object.keys(filterOptions.brand.options).map((brand) => (
+												<AutocompleteItem
+													value={brand.toString()}
+													key={brand.toString()}
+												>
+													{brand}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
+										<Autocomplete
+											label="Modelo"
+											variant="bordered"
+											className="dark"
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setSelectedFilterOption({
+													selected:
+														key.toString() === "none"
+															? ""
+															: key.toString() || "",
+													type: key.toString() === "none" ? "" : "model",
+												});
+											}}
+											selectedKey={
+												selectedFilterOption.type === "model"
+													? selectedFilterOption.selected
+													: "none"
+											}
+										>
+											<AutocompleteItem
+												value="none"
+												key="none"
+											>
+												Nenhum
+											</AutocompleteItem>
+											{Object.keys(filterOptions.model.options).map((model) => (
+												<AutocompleteItem
+													value={model.toString()}
+													key={model.toString()}
+												>
+													{model}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
+										<Autocomplete
+											label="Marca"
+											variant="bordered"
+											className="dark"
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												setSelectedFilterOption({
+													selected:
+														key.toString() === "none"
+															? ""
+															: key.toString() || "",
+													type: key.toString() === "none" ? "" : "year",
+												});
+											}}
+											selectedKey={
+												selectedFilterOption.type === "year"
+													? selectedFilterOption.selected
+													: "none"
+											}
+										>
+											<AutocompleteItem
+												value="none"
+												key="none"
+											>
+												Nenhum
+											</AutocompleteItem>
+											{Object.keys(filterOptions.year.options).map((year) => (
+												<AutocompleteItem
+													value={year.toString()}
+													key={year.toString()}
+												>
+													{year}
+												</AutocompleteItem>
+											))}
+										</Autocomplete>
+									</div>
 								</>
 							) : (
 								<>
@@ -424,7 +663,18 @@ export default function Dashboard({
 					<div className={styles.graphicsContainer}>
 						<div className={styles.chartBox}>
 							<h4 className={styles.boxText}>Porcentagem de manutenções</h4>
-							<CustomChart chartData={countMaintenanceStatuses(maintenances)} />
+							<CustomChart
+								chartData={
+									selectedFilterOption.selected !== "" &&
+									filterOptions !== undefined
+										? countMaintenanceStatuses(
+												filterOptions[selectedFilterOption.type]?.options[
+													selectedFilterOption.selected
+												].maintenances || {}
+										  )
+										: countMaintenanceStatuses(maintenances)
+								}
+							/>
 						</div>
 						<span style={{ width: "3em" }} />
 						<div className={styles.statisticsBox}>
@@ -439,7 +689,12 @@ export default function Dashboard({
 									<div className={styles.statWrap}>
 										<TbClockExclamation className={styles.statisticsIcon} />
 										<h4 className={styles.statisticsText}>
-											{maintenances.length}
+											{selectedFilterOption.selected !== "" &&
+											filterOptions !== undefined
+												? filterOptions[selectedFilterOption.type]?.options[
+														selectedFilterOption.selected
+												  ].maintenances?.length
+												: maintenances.length}
 										</h4>
 									</div>
 									<p className={styles.statisticsSubtext}>
@@ -450,14 +705,28 @@ export default function Dashboard({
 							<div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
 								<div className={styles.statWrap}>
 									<MdDirectionsCar className={styles.statisticsIcon} />
-									<h4 className={styles.statisticsText}>{totalVehicles}</h4>
+									<h4 className={styles.statisticsText}>
+										{selectedFilterOption.selected !== "" &&
+										filterOptions !== undefined
+											? filterOptions[selectedFilterOption.type]?.options[
+													selectedFilterOption.selected
+											  ].vehiclesCount
+											: totalVehicles}
+									</h4>
 								</div>
 								<p className={styles.statisticsSubtext}>veículos monitorados</p>
 							</div>
 							<div className={clsx(styles.statisticsCard, styles.kmCard)}>
 								<div className={styles.statWrap}>
 									<MdOutlineSpeed className={styles.statisticsIcon} />
-									<h4 className={styles.statisticsText}>{totalKM}</h4>
+									<h4 className={styles.statisticsText}>
+										{selectedFilterOption.selected !== "" &&
+										filterOptions !== undefined
+											? filterOptions[selectedFilterOption.type]?.options[
+													selectedFilterOption.selected
+											  ].totalKm
+											: totalKM}
+									</h4>
 								</div>
 								<p className={styles.statisticsSubtext}>km monitorados</p>
 							</div>

@@ -17,7 +17,7 @@ import { useContext, useState } from "react";
 import styles from "../../styles.module.scss";
 import { AuthContext } from "@/contexts/auth.context";
 import { clsx } from "clsx";
-import { doc, updateDoc } from "firebase/firestore"; // Importe as funções necessárias do Firebase Firestore
+import { doc, updateDoc } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
 
 interface Props {
@@ -48,6 +48,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 	const [userDateNotificationFactor, setUserDateNotificationFactor] = useState(
 		contract.userDateLimitAlarm || 0
 	);
+	const [loading, setLoading] = useState(false);
 
 	const handleEditContract = async () => {
 		const updatedContract = {
@@ -60,6 +61,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 			userKmLimitAlarm: userKmNotificationFactor,
 			userDateLimitAlarm: userDateNotificationFactor,
 		};
+		setLoading(true);
 
 		try {
 			const contractDocRef = doc(db, "contracts", contract.id);
@@ -80,6 +82,8 @@ export default function EditContractModal({ contract, setContract }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -87,7 +91,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 		<>
 			<Button
 				className="w-fit"
-				onPress={onOpen}
+				onClick={onOpen}
 			>
 				Editar contrato
 			</Button>
@@ -393,14 +397,15 @@ export default function EditContractModal({ contract, setContract }: Props) {
 								<Button
 									color="danger"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={() => {
+									disabled={loading}
+									onClick={() => {
 										handleEditContract();
 										onClose();
 									}}

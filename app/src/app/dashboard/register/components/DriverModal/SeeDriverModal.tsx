@@ -37,12 +37,14 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 	const [addressCom, setAddressCom] = useState<string>("");
 	const [register, setRegister] = useState<string>("");
 	const [cnh, setCNH] = useState<string>("");
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		getDriver();
 	}, []);
 
 	const getDriver = async () => {
+		setLoading(true);
 		const docRef = doc(db, "clients", id);
 		await getDoc(docRef).then((doc) => {
 			if (doc.exists()) {
@@ -58,34 +60,43 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 				setCNH(doc.data().cnh);
 			}
 		});
+		setLoading(false);
 	};
 
 	async function handleEditDriver() {
-		let updatedDriver = {
-			name: name,
-			age: age,
-			gender: gender,
-			email: email,
-			cnh: cnh,
-			address_commercial: addressCom,
-			address_residential: addressRes,
-			phone_residential: phoneRes,
-			phone_commercial: phoneCom,
-			role: "client",
-			register: register,
-			workshops: [""],
-		};
+		setLoading(true);
 
-		const docRef = doc(db, "clients", id);
+		try {
+			let updatedDriver = {
+				name: name,
+				age: age,
+				gender: gender,
+				email: email,
+				cnh: cnh,
+				address_commercial: addressCom,
+				address_residential: addressRes,
+				phone_residential: phoneRes,
+				phone_commercial: phoneCom,
+				role: "client",
+				register: register,
+				workshops: [""],
+			};
 
-		await updateDoc(docRef, updatedDriver).then(() => {
-			setDrivers((drivers) =>
-				drivers.map((driver) =>
-					driver.id === id ? { ...driver, ...updatedDriver } : driver
-				)
-			);
-			onOpenChange();
-		});
+			const docRef = doc(db, "clients", id);
+
+			await updateDoc(docRef, updatedDriver).then(() => {
+				setDrivers((drivers) =>
+					drivers.map((driver) =>
+						driver.id === id ? { ...driver, ...updatedDriver } : driver
+					)
+				);
+				onOpenChange();
+			});
+		} catch (error) {
+			// adicionar toast aqui
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (
@@ -128,7 +139,8 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 									</div>
 									<div className="flex flex-row gap-5">
 										<Input
-											type="text"
+											type="number"
+											min={18}
 											label="Idade"
 											value={age}
 											onChange={(e) => setAge(e.target.value)}
@@ -149,7 +161,7 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 												value: "text-white",
 											}}
 											label="Gênero"
-											value={gender}
+											selectedKeys={gender}
 											onChange={(e) => setGender(e.target.value)}
 										>
 											<SelectItem
@@ -293,9 +305,10 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={() => {
+									onClick={() => {
 										handleEditDriver();
 									}}
+									disabled={loading}
 								>
 									Editar
 								</Button>

@@ -10,7 +10,7 @@ import {
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
 import { updateDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
@@ -33,8 +33,10 @@ interface Props {
 export default function EraseModal({ id, type, name, state }: Props) {
 	const { db } = useContext(AuthContext);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const [loading, setLoading] = useState(false);
 
 	const deleteItem = async () => {
+		setLoading(true);
 		let collectionName: string;
 		let updateData: any;
 
@@ -135,6 +137,8 @@ export default function EraseModal({ id, type, name, state }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -168,7 +172,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
@@ -176,7 +180,8 @@ export default function EraseModal({ id, type, name, state }: Props) {
 								<Button
 									color="danger"
 									className={styles.modalButton}
-									onPress={deleteItem}
+									onClick={deleteItem}
+									disabled={loading}
 								>
 									Excluir
 								</Button>

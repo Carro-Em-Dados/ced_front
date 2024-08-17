@@ -16,13 +16,14 @@ import {
 import clsx from "clsx";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
-import { addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { defaultServices } from "@/constants/defaultServices";
 import { toast, Zoom } from "react-toastify";
 import { Contract } from "@/interfaces/contract.type";
 import InputMask from "react-input-mask";
 import { createGoogleCalendar } from "@/services/google-calendar";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -40,6 +41,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	const [stateRegistration, setStateRegistration] = useState("");
 	const [municipalRegistration, setMunicipalRegistration] = useState("");
 	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 	const [phone, setPhone] = useState("");
 	const [contact, setContact] = useState("");
 	const [profileType, setProfileType] = useState("basic");
@@ -71,6 +73,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	const [twitter, setTwitter] = useState("");
 	const [other1, setOther1] = useState("");
 	const [other2, setOther2] = useState("");
+	const [loading, setLoading] = useState(false);
 
 	const [basicContractData, setBasicContractData] = useState<Contract>({
 		maxAlarmsPerVehicle: 0,
@@ -130,6 +133,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			{ value: corporateName, name: "Razão Social" },
 			{ value: cnpj, name: "CNPJ" },
 			{ value: email, name: "E-mail" },
+			{ value: password, name: "Senha" },
 			{ value: phone, name: "Telefone" },
 			{ value: contact, name: "Contato" },
 			{ value: profileType, name: "Tipo de perfil" },
@@ -216,6 +220,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	};
 
 	const createWorkshop = async () => {
+		setLoading(true);
 		const contract = {
 			maxAlarmsPerVehicle: +alarmCount,
 			maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
@@ -285,12 +290,31 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			);
 			await Promise.all(servicesPromises);
 
+			const auth = getAuth();
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+
+			const newUser = {
+				email: userCredential.user.email!,
+				name: workshop.fantasy_name,
+				id: userCredential.user.uid,
+				role: "workshop",
+				workshops: workshopRef.id,
+			};
+
+			const docRef = doc(db, "users", newUser.id);
+			await setDoc(docRef, newUser);
+
 			setWorkshops((workshops) => [
 				...workshops,
 				{ ...workshop, id: workshopRef.id },
 			]);
 			onOpenChange();
 		} catch (error) {
+			console.log(error);
 			toast.error("Erro ao criar organização", {
 				position: "bottom-right",
 				autoClose: 5000,
@@ -302,6 +326,8 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -343,6 +369,38 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 							<ModalBody>
 								{tab === "tab1" && (
 									<div className={clsx(styles.form, "flex flex-col gap-4")}>
+										<div>
+											<Input
+												label="E-mail*"
+												value={email}
+												type="email"
+												onChange={(e) => setEmail(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										</div>
+										<div>
+											<Input
+												label="Senha*"
+												value={password}
+												type="password"
+												onChange={(e) => setPassword(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										</div>
 										<div>
 											<Input
 												type="text"
@@ -454,22 +512,6 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 												onChange={(e) =>
 													setMunicipalRegistration(e.target.value)
 												}
-												variant="bordered"
-												className="dark"
-												classNames={{
-													input: ["bg-transparent text-white"],
-													inputWrapper: [
-														"border border-2 !border-white focus:border-white",
-													],
-												}}
-											/>
-										</div>
-										<div>
-											<Input
-												label="E-mail*"
-												value={email}
-												type="email"
-												onChange={(e) => setEmail(e.target.value)}
 												variant="bordered"
 												className="dark"
 												classNames={{
@@ -1225,6 +1267,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 									color="success"
 									className={styles.modalButton}
 									onClick={tab === "tab4" ? createWorkshop : nextPage}
+									disabled={loading}
 								>
 									{tab === "tab4" ? "Adicionar" : "Próximo"}
 								</Button>

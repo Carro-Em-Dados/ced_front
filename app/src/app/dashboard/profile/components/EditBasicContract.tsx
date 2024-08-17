@@ -56,6 +56,7 @@ export default function EditBasicContract() {
 			userKmLimitAlarm: +userKmNotificationFactor,
 			userDateLimitAlarm: +userDateNotificationFactor,
 		};
+		setLoading(true);
 
 		try {
 			const contractDocRef = doc(db, "contracts", "basic");
@@ -81,6 +82,8 @@ export default function EditBasicContract() {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -362,7 +365,8 @@ export default function EditBasicContract() {
 					<Button
 						color="success"
 						className={styles.modalButton}
-						onPress={handleEditContract}
+						onClick={handleEditContract}
+						disabled={loading}
 					>
 						Salvar
 					</Button>

@@ -27,12 +27,14 @@ export default function EditAppUser({ id, setAppUser }: Props) {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [name, setName] = useState<string>("");
 	const [phone, setPhone] = useState<string>("");
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		getUser();
 	}, []);
 
 	const getUser = async () => {
+		setLoading(true);
 		try {
 			const userDoc = await getDoc(doc(db, "appUsers", id));
 			if (userDoc.exists()) {
@@ -52,10 +54,13 @@ export default function EditAppUser({ id, setAppUser }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	async function handleEditUser() {
+		setLoading(true);
 		try {
 			const userRef = doc(db, "appUsers", id);
 
@@ -81,6 +86,8 @@ export default function EditAppUser({ id, setAppUser }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	}
 
@@ -150,7 +157,7 @@ export default function EditAppUser({ id, setAppUser }: Props) {
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
@@ -158,10 +165,11 @@ export default function EditAppUser({ id, setAppUser }: Props) {
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={async () => {
+									onClick={async () => {
 										await handleEditUser();
 										onClose();
 									}}
+									disabled={loading}
 								>
 									Editar
 								</Button>

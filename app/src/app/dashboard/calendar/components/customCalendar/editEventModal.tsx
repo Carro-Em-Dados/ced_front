@@ -211,7 +211,7 @@ export default function EditEventModal({
 							<Button
 								color="success"
 								className={styles.modalButton}
-								onPress={editSchedule}
+								onClick={editSchedule}
 							>
 								Salvar
 							</Button>

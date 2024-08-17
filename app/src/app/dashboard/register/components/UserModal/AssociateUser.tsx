@@ -26,9 +26,11 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const { db } = useContext(AuthContext);
 	const [workshop, setWorkshop] = useState(user?.workshops || "");
+	const [loading, setLoading] = useState(false);
 
 	const associateUser = async () => {
 		if (!workshop) return;
+		setLoading(true);
 
 		try {
 			const userRef = doc(db, "users", user.id);
@@ -52,6 +54,8 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -60,7 +64,7 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 			<Button
 				color="success"
 				className={styles.addVehicleBtn}
-				onPress={onOpen}
+				onClick={onOpen}
 			>
 				Associar organização
 			</Button>
@@ -99,14 +103,14 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
-									disabled={!workshop}
+									disabled={!workshop || loading}
 									className={`${styles.modalButton}`}
 									onClick={associateUser}
 								>

@@ -48,6 +48,7 @@ export default function DriverModal({ setDrivers }: Props) {
 	const [cnh, setCNH] = useState<string>("");
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
 	const [selectedWorkshop, setSelectedWorkshop] = useState<string>("");
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		if (currentUser?.role === "master") {
@@ -56,6 +57,7 @@ export default function DriverModal({ setDrivers }: Props) {
 	}, [currentUser?.role]);
 
 	const handleAddDriver = async () => {
+		setLoading(true);
 		if (currentUser?.workshops || currentUser?.role === "master") {
 			try {
 				const querySnapshot = await getDocs(
@@ -155,6 +157,8 @@ export default function DriverModal({ setDrivers }: Props) {
 					theme: "dark",
 					transition: Zoom,
 				});
+			} finally {
+				setLoading(false);
 			}
 			return;
 		}
@@ -172,6 +176,7 @@ export default function DriverModal({ setDrivers }: Props) {
 	};
 
 	const queryDrivers = async () => {
+		setLoading(true);
 		try {
 			setQueriedEmail(email);
 			const q = query(collection(db, "clients"), where("email", "==", email));
@@ -203,10 +208,13 @@ export default function DriverModal({ setDrivers }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	const loadAllWorkshops = async () => {
+		setLoading(true);
 		try {
 			const querySnapshot = await getDocs(collection(db, "workshops"));
 			const workshopsList: Workshop[] = querySnapshot.docs.map(
@@ -229,6 +237,8 @@ export default function DriverModal({ setDrivers }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -465,14 +475,14 @@ export default function DriverModal({ setDrivers }: Props) {
 								<Button
 									color="danger"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
 									className={styles.modalButton}
-									disabled={!email}
+									disabled={!email || loading}
 									onClick={() => {
 										handleAddDriver();
 										onClose();

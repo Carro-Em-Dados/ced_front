@@ -43,7 +43,9 @@ export default function DriverCard({
 							<p className={styles.cardText}>Email: {driver.email}</p>
 						</div>
 						<div className="flex flex-row gap-5">
-							<p className={styles.cardText}>Gênero: {driver.gender}</p>
+							<p className={styles.cardText}>
+								Gênero: {driver.gender === "m" ? "Masculino" : "Feminino"}
+							</p>
 							<p className={styles.cardText}>Idade: {driver.age}</p>
 						</div>
 						<div className={styles.row}>

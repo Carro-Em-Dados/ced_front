@@ -128,6 +128,10 @@ const Register = () => {
 		return appUsers.filter((appUser) => appUser.preferred_workshop === id);
 	};
 
+	const getUsersWithoutWorkshop = () => {
+		return users.filter((user) => !user.workshops || user.workshops === "");
+	};
+
 	return (
 		<div className={styles.page}>
 			<Navbar />
@@ -149,7 +153,11 @@ const Register = () => {
 					aria-label="config-tabs"
 					className={styles.tabs}
 					disabledKeys={
-						(currentUser?.role !== "master" && ["organizations", "users"]) || []
+						currentUser?.role === "master"
+							? []
+							: currentUser?.role === "workshop"
+							? ["organizations"]
+							: ["organizations", "users"]
 					}
 					classNames={{
 						tabContent:
@@ -244,14 +252,23 @@ const Register = () => {
 						title="Usuários"
 					>
 						<div className={styles.driverTab}>
-							{users.map((driver, key) => (
-								<UserCard
-									key={key}
-									user={driver}
-									setUsers={setUsers}
-									workshops={workshops}
-								/>
-							))}
+							{currentUser?.role === "master"
+								? users.map((driver, key) => (
+										<UserCard
+											key={key}
+											user={driver}
+											setUsers={setUsers}
+											workshops={workshops}
+										/>
+								  ))
+								: getUsersWithoutWorkshop().map((driver, key) => (
+										<UserCard
+											key={key}
+											user={driver}
+											setUsers={setUsers}
+											workshops={workshops}
+										/>
+								  ))}
 							<div className={styles.buttonContainer}>
 								<UserModal setUsers={setUsers} />
 							</div>

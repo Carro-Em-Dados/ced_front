@@ -115,14 +115,14 @@ export default function ForgotPasswordModal() {
 								<Button
 									color="danger"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={() => {
+									onClick={() => {
 										forgotPassword();
 									}}
 								>

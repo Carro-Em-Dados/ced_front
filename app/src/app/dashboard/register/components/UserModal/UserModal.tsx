@@ -30,8 +30,10 @@ export default function UserModal({ setUsers }: Props) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [role, setRole] = useState("user");
+	const [loading, setLoading] = useState(false);
 
 	const addUser = async () => {
+		setLoading(true);
 		try {
 			const auth = getAuth();
 			const userCredential = await createUserWithEmailAndPassword(
@@ -45,7 +47,7 @@ export default function UserModal({ setUsers }: Props) {
 				name: name,
 				id: userCredential.user.uid,
 				role: role,
-				workshops: [],
+				workshops: "",
 			};
 
 			const docRef = doc(db, "users", newUser.id);
@@ -69,6 +71,8 @@ export default function UserModal({ setUsers }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -77,7 +81,7 @@ export default function UserModal({ setUsers }: Props) {
 			<Button
 				color="success"
 				className={styles.button}
-				onPress={onOpen}
+				onClick={onOpen}
 			>
 				<MdLibraryAdd className={styles.addIcon} />
 				Adicionar usuário
@@ -158,9 +162,7 @@ export default function UserModal({ setUsers }: Props) {
 											onChange={(e) => setRole(e.target.value)}
 										>
 											<SelectItem key="user">Usuário</SelectItem>
-											<SelectItem key="master">Master</SelectItem>
-											<SelectItem key="worker">Funcionário</SelectItem>
-											<SelectItem key="workshop">Oficina</SelectItem>
+											<SelectItem key="master">Administrador</SelectItem>
 										</Select>
 									</div>
 								</div>
@@ -169,14 +171,15 @@ export default function UserModal({ setUsers }: Props) {
 								<Button
 									color="danger"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={addUser}
+									onClick={addUser}
+									disabled={loading}
 								>
 									Adicionar
 								</Button>

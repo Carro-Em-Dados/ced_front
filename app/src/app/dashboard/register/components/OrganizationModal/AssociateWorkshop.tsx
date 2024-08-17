@@ -30,10 +30,12 @@ export default function AssociateWorkshop({
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const { db } = useContext(AuthContext);
 	const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+	const [loading, setLoading] = useState(false);
 
 	const associateDriver = async () => {
 		if (!selectedDriver) return;
 
+		setLoading(true);
 		if (selectedDriver.workshops && selectedDriver.workshops.length > 0) {
 			toast.error("Motorista já possui uma organização associada", {
 				position: "bottom-right",
@@ -71,6 +73,8 @@ export default function AssociateWorkshop({
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -79,7 +83,7 @@ export default function AssociateWorkshop({
 			<Button
 				color="success"
 				className={styles.addVehicleBtn}
-				onPress={onOpen}
+				onClick={onOpen}
 			>
 				Associar usuário
 			</Button>
@@ -123,14 +127,14 @@ export default function AssociateWorkshop({
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
-									disabled={!selectedDriver}
+									disabled={!selectedDriver || loading}
 									className={`${styles.modalButton}`}
 									onClick={associateDriver}
 								>

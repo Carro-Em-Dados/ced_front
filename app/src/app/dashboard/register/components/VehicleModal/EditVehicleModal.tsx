@@ -14,7 +14,6 @@ import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { FaEye } from "react-icons/fa";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { updateDoc, doc } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
@@ -42,8 +41,16 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 	const [licensePlate, setLicensePlate] = useState<string>(
 		vehicle.license_plate
 	);
+	const [loadingFetch, setLoadingFetch] = useState(true);
+	const [failed, setFailed] = useState({
+		brand: false,
+		model: false,
+		year: false,
+	});
+	const [loading, setLoading] = useState(false);
 
 	const fetchVehiclesBrandsApi = async () => {
+		setLoadingFetch(true);
 		try {
 			const response = await fetch(
 				"https://parallelum.com.br/fipe/api/v1/carros/marcas"
@@ -52,11 +59,15 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			setVehiclesBrands(data);
 		} catch (error) {
 			console.log("Erro ao resgatar marcas da API ", error);
+			setFailed({ ...failed, brand: true });
+		} finally {
+			setLoadingFetch(false);
 		}
 	};
 
 	const fetchVehiclesModelsApi = async (manufacturerCode: string) => {
 		if (!manufacturerCode) return;
+		setLoadingFetch(true);
 		try {
 			const response = await fetch(
 				`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos`
@@ -65,6 +76,9 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			setVehiclesModels(data.modelos);
 		} catch (error) {
 			console.log("Erro ao resgatar modelos da API ", error);
+			setFailed({ ...failed, model: true });
+		} finally {
+			setLoadingFetch(false);
 		}
 	};
 
@@ -73,6 +87,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 		modelCode: string
 	) => {
 		if (!modelCode) return;
+		setLoadingFetch(true);
 		try {
 			const response = await fetch(
 				`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos/${modelCode}/anos`
@@ -92,10 +107,28 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			setVehicleYears(processedData);
 		} catch (error) {
 			console.log("Erro ao resgatar anos da API ", error);
+			setFailed({ ...failed, year: true });
+		} finally {
+			setLoadingFetch(false);
 		}
 	};
 
 	const updateVehicle = async () => {
+		if (!manufacturer || !carModel || !year || !initialKm || !licensePlate) {
+			toast.error("Preencha todos os campos", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
+			return;
+		}
+		setLoading(true);
 		try {
 			const updatedVehicle = {
 				license_plate: licensePlate,
@@ -127,6 +160,8 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -211,74 +246,130 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 										}}
 									/>
 									<div className="flex gap-5">
-										<Autocomplete
-											label="Marca"
-											variant="bordered"
-											className="dark"
-											onSelectionChange={(key) => {
-												setSelectedBrand(
-													vehiclesBrands.find(
-														(brand) => brand.nome == key.toString()
-													)?.codigo || ""
-												);
-												setManufacturer(key.toString() || "");
-											}}
-											selectedKey={manufacturer}
-										>
-											{vehiclesBrands.map((brand) => (
-												<AutocompleteItem
-													value={brand.nome}
-													key={brand.nome}
-												>
-													{brand.nome}
-												</AutocompleteItem>
-											))}
-										</Autocomplete>
-										<Autocomplete
-											label="Modelo"
-											variant="bordered"
-											className="dark"
-											onSelectionChange={(key) => {
-												setSelectedModel(
-													vehiclesModels.find(
-														(model) => model.nome == key.toString()
-													)?.codigo || ""
-												);
-												setCarModel(key.toString() || "");
-											}}
-											disabled={!manufacturer}
-											selectedKey={carModel}
-										>
-											{vehiclesModels.map((model) => (
-												<AutocompleteItem
-													value={model.nome}
-													key={model.nome}
-												>
-													{model.nome}
-												</AutocompleteItem>
-											))}
-										</Autocomplete>
+										{failed.brand ? (
+											<Input
+												type="text"
+												label="Marca"
+												value={manufacturer}
+												onChange={(e) => setManufacturer(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										) : (
+											<Autocomplete
+												label="Marca"
+												variant="bordered"
+												className="dark"
+												onKeyDown={(e: any) => e.continuePropagation()}
+												onSelectionChange={(key) => {
+													setSelectedBrand(
+														vehiclesBrands.find(
+															(brand) => brand.nome == key.toString()
+														)?.codigo || ""
+													);
+													setManufacturer(key.toString() || "");
+												}}
+												selectedKey={manufacturer}
+											>
+												{vehiclesBrands.map((brand) => (
+													<AutocompleteItem
+														value={brand.nome}
+														key={brand.nome}
+													>
+														{brand.nome}
+													</AutocompleteItem>
+												))}
+											</Autocomplete>
+										)}
+										{failed.model ? (
+											<Input
+												type="text"
+												label="Modelo"
+												value={carModel}
+												onChange={(e) => setCarModel(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										) : (
+											<Autocomplete
+												label="Modelo"
+												variant="bordered"
+												className="dark"
+												onKeyDown={(e: any) => e.continuePropagation()}
+												onSelectionChange={(key) => {
+													setSelectedModel(
+														vehiclesModels.find(
+															(model) => model.nome == key.toString()
+														)?.codigo || ""
+													);
+													setCarModel(key.toString() || "");
+												}}
+												disabled={!manufacturer}
+												selectedKey={carModel}
+											>
+												{vehiclesModels.map((model) => (
+													<AutocompleteItem
+														value={model.nome}
+														key={model.nome}
+													>
+														{model.nome}
+													</AutocompleteItem>
+												))}
+											</Autocomplete>
+										)}
 									</div>
 									<div className="flex gap-5">
-										<Autocomplete
-											label="Ano"
-											variant="bordered"
-											className="dark"
-											onSelectionChange={(key) =>
-												setYear(key ? key.toString() : "")
-											}
-											disabled={!manufacturer || !carModel}
-											selectedKey={year}
-										>
-											{vehicleYears.map((yearItem) => (
-												<AutocompleteItem
-													value={yearItem.nome}
-													key={yearItem.nome}
-												>
-													{yearItem.nome}
-												</AutocompleteItem>
-											))}
-										</Autocomplete>
+										{failed.year ? (
+											<Input
+												type="number"
+												min={1900}
+												max={2100}
+												label="Ano"
+												value={year}
+												onChange={(e) => setYear(e.target.value)}
+												variant="bordered"
+												className="dark"
+												classNames={{
+													input: ["bg-transparent text-white"],
+													inputWrapper: [
+														"border border-2 !border-white focus:border-white",
+													],
+												}}
+											/>
+										) : (
+											<Autocomplete
+												label="Ano"
+												variant="bordered"
+												className="dark"
+												onSelectionChange={(key) =>
+													setYear(key ? key.toString() : "")
+												}
+												disabled={!manufacturer || !carModel}
+												selectedKey={year}
+												onKeyDown={(e: any) => e.continuePropagation()}
+											>
+												{vehicleYears.map((yearItem) => (
+													<AutocompleteItem
+														value={yearItem.nome}
+														key={yearItem.nome}
+													>
+														{yearItem.nome}
+													</AutocompleteItem>
+												))}
+											</Autocomplete>
+										)}
 										<Input
 											type="text"
 											label="Chassi"
@@ -315,7 +406,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 								<Button
 									color="default"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 									className="!text-white rounded-full"
 								>
 									Cancelar
@@ -323,7 +414,8 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={updateVehicle}
+									onClick={updateVehicle}
+									disabled={loading}
 								>
 									Salvar
 								</Button>

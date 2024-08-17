@@ -46,8 +46,10 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 	const [email, setEmail] = useState(workshop.email || "");
 	const [phone, setPhone] = useState(workshop.phone || "");
 	const [contact, setContact] = useState(workshop.contact || "");
+	const [loading, setLoading] = useState(false);
 
 	const handleEditOrganization = async () => {
+		setLoading(true);
 		const updatedWorkshop = {
 			fantasy_name: fantasyName,
 			contract_number: contractNumber,
@@ -82,6 +84,8 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -297,16 +301,17 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 								<Button
 									color="danger"
 									variant="light"
-									onPress={onClose}
+									onClick={onClose}
 								>
 									Cancelar
 								</Button>
 								<Button
 									color="success"
 									className={styles.modalButton}
-									onPress={() => {
+									onClick={() => {
 										handleEditOrganization();
 									}}
+									disabled={loading}
 								>
 									Editar
 								</Button>
