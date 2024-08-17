@@ -375,7 +375,7 @@ export default function EditBasicContract() {
 					color="success"
 					className={styles.modalButton}
 					disabled={loading}
-					onPress={handleEditContract}
+					onClick={handleEditContract}
 				>
 					Salvar
 				</Button>
