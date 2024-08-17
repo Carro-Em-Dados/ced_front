@@ -11,6 +11,7 @@ import {
 	setPersistence,
 	browserSessionPersistence,
 	Auth,
+	updateProfile,
 } from "firebase/auth";
 import {
 	collection,
@@ -87,6 +88,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			);
 		});
 
+		refreshUser();
+
 		return () => unsubscribe();
 	}, [auth, db]);
 
@@ -126,7 +129,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 						contractData = basicContractSnap.data() as Contract;
 					}
 
-					console.log(contractData);
 					setCurrentWorkshop({
 						...workshopData,
 						id: workshopSnap.id,
@@ -257,6 +259,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			}
 		} catch (error: any) {
 			console.error(`Facebook Login Error (${error.code}): ${error.message}`);
+		}
+	};
+
+	const refreshUser = async () => {
+		try {
+			const user = auth.currentUser;
+			if (!user) {
+				return;
+			}
+			const docRef = doc(db, "users", user.uid);
+			const docSnap = await getDoc(docRef);
+			if (docSnap.exists()) {
+				setCurrentUser(docSnap.data() as User);
+				localStorage.setItem("user", JSON.stringify(docSnap.data()));
+			}
+		} catch (error: any) {
+			console.error(`Update User Error (${error.code}): ${error.message}`);
 		}
 	};
 
