@@ -1,4 +1,6 @@
 import {
+	Autocomplete,
+	AutocompleteItem,
 	Button,
 	Input,
 	Modal,
@@ -243,6 +245,37 @@ export default function CreateEventModal({
 											/>
 										</div>
 									</div>
+									<Autocomplete
+										label="Manutenção"
+										variant="bordered"
+										className="dark"
+										onKeyDown={(e: any) => e.continuePropagation()}
+										onSelectionChange={(key) => {
+											const keyString = key ? key.toString() : "";
+											const maintenance = maintenances.find(
+												(m) => m.id === keyString
+											);
+											if (maintenance) {
+												setSelectedMaintenance(maintenance);
+											} else if (keyString === "") {
+												setSelectedMaintenance(null);
+											}
+										}}
+										value={selectedMaintenance?.id || ""}
+									>
+										{maintenances
+											.filter(
+												(maintenance) => maintenance.name && maintenance.id
+											)
+											.map((maintenance) => (
+												<AutocompleteItem
+													value={maintenance?.id?.toString() || ""}
+													key={maintenance?.id?.toString() || ""}
+												>
+													{maintenance.name}
+												</AutocompleteItem>
+											))}
+									</Autocomplete>
 									<div className="flex flex-col gap-2 w-full">
 										<Textarea
 											placeholder="Observação"

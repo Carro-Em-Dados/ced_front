@@ -548,12 +548,10 @@ export default function Dashboard({
 											className="dark"
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
+												const keyString = key ? key.toString() : "none";
 												setSelectedFilterOption({
-													selected:
-														key.toString() === "none"
-															? ""
-															: key.toString() || "",
-													type: key.toString() === "none" ? "" : "brand",
+													selected: keyString === "none" ? "" : keyString || "",
+													type: keyString === "none" ? "" : "brand",
 												});
 											}}
 											selectedKey={
@@ -583,12 +581,10 @@ export default function Dashboard({
 											className="dark"
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
+												const keyString = key ? key.toString() : "none";
 												setSelectedFilterOption({
-													selected:
-														key.toString() === "none"
-															? ""
-															: key.toString() || "",
-													type: key.toString() === "none" ? "" : "model",
+													selected: keyString === "none" ? "" : keyString || "",
+													type: keyString === "none" ? "" : "model",
 												});
 											}}
 											selectedKey={
@@ -613,17 +609,15 @@ export default function Dashboard({
 											))}
 										</Autocomplete>
 										<Autocomplete
-											label="Marca"
+											label="Ano"
 											variant="bordered"
 											className="dark"
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
+												const keyString = key ? key.toString() : "none";
 												setSelectedFilterOption({
-													selected:
-														key.toString() === "none"
-															? ""
-															: key.toString() || "",
-													type: key.toString() === "none" ? "" : "year",
+													selected: keyString === "none" ? "" : keyString || "",
+													type: keyString === "none" ? "" : "year",
 												});
 											}}
 											selectedKey={

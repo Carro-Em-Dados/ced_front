@@ -8,6 +8,7 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { Workshop } from "@/interfaces/workshop.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
+import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 
 export default function Welcome() {
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -78,41 +79,51 @@ export default function Welcome() {
 				</p>
 				<p className={styles.subtext}>Selecione alguma opção abaixo:</p>
 				<div className="flex flex-col gap-2 w-[26em] my-[2em]">
-					<DropdownComponent
-						options={
-							currentUser?.role === "master"
-								? [
-										{ label: "Geral", key: "all" },
-										...(workshops
-											?.filter(
-												(workshop) => workshop.fantasy_name && workshop.id
-											)
-											.map((workshop) => ({
-												label: workshop.fantasy_name!,
-												key: workshop.id!,
-											})) || []),
-								  ]
-								: ([
-										currentWorkshop?.fantasy_name && currentWorkshop?.id
-											? {
-													label: currentWorkshop.fantasy_name,
-													key: currentWorkshop.id,
-											  }
-											: null,
-								  ].filter((option) => option !== null) as {
-										label: string;
-										key: string;
-								  }[])
-						}
-						placeholder="Selecione sua oficina"
-						value={selectedWorkshop}
-						onChange={(key) => {
-							setSelectedWorkshop(key.toString());
+					<Autocomplete
+						label="Selecione sua oficina"
+						variant="bordered"
+						className="dark text-white"
+						onKeyDown={(e: any) => e.continuePropagation()}
+						onSelectionChange={(key) => {
+							const keyString = key ? key.toString() : "";
+							setSelectedWorkshop(keyString);
 							setWorkshopName(
-								workshops.find((w) => w.id === key)?.fantasy_name!
+								keyString === "all"
+									? "Geral"
+									: workshops.find((w) => w.id === keyString)?.fantasy_name ||
+											""
 							);
 						}}
-					/>
+						value={selectedWorkshop || ""}
+					>
+						{currentUser?.role === "master" && (
+							<AutocompleteItem
+								value="all"
+								key="all"
+							>
+								Geral
+							</AutocompleteItem>
+						)}
+						{currentUser?.role === "master" ? (
+							workshops
+								?.filter((workshop) => workshop.fantasy_name && workshop.id)
+								.map((workshop) => (
+									<AutocompleteItem
+										value={workshop.id}
+										key={workshop.id}
+									>
+										{workshop.fantasy_name}
+									</AutocompleteItem>
+								))
+						) : currentWorkshop?.fantasy_name && currentWorkshop?.id ? (
+							<AutocompleteItem
+								value={currentWorkshop.id}
+								key={currentWorkshop.id}
+							>
+								{currentWorkshop.fantasy_name}
+							</AutocompleteItem>
+						) : null}
+					</Autocomplete>
 				</div>
 			</div>
 			{selectedWorkshop ? (
