@@ -85,7 +85,7 @@ function CustomChart({ chartData }: CustomChartProps) {
 					<p
 						className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white`}
 					>
-						{value} manutenções
+						{value} {value === 1 ? "manutenção" : "manutenções"}
 					</p>
 				</div>
 			)}

@@ -18,6 +18,7 @@ import styles from "../../styles.module.scss";
 import { FaEye } from "react-icons/fa";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import InputMask from "react-input-mask";
+import { toast, Zoom } from "react-toastify";
 
 interface Props {
 	id: string;
@@ -93,7 +94,17 @@ export default function SeeDriverModal({ id, setDrivers }: Props) {
 				onOpenChange();
 			});
 		} catch (error) {
-			// adicionar toast aqui
+			toast.error("Erro ao editar motorista", {
+				position: "bottom-right",
+				autoClose: 5000,
+				hideProgressBar: true,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "dark",
+				transition: Zoom,
+			});
 		} finally {
 			setLoading(false);
 		}

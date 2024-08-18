@@ -546,6 +546,15 @@ export default function Dashboard({
 											label="Marca"
 											variant="bordered"
 											className="dark"
+											defaultItems={[
+												{ value: "none", label: "Nenhum" },
+												...Object.keys(filterOptions.brand.options).map(
+													(brand) => ({
+														value: brand.toString(),
+														label: brand,
+													})
+												),
+											]}
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
 												const keyString = key ? key.toString() : "none";
@@ -560,25 +569,29 @@ export default function Dashboard({
 													: "none"
 											}
 										>
-											<AutocompleteItem
-												value="none"
-												key="none"
-											>
-												Nenhum
-											</AutocompleteItem>
-											{Object.keys(filterOptions.brand.options).map((brand) => (
+											{(item) => (
 												<AutocompleteItem
-													value={brand.toString()}
-													key={brand.toString()}
+													key={item.value}
+													value={item.value}
 												>
-													{brand}
+													{item.label}
 												</AutocompleteItem>
-											))}
+											)}
 										</Autocomplete>
+
 										<Autocomplete
 											label="Modelo"
 											variant="bordered"
 											className="dark"
+											defaultItems={[
+												{ value: "none", label: "Nenhum" },
+												...Object.keys(filterOptions.model.options).map(
+													(model) => ({
+														value: model.toString(),
+														label: model,
+													})
+												),
+											]}
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
 												const keyString = key ? key.toString() : "none";
@@ -593,25 +606,29 @@ export default function Dashboard({
 													: "none"
 											}
 										>
-											<AutocompleteItem
-												value="none"
-												key="none"
-											>
-												Nenhum
-											</AutocompleteItem>
-											{Object.keys(filterOptions.model.options).map((model) => (
+											{(item) => (
 												<AutocompleteItem
-													value={model.toString()}
-													key={model.toString()}
+													key={item.value}
+													value={item.value}
 												>
-													{model}
+													{item.label}
 												</AutocompleteItem>
-											))}
+											)}
 										</Autocomplete>
+
 										<Autocomplete
 											label="Ano"
 											variant="bordered"
 											className="dark"
+											defaultItems={[
+												{ value: "none", label: "Nenhum" },
+												...Object.keys(filterOptions.year.options).map(
+													(year) => ({
+														value: year.toString(),
+														label: year,
+													})
+												),
+											]}
 											onKeyDown={(e: any) => e.continuePropagation()}
 											onSelectionChange={(key) => {
 												const keyString = key ? key.toString() : "none";
@@ -626,20 +643,14 @@ export default function Dashboard({
 													: "none"
 											}
 										>
-											<AutocompleteItem
-												value="none"
-												key="none"
-											>
-												Nenhum
-											</AutocompleteItem>
-											{Object.keys(filterOptions.year.options).map((year) => (
+											{(item) => (
 												<AutocompleteItem
-													value={year.toString()}
-													key={year.toString()}
+													key={item.value}
+													value={item.value}
 												>
-													{year}
+													{item.label}
 												</AutocompleteItem>
-											))}
+											)}
 										</Autocomplete>
 									</div>
 								</>

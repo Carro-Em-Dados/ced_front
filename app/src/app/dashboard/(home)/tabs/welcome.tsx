@@ -83,7 +83,17 @@ export default function Welcome() {
 						label="Selecione sua oficina"
 						variant="bordered"
 						className="dark text-white"
-						onKeyDown={(e: any) => e.continuePropagation()}
+						defaultItems={[
+							...(currentUser?.role === "master"
+								? [{ value: "all", label: "Geral" }]
+								: []),
+							...workshops
+								?.filter((workshop) => workshop.fantasy_name && workshop.id)
+								.map((workshop) => ({
+									value: workshop.id,
+									label: workshop.fantasy_name,
+								})),
+						]}
 						onSelectionChange={(key) => {
 							const keyString = key ? key.toString() : "";
 							setSelectedWorkshop(keyString);
@@ -96,33 +106,14 @@ export default function Welcome() {
 						}}
 						value={selectedWorkshop || ""}
 					>
-						{currentUser?.role === "master" && (
+						{(item) => (
 							<AutocompleteItem
-								value="all"
-								key="all"
+								key={item.value}
+								value={item.value}
 							>
-								Geral
+								{item.label}
 							</AutocompleteItem>
 						)}
-						{currentUser?.role === "master" ? (
-							workshops
-								?.filter((workshop) => workshop.fantasy_name && workshop.id)
-								.map((workshop) => (
-									<AutocompleteItem
-										value={workshop.id}
-										key={workshop.id}
-									>
-										{workshop.fantasy_name}
-									</AutocompleteItem>
-								))
-						) : currentWorkshop?.fantasy_name && currentWorkshop?.id ? (
-							<AutocompleteItem
-								value={currentWorkshop.id}
-								key={currentWorkshop.id}
-							>
-								{currentWorkshop.fantasy_name}
-							</AutocompleteItem>
-						) : null}
 					</Autocomplete>
 				</div>
 			</div>
