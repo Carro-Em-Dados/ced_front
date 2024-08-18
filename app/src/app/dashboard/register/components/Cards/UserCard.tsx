@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useContext } from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
 import { Accordion, AccordionItem } from "@nextui-org/react";
@@ -7,6 +7,7 @@ import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import { User } from "@/interfaces/user.type";
 import AssociateUser from "../UserModal/AssociateUser";
 import { Workshop } from "@/interfaces/workshop.type";
+import { AuthContext } from "@/contexts/auth.context";
 
 interface Props {
 	user: User;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function UserCard({ user, setUsers, workshops }: Props) {
+	const { currentUser } = useContext(AuthContext);
 	return (
 		<div style={{ margin: "0.5em 0" }}>
 			<Accordion className={styles.accordion}>
@@ -28,14 +30,16 @@ export default function UserCard({ user, setUsers, workshops }: Props) {
 				>
 					<div className={styles.contentContainer}>
 						<div className={styles.contentFooter}>
-							<div className={styles.deleteBtnWrap}>
-								<EraseModal
-									type={DeleteModalTypes.user}
-									name={user.name}
-									id={user.id}
-									state={setUsers}
-								/>
-							</div>
+							{currentUser?.role === "master" && (
+								<div className={styles.deleteBtnWrap}>
+									<EraseModal
+										type={DeleteModalTypes.user}
+										name={user.name}
+										id={user.id}
+										state={setUsers}
+									/>
+								</div>
+							)}
 							<div className={styles.addVehicleBtnWrap}>
 								<AssociateUser
 									setUsers={setUsers}

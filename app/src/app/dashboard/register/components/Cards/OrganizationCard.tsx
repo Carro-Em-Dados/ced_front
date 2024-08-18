@@ -2,13 +2,10 @@
 import React from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
-import { Accordion, AccordionItem, Button, user } from "@nextui-org/react";
+import { Accordion, AccordionItem } from "@nextui-org/react";
 import clsx from "clsx";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
-import VehicleModal from "../VehicleModal/VehicleModal";
-import { FaEye } from "react-icons/fa";
 import { Workshop } from "@/interfaces/workshop.type";
-import { User } from "@/interfaces/user.type";
 import EditOrganization from "../OrganizationModal/EditOrganizationModal";
 import AssociateWorkshop from "../OrganizationModal/AssociateWorkshop";
 import { Driver } from "@/interfaces/driver.type";

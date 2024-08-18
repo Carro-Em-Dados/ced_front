@@ -27,6 +27,7 @@ const Register = () => {
 	const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
 	const [appUsers, setAppUsers] = useState<AppUser[]>([]);
+	const { currentWorkshop } = useContext(AuthContext);
 
 	const fetchData = async () => {
 		const clientsSnapshot = await getDocs(collection(db, "clients"));
@@ -129,8 +130,15 @@ const Register = () => {
 	};
 
 	const getUsersWithoutWorkshop = () => {
-		return users.filter((user) => !user.workshops || user.workshops === "");
+		return users.filter(
+			(user) =>
+				!user.workshops ||
+				user.workshops === "" ||
+				user.workshops === currentWorkshop?.id
+		);
 	};
+
+	console.log(users);
 
 	return (
 		<div className={styles.page}>
@@ -241,9 +249,11 @@ const Register = () => {
 									drivers={drivers}
 								/>
 							))}
-							<div className={styles.buttonContainer}>
-								<OrganizationModal setWorkshops={setWorkshops} />
-							</div>
+							{currentUser?.role === "master" && (
+								<div className={styles.buttonContainer}>
+									<OrganizationModal setWorkshops={setWorkshops} />
+								</div>
+							)}
 						</div>
 					</Tab>
 					<Tab
@@ -269,9 +279,11 @@ const Register = () => {
 											workshops={workshops}
 										/>
 								  ))}
-							<div className={styles.buttonContainer}>
-								<UserModal setUsers={setUsers} />
-							</div>
+							{currentUser?.role === "master" && (
+								<div className={styles.buttonContainer}>
+									<UserModal setUsers={setUsers} />
+								</div>
+							)}
 						</div>
 					</Tab>
 				</Tabs>

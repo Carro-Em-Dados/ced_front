@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
 	Button,
 	Modal,
@@ -27,17 +27,21 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 	const { db } = useContext(AuthContext);
 	const [workshop, setWorkshop] = useState(user?.workshops || "");
 	const [loading, setLoading] = useState(false);
+	const { currentWorkshop, currentUser } = useContext(AuthContext);
+
+	useEffect(() => {
+		setWorkshop(user?.workshops || "");
+	}, [user]);
 
 	const associateUser = async () => {
-		if (!workshop) return;
 		setLoading(true);
 
 		try {
 			const userRef = doc(db, "users", user.id);
-			await updateDoc(userRef, { workshops: workshop });
+			await updateDoc(userRef, { workshops: workshop, role: "worker" });
 			setUsers((prevUsers) =>
 				prevUsers.map((u) =>
-					u.id === user.id ? { ...u, workshops: workshop } : u
+					u.id === user.id ? { ...u, workshops: workshop, role: "worker" } : u
 				)
 			);
 			setWorkshop("");
@@ -84,19 +88,40 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 							</ModalHeader>
 							<ModalBody>
 								<div className="max-h-[400px] overflow-auto flex flex-col gap-1 bg-[#030303] text-white p-2">
-									{workshops.map((workshopM) => (
-										<div
-											key={workshopM.id}
-											className={`w-full px-2 py-1 rounded-md cursor-pointer ${
-												workshopM.id === workshop
-													? "bg-[#209730]"
-													: "hover:bg-neutral-800"
-											}`}
-											onClick={() => setWorkshop(workshopM.id)}
-										>
-											<p>{workshopM.company_name}</p>
-										</div>
-									))}
+									<div
+										className={`w-full px-2 py-1 rounded-md cursor-pointer ${
+											workshop === "" ? "bg-[#209730]" : "hover:bg-neutral-800"
+										}`}
+										onClick={() => setWorkshop("")}
+									>
+										<p>Nenhuma</p>
+									</div>
+									{currentUser?.role === "master"
+										? workshops.map((workshopM) => (
+												<div
+													key={workshopM.id}
+													className={`w-full px-2 py-1 rounded-md cursor-pointer ${
+														workshopM.id === workshop
+															? "bg-[#209730]"
+															: "hover:bg-neutral-800"
+													}`}
+													onClick={() => setWorkshop(workshopM.id)}
+												>
+													<p>{workshopM.company_name}</p>
+												</div>
+										  ))
+										: currentWorkshop?.company_name && (
+												<div
+													className={`w-full px-2 py-1 rounded-md cursor-pointer ${
+														currentWorkshop.id === workshop
+															? "bg-[#209730]"
+															: "hover:bg-neutral-800"
+													}`}
+													onClick={() => setWorkshop(currentWorkshop.id)}
+												>
+													<p>{currentWorkshop.company_name}</p>
+												</div>
+										  )}
 								</div>
 							</ModalBody>
 							<ModalFooter>
@@ -110,11 +135,11 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 								</Button>
 								<Button
 									color="success"
-									disabled={!workshop || loading}
+									disabled={loading}
 									className={`${styles.modalButton}`}
 									onClick={associateUser}
 								>
-									Associar
+									{workshop === "" ? "Desassociar" : "Associar"}
 								</Button>
 							</ModalFooter>
 						</>
