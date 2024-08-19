@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
@@ -40,6 +40,10 @@ function CustomChart({ chartData }: CustomChartProps) {
 			setValue(value);
 		}
 	};
+
+	useEffect(() => {
+		setValue(0);
+	}, [chartData]);
 
 	return (
 		<div className="relative">

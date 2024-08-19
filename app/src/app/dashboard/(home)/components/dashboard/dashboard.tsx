@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	collection,
 	doc,
@@ -27,6 +29,8 @@ import {
 	Button,
 	Radio,
 	RadioGroup,
+	Select,
+	SelectItem,
 	Spinner,
 } from "@nextui-org/react";
 
@@ -48,6 +52,9 @@ interface MaintenanceData {
 	km_threshold: number;
 	date_threshold: string;
 	status: string;
+	obd2Distance: number;
+	gpsDistance: number;
+	id?: string;
 }
 
 export default function Dashboard({
@@ -69,6 +76,9 @@ export default function Dashboard({
 		selected: "",
 		type: "",
 	});
+	const [filterType, setFilterType] = useState("");
+	const [counter, setCounter] = useState("");
+	const [filterSum, setFilterSum] = useState(0);
 
 	const itemsPerPage = 10;
 
@@ -118,6 +128,8 @@ export default function Dashboard({
 					let vehicleBrand = "";
 					let vehicleModel = "";
 					let vehicleYear = "";
+					let obd2Distance = 0;
+					let gpsDistance = 0;
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
 					const vehicleDoc = await getDoc(vehicleDocRef);
@@ -125,10 +137,12 @@ export default function Dashboard({
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
 						vehicleId = vehicleDoc.id;
-						kmCurrent = vehicleData.initial_km || 0;
 						vehicleBrand = vehicleData.manufacturer || "";
 						vehicleModel = vehicleData.car_model || "";
 						vehicleYear = vehicleData.year || "";
+						obd2Distance = vehicleData.obd2_distance || 0;
+						gpsDistance = vehicleData.gps_distance || 0;
+						kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 
 						if (vehicleData.owner) {
 							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -161,6 +175,8 @@ export default function Dashboard({
 					const status = calculateStatus(maintenanceData, kmCurrent);
 
 					maintenanceList.push({
+						obd2Distance,
+						gpsDistance,
 						client: clientName,
 						clientId: clientId,
 						vehicle: vehicleInfo,
@@ -178,6 +194,7 @@ export default function Dashboard({
 							  ).toLocaleDateString("pt-BR")
 							: "",
 						status: status,
+						id: maintenanceData.id,
 					});
 				}
 
@@ -213,6 +230,8 @@ export default function Dashboard({
 					let vehicleBrand = "";
 					let vehicleModel = "";
 					let vehicleYear = "";
+					let obd2Distance = 0;
+					let gpsDistance = 0;
 
 					const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
 					const vehicleDoc = await getDoc(vehicleDocRef);
@@ -220,10 +239,12 @@ export default function Dashboard({
 						const vehicleData = vehicleDoc.data() as Vehicle;
 						vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
 						vehicleId = vehicleDoc.id;
-						kmCurrent = vehicleData.initial_km || 0;
 						vehicleBrand = vehicleData.manufacturer || "";
 						vehicleModel = vehicleData.car_model || "";
 						vehicleYear = vehicleData.year || "";
+						obd2Distance = vehicleData.obd2_distance || 0;
+						gpsDistance = vehicleData.gps_distance || 0;
+						kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 
 						if (vehicleData.owner) {
 							const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -273,6 +294,8 @@ export default function Dashboard({
 							  ).toLocaleDateString("pt-BR")
 							: "",
 						status: status,
+						obd2Distance,
+						gpsDistance,
 					});
 				}
 
@@ -342,8 +365,11 @@ export default function Dashboard({
 
 				if (selectedWorkshop === "all" || isAssociated) {
 					monitoredVehicles++;
-					totalKM += vehicleData.initial_km || 0;
+					const obd2Distance = vehicleData?.obd2_distance || 0;
+					const gpsDistance = vehicleData?.gps_distance || 0;
+					totalKM += obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 				}
+				console.log(vehicleData.obd2_distance, vehicleData.gps_distance);
 			}
 
 			setTotalVehicles(monitoredVehicles);
@@ -368,6 +394,8 @@ export default function Dashboard({
 		setCurrentPage(page);
 		fetchMaintenances();
 	};
+
+	console.log(maintenances);
 
 	const countMaintenanceStatuses = (maintenances: MaintenanceData[]) => {
 		let criticalCount = 0;
@@ -441,56 +469,68 @@ export default function Dashboard({
 			},
 		};
 
+		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+		const vehicles = vehiclesSnapshot.docs.map((doc) => doc.data() as Vehicle);
+
 		const uniqueVehicles = new Map<
 			string,
 			{ brand: string; model: string; year: string; km_current: number }
 		>();
 
-		maintenances.forEach((maintenance) => {
-			const { vehicleBrand, vehicleModel, vehicleYear, vehicleId, km_current } =
-				maintenance;
+		// Processar cada veículo da DB
+		vehicles.forEach((vehicle) => {
+			const { manufacturer, car_model, year, id, obd2_distance, gps_distance } =
+				vehicle;
+			const km_current = (obd2_distance || 0) + (gps_distance || 0);
 
-			if (!filters.brand.options[vehicleBrand]) {
-				filters.brand.options[vehicleBrand] = {
+			if (!filters.brand.options[manufacturer]) {
+				filters.brand.options[manufacturer] = {
 					maintenances: [],
 					totalKm: 0,
 					vehiclesCount: 0,
 				};
 			}
-			if (!filters.model.options[vehicleModel]) {
-				filters.model.options[vehicleModel] = {
+			if (!filters.model.options[car_model]) {
+				filters.model.options[car_model] = {
 					maintenances: [],
 					totalKm: 0,
 					vehiclesCount: 0,
 				};
 			}
-			if (!filters.year.options[vehicleYear]) {
-				filters.year.options[vehicleYear] = {
+			if (!filters.year.options[year]) {
+				filters.year.options[year] = {
 					maintenances: [],
 					totalKm: 0,
 					vehiclesCount: 0,
 				};
 			}
 
-			filters.brand.options[vehicleBrand].maintenances.push(maintenance);
-			filters.model.options[vehicleModel].maintenances.push(maintenance);
-			filters.year.options[vehicleYear].maintenances.push(maintenance);
-
-			if (!uniqueVehicles.has(vehicleId)) {
-				uniqueVehicles.set(vehicleId, {
-					brand: vehicleBrand,
-					model: vehicleModel,
-					year: vehicleYear,
+			if (!uniqueVehicles.has(id)) {
+				uniqueVehicles.set(id, {
+					brand: manufacturer,
+					model: car_model,
+					year,
 					km_current,
 				});
 
-				filters.brand.options[vehicleBrand].totalKm += km_current;
-				filters.model.options[vehicleModel].totalKm += km_current;
-				filters.year.options[vehicleYear].totalKm += km_current;
+				filters.brand.options[manufacturer].totalKm += km_current || 0;
+				filters.model.options[car_model].totalKm += km_current || 0;
+				filters.year.options[year].totalKm += km_current || 0;
 
-				filters.brand.options[vehicleBrand].vehiclesCount += 1;
-				filters.model.options[vehicleModel].vehiclesCount += 1;
-				filters.year.options[vehicleYear].vehiclesCount += 1;
+				filters.brand.options[manufacturer].vehiclesCount += 1;
+				filters.model.options[car_model].vehiclesCount += 1;
+				filters.year.options[year].vehiclesCount += 1;
+			}
+		});
+
+		maintenances.forEach((maintenance) => {
+			const { vehicleId } = maintenance;
+			const vehicle = uniqueVehicles.get(vehicleId);
+
+			if (vehicle) {
+				filters.brand.options[vehicle.brand].maintenances.push(maintenance);
+				filters.model.options[vehicle.model].maintenances.push(maintenance);
+				filters.year.options[vehicle.year].maintenances.push(maintenance);
 			}
 		});
 
@@ -507,12 +547,39 @@ export default function Dashboard({
 		});
 	};
 
+	console.log(filterOptions);
+
 	useEffect(() => {
 		setSelectedFilterOption({
 			selected: "",
 			type: "",
 		});
+		setCounter("");
 	}, [counterType]);
+
+	useEffect(() => {
+		setCounter("");
+	}, [filterType]);
+
+	useEffect(() => {
+		sumSelectedKmCounter();
+	}, [counter]);
+
+	console.log(counter);
+
+	const sumSelectedKmCounter = async () => {
+		let sum = 0;
+		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+		vehiclesSnapshot.docs.forEach((vehicle: any) => {
+			counter === "gps"
+				? (sum += vehicle.data().gps_distance || 0)
+				: (sum += vehicle.data().obd2_distance || 0);
+		});
+		setFilterSum(sum);
+	};
+
+	console.log(counterType);
+	console.log(filterType);
 
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
@@ -559,116 +626,169 @@ export default function Dashboard({
 								</>
 							)}
 							{counterType === "partial" && (
-								<div className="flex flex-row gap-5 mt-5">
-									<Autocomplete
-										label="Marca"
+								<>
+									<Select
 										variant="bordered"
-										className="dark"
-										defaultItems={[
-											{ value: "none", label: "Nenhum" },
-											...Object.keys(filterOptions.brand.options).map(
-												(brand) => ({
-													value: brand.toString(),
-													label: brand,
-												})
-											),
-										]}
-										onKeyDown={(e: any) => e.continuePropagation()}
-										onSelectionChange={(key) => {
-											const keyString = key ? key.toString() : "none";
-											setSelectedFilterOption({
-												selected: keyString === "none" ? "" : keyString || "",
-												type: keyString === "none" ? "" : "brand",
-											});
+										className="dark text-white mt-5 w-[26em]"
+										classNames={{
+											trigger: "!border-white rounded-medium",
+											value: "text-white",
 										}}
-										selectedKey={
-											selectedFilterOption.type === "brand"
-												? selectedFilterOption.selected
-												: "none"
-										}
+										label="Tipo de filtro"
+										selectedKeys={[filterType]}
+										defaultSelectedKeys={["data"]}
+										onChange={(e) => setFilterType(e.target.value)}
 									>
-										{(item) => (
-											<AutocompleteItem
-												key={item.value}
-												value={item.value}
+										<SelectItem
+											key="data"
+											value={"data"}
+										>
+											Origem dos dados
+										</SelectItem>
+										<SelectItem
+											key="vehicles"
+											value={"vehicles"}
+										>
+											Características dos carros (fabricante, modelo, ano)
+										</SelectItem>
+									</Select>
+									{filterType === "vehicles" ? (
+										<div className="flex flex-row gap-5 mt-5">
+											<Autocomplete
+												label="Marca"
+												variant="bordered"
+												className="dark"
+												defaultItems={[
+													{ value: "none", label: "Nenhum" },
+													...Object.keys(filterOptions.brand.options).map(
+														(brand) => ({
+															value: brand.toString(),
+															label: brand,
+														})
+													),
+												]}
+												onKeyDown={(e: any) => e.continuePropagation()}
+												onSelectionChange={(key) => {
+													const keyString = key ? key.toString() : "none";
+													setSelectedFilterOption({
+														selected:
+															keyString === "none" ? "" : keyString || "",
+														type: keyString === "none" ? "" : "brand",
+													});
+												}}
+												selectedKey={
+													selectedFilterOption.type === "brand"
+														? selectedFilterOption.selected
+														: "none"
+												}
 											>
-												{item.label}
-											</AutocompleteItem>
-										)}
-									</Autocomplete>
-									<Autocomplete
-										label="Modelo"
-										variant="bordered"
-										className="dark"
-										defaultItems={[
-											{ value: "none", label: "Nenhum" },
-											...Object.keys(filterOptions.model.options).map(
-												(model) => ({
-													value: model.toString(),
-													label: model,
-												})
-											),
-										]}
-										onKeyDown={(e: any) => e.continuePropagation()}
-										onSelectionChange={(key) => {
-											const keyString = key ? key.toString() : "none";
-											setSelectedFilterOption({
-												selected: keyString === "none" ? "" : keyString || "",
-												type: keyString === "none" ? "" : "model",
-											});
-										}}
-										selectedKey={
-											selectedFilterOption.type === "model"
-												? selectedFilterOption.selected
-												: "none"
-										}
-									>
-										{(item) => (
-											<AutocompleteItem
-												key={item.value}
-												value={item.value}
+												{(item) => (
+													<AutocompleteItem
+														key={item.value}
+														value={item.value}
+													>
+														{item.label}
+													</AutocompleteItem>
+												)}
+											</Autocomplete>
+											<Autocomplete
+												label="Modelo"
+												variant="bordered"
+												className="dark"
+												defaultItems={[
+													{ value: "none", label: "Nenhum" },
+													...Object.keys(filterOptions.model.options).map(
+														(model) => ({
+															value: model.toString(),
+															label: model,
+														})
+													),
+												]}
+												onKeyDown={(e: any) => e.continuePropagation()}
+												onSelectionChange={(key) => {
+													const keyString = key ? key.toString() : "none";
+													setSelectedFilterOption({
+														selected:
+															keyString === "none" ? "" : keyString || "",
+														type: keyString === "none" ? "" : "model",
+													});
+												}}
+												selectedKey={
+													selectedFilterOption.type === "model"
+														? selectedFilterOption.selected
+														: "none"
+												}
 											>
-												{item.label}
-											</AutocompleteItem>
-										)}
-									</Autocomplete>
-									<Autocomplete
-										label="Ano"
-										variant="bordered"
-										className="dark"
-										defaultItems={[
-											{ value: "none", label: "Nenhum" },
-											...Object.keys(filterOptions.year.options).map(
-												(year) => ({
-													value: year.toString(),
-													label: year,
-												})
-											),
-										]}
-										onKeyDown={(e: any) => e.continuePropagation()}
-										onSelectionChange={(key) => {
-											const keyString = key ? key.toString() : "none";
-											setSelectedFilterOption({
-												selected: keyString === "none" ? "" : keyString || "",
-												type: keyString === "none" ? "" : "year",
-											});
-										}}
-										selectedKey={
-											selectedFilterOption.type === "year"
-												? selectedFilterOption.selected
-												: "none"
-										}
-									>
-										{(item) => (
-											<AutocompleteItem
-												key={item.value}
-												value={item.value}
+												{(item) => (
+													<AutocompleteItem
+														key={item.value}
+														value={item.value}
+													>
+														{item.label}
+													</AutocompleteItem>
+												)}
+											</Autocomplete>
+											<Autocomplete
+												label="Ano"
+												variant="bordered"
+												className="dark"
+												defaultItems={[
+													{ value: "none", label: "Nenhum" },
+													...Object.keys(filterOptions.year.options).map(
+														(year) => ({
+															value: year.toString(),
+															label: year,
+														})
+													),
+												]}
+												onKeyDown={(e: any) => e.continuePropagation()}
+												onSelectionChange={(key) => {
+													const keyString = key ? key.toString() : "none";
+													setSelectedFilterOption({
+														selected:
+															keyString === "none" ? "" : keyString || "",
+														type: keyString === "none" ? "" : "year",
+													});
+												}}
+												selectedKey={
+													selectedFilterOption.type === "year"
+														? selectedFilterOption.selected
+														: "none"
+												}
 											>
-												{item.label}
-											</AutocompleteItem>
-										)}
-									</Autocomplete>
-								</div>
+												{(item) => (
+													<AutocompleteItem
+														key={item.value}
+														value={item.value}
+													>
+														{item.label}
+													</AutocompleteItem>
+												)}
+											</Autocomplete>
+										</div>
+									) : filterType === "data" ? (
+										<>
+											<RadioGroup
+												className="text-sm mt-5"
+												orientation="horizontal"
+												color="success"
+												value={counter}
+												onChange={(e) => {
+													setCounter(e.target.value);
+												}}
+											>
+												<Radio value="gps">
+													<p className="text-white">GPS</p>
+												</Radio>
+												<Radio value="obd2">
+													<p className="text-white">OBD2</p>
+												</Radio>
+											</RadioGroup>
+										</>
+									) : (
+										<></>
+									)}
+								</>
 							)}
 						</div>
 					</div>
@@ -737,6 +857,8 @@ export default function Dashboard({
 											? filterOptions[selectedFilterOption.type]?.options[
 													selectedFilterOption.selected
 											  ].totalKm
+											: counter !== ""
+											? filterSum
 											: totalKM}
 									</h4>
 								</div>
