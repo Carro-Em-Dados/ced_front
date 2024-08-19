@@ -182,7 +182,7 @@ const Profile = () => {
           </Tab>
 
           <Tab key="contract" title="Informações do contrato básico">
-            <div className={`${styles.content} flex flex-col gap-5`}>
+            <div className={`${styles.content} flex flex-col gap-5 w-full`}>
               <EditBasicContract />
             </div>
           </Tab>
