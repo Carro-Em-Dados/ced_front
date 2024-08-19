@@ -507,6 +507,13 @@ export default function Dashboard({
 		});
 	};
 
+	useEffect(() => {
+		setSelectedFilterOption({
+			selected: "",
+			type: "",
+		});
+	}, [counterType]);
+
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>
 			{loading ? (
