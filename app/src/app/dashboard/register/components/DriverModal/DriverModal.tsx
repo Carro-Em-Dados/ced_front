@@ -248,7 +248,6 @@ export default function DriverModal({ setDrivers }: Props) {
 				color="success"
 				className={styles.button}
 				onClick={onOpen}
-				disabled={currentUser?.role === "worker"}
 			>
 				<MdLibraryAdd className={styles.addIcon} />
 				Adicionar motorista

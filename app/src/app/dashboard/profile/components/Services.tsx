@@ -10,14 +10,21 @@ import {
 	doc,
 } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
-import { Input } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
+import styles from "../../register/styles.module.scss";
 
-export default function Services() {
+interface Props {
+	canEdit: boolean;
+}
+
+export default function Services({ canEdit }: Props) {
 	const { db, currentWorkshop } = useContext(AuthContext);
 	const [services, setServices] = useState<Service[]>([]);
+	const [loading, setLoading] = useState(false);
 
 	const queryServices = async () => {
 		if (!currentWorkshop?.id) return;
+		setLoading(true);
 
 		try {
 			const q = query(
@@ -42,6 +49,8 @@ export default function Services() {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -54,6 +63,8 @@ export default function Services() {
 	};
 
 	const saveServices = async () => {
+		if (!currentWorkshop?.id) return;
+		setLoading(true);
 		try {
 			const promises = services.map((service) => {
 				if (service.id) {
@@ -86,6 +97,8 @@ export default function Services() {
 				theme: "dark",
 				transition: Zoom,
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -120,16 +133,19 @@ export default function Services() {
 									"border border-2 !border-white focus:border-white",
 								],
 							}}
+							disabled={!canEdit}
 						/>
 					</div>
 				))}
 			</div>
-			<button
+			<Button
+				color="success"
+				className={styles.modalButton}
+				disabled={loading}
 				onClick={saveServices}
-				className="mt-4 p-2 bg-green-500 text-white"
 			>
-				Salvar Serviços
-			</button>
+				Salvar
+			</Button>
 		</div>
 	);
 }

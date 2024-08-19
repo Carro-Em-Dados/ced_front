@@ -19,6 +19,7 @@ import { Driver } from "@/interfaces/driver.type";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import AppUserCard from "./components/Cards/AppUserCard";
+import { useCallback } from "react";
 
 const Register = () => {
 	const { db, currentUser } = useContext(AuthContext);
@@ -29,35 +30,49 @@ const Register = () => {
 	const [appUsers, setAppUsers] = useState<AppUser[]>([]);
 	const { currentWorkshop } = useContext(AuthContext);
 
-	const fetchData = async () => {
-		const clientsSnapshot = await getDocs(collection(db, "clients"));
-		const workshopsSnapshot = await getDocs(collection(db, "workshops"));
-		const usersSnapshot = await getDocs(collection(db, "users"));
-		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
-		const appUsersSnapshot = await getDocs(collection(db, "appUsers"));
+	const fetchData = useCallback(async () => {
+		try {
+			const clientsSnapshot = await getDocs(collection(db, "clients"));
+			const workshopsSnapshot = await getDocs(collection(db, "workshops"));
+			const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+			const appUsersSnapshot = await getDocs(collection(db, "appUsers"));
+			let usersSnapshot;
+			let filteredClientsData = [];
+			let filteredAppUsersData = [];
 
-		if (currentUser?.role !== "master" && currentUser?.workshops) {
-			const filteredClientsData = clientsSnapshot.docs
-				.map((doc) => {
-					const data = doc.data();
-					return {
-						...data,
-						id: doc.id,
-					} as Driver;
-				})
-				.filter((client) => client.workshops === currentUser.workshops);
+			if (currentUser?.role !== "master" && currentUser?.workshops) {
+				filteredClientsData = clientsSnapshot.docs
+					.map(
+						(doc) =>
+							({
+								...doc.data(),
+								id: doc.id,
+							} as Driver)
+					)
+					.filter((client) => client.workshops === currentUser.workshops);
 
-			const filteredAppUsersData = appUsersSnapshot.docs
-				.map((doc) => {
-					const data = doc.data();
-					return {
-						...data,
-						id: doc.id,
-					} as AppUser;
-				})
-				.filter(
-					(appUser) => appUser.preferred_workshop === currentUser.workshops
-				);
+				filteredAppUsersData = appUsersSnapshot.docs
+					.map(
+						(doc) =>
+							({
+								...doc.data(),
+								id: doc.id,
+							} as AppUser)
+					)
+					.filter(
+						(appUser) => appUser.preferred_workshop === currentUser.workshops
+					);
+			} else {
+				filteredClientsData = clientsSnapshot.docs.map((doc) => ({
+					id: doc.id,
+					...doc.data(),
+				})) as Driver[];
+
+				filteredAppUsersData = appUsersSnapshot.docs.map((doc) => ({
+					id: doc.id,
+					...doc.data(),
+				})) as AppUser[];
+			}
 
 			const workshopsData = workshopsSnapshot.docs.map((doc) => ({
 				id: doc.id,
@@ -69,47 +84,28 @@ const Register = () => {
 				...doc.data(),
 			})) as Vehicle[];
 
+			let usersData;
+			if (currentUser?.role !== "worker") {
+				usersSnapshot = await getDocs(collection(db, "users"));
+				usersData = usersSnapshot.docs.map((doc) => ({
+					id: doc.id,
+					...doc.data(),
+				})) as User[];
+			}
+
 			setDrivers(filteredClientsData);
 			setWorkshops(workshopsData);
+			setUsers(usersData || []);
 			setVehicles(vehiclesData);
 			setAppUsers(filteredAppUsersData);
-			return;
+		} catch (error) {
+			console.error("Error fetching data: ", error);
 		}
-		const clientsData = clientsSnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		})) as Driver[];
-
-		const workshopsData = workshopsSnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		})) as Workshop[];
-
-		const usersData = usersSnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		})) as User[];
-
-		const vehiclesData = vehiclesSnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		})) as Vehicle[];
-
-		const appUsersData = appUsersSnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		})) as AppUser[];
-
-		setDrivers(clientsData);
-		setWorkshops(workshopsData);
-		setUsers(usersData);
-		setVehicles(vehiclesData);
-		setAppUsers(appUsersData);
-	};
+	}, [db, currentUser]);
 
 	useEffect(() => {
 		fetchData();
-	}, [db]);
+	}, [fetchData]);
 
 	const getVehiclesByClient = (id: string) => {
 		return vehicles.filter((vehicle) => vehicle.owner === id);
@@ -119,10 +115,7 @@ const Register = () => {
 		const workshop = workshops.find((workshop) => workshop.id === id);
 		if (!workshop) return [];
 
-		const matchedDrivers = drivers.filter(
-			(driver) => driver.workshops === workshop.id
-		);
-		return matchedDrivers;
+		return drivers.filter((driver) => driver.workshops === workshop.id);
 	};
 
 	const getAppUsersByWorkshop = (id: string) => {

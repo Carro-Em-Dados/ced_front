@@ -541,118 +541,6 @@ export default function Dashboard({
 											<p className="text-white">Contadores parciais</p>
 										</Radio>
 									</RadioGroup>
-									<div className="flex flex-row gap-5 mt-5">
-										<Autocomplete
-											label="Marca"
-											variant="bordered"
-											className="dark"
-											defaultItems={[
-												{ value: "none", label: "Nenhum" },
-												...Object.keys(filterOptions.brand.options).map(
-													(brand) => ({
-														value: brand.toString(),
-														label: brand,
-													})
-												),
-											]}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "none";
-												setSelectedFilterOption({
-													selected: keyString === "none" ? "" : keyString || "",
-													type: keyString === "none" ? "" : "brand",
-												});
-											}}
-											selectedKey={
-												selectedFilterOption.type === "brand"
-													? selectedFilterOption.selected
-													: "none"
-											}
-										>
-											{(item) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-
-										<Autocomplete
-											label="Modelo"
-											variant="bordered"
-											className="dark"
-											defaultItems={[
-												{ value: "none", label: "Nenhum" },
-												...Object.keys(filterOptions.model.options).map(
-													(model) => ({
-														value: model.toString(),
-														label: model,
-													})
-												),
-											]}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "none";
-												setSelectedFilterOption({
-													selected: keyString === "none" ? "" : keyString || "",
-													type: keyString === "none" ? "" : "model",
-												});
-											}}
-											selectedKey={
-												selectedFilterOption.type === "model"
-													? selectedFilterOption.selected
-													: "none"
-											}
-										>
-											{(item) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-
-										<Autocomplete
-											label="Ano"
-											variant="bordered"
-											className="dark"
-											defaultItems={[
-												{ value: "none", label: "Nenhum" },
-												...Object.keys(filterOptions.year.options).map(
-													(year) => ({
-														value: year.toString(),
-														label: year,
-													})
-												),
-											]}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "none";
-												setSelectedFilterOption({
-													selected: keyString === "none" ? "" : keyString || "",
-													type: keyString === "none" ? "" : "year",
-												});
-											}}
-											selectedKey={
-												selectedFilterOption.type === "year"
-													? selectedFilterOption.selected
-													: "none"
-											}
-										>
-											{(item) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-									</div>
 								</>
 							) : (
 								<>
@@ -662,6 +550,118 @@ export default function Dashboard({
 										seguir.
 									</p>
 								</>
+							)}
+							{counterType === "partial" && (
+								<div className="flex flex-row gap-5 mt-5">
+									<Autocomplete
+										label="Marca"
+										variant="bordered"
+										className="dark"
+										defaultItems={[
+											{ value: "none", label: "Nenhum" },
+											...Object.keys(filterOptions.brand.options).map(
+												(brand) => ({
+													value: brand.toString(),
+													label: brand,
+												})
+											),
+										]}
+										onKeyDown={(e: any) => e.continuePropagation()}
+										onSelectionChange={(key) => {
+											const keyString = key ? key.toString() : "none";
+											setSelectedFilterOption({
+												selected: keyString === "none" ? "" : keyString || "",
+												type: keyString === "none" ? "" : "brand",
+											});
+										}}
+										selectedKey={
+											selectedFilterOption.type === "brand"
+												? selectedFilterOption.selected
+												: "none"
+										}
+									>
+										{(item) => (
+											<AutocompleteItem
+												key={item.value}
+												value={item.value}
+											>
+												{item.label}
+											</AutocompleteItem>
+										)}
+									</Autocomplete>
+									<Autocomplete
+										label="Modelo"
+										variant="bordered"
+										className="dark"
+										defaultItems={[
+											{ value: "none", label: "Nenhum" },
+											...Object.keys(filterOptions.model.options).map(
+												(model) => ({
+													value: model.toString(),
+													label: model,
+												})
+											),
+										]}
+										onKeyDown={(e: any) => e.continuePropagation()}
+										onSelectionChange={(key) => {
+											const keyString = key ? key.toString() : "none";
+											setSelectedFilterOption({
+												selected: keyString === "none" ? "" : keyString || "",
+												type: keyString === "none" ? "" : "model",
+											});
+										}}
+										selectedKey={
+											selectedFilterOption.type === "model"
+												? selectedFilterOption.selected
+												: "none"
+										}
+									>
+										{(item) => (
+											<AutocompleteItem
+												key={item.value}
+												value={item.value}
+											>
+												{item.label}
+											</AutocompleteItem>
+										)}
+									</Autocomplete>
+									<Autocomplete
+										label="Ano"
+										variant="bordered"
+										className="dark"
+										defaultItems={[
+											{ value: "none", label: "Nenhum" },
+											...Object.keys(filterOptions.year.options).map(
+												(year) => ({
+													value: year.toString(),
+													label: year,
+												})
+											),
+										]}
+										onKeyDown={(e: any) => e.continuePropagation()}
+										onSelectionChange={(key) => {
+											const keyString = key ? key.toString() : "none";
+											setSelectedFilterOption({
+												selected: keyString === "none" ? "" : keyString || "",
+												type: keyString === "none" ? "" : "year",
+											});
+										}}
+										selectedKey={
+											selectedFilterOption.type === "year"
+												? selectedFilterOption.selected
+												: "none"
+										}
+									>
+										{(item) => (
+											<AutocompleteItem
+												key={item.value}
+												value={item.value}
+											>
+												{item.label}
+											</AutocompleteItem>
+										)}
+									</Autocomplete>
+								</div>
 							)}
 						</div>
 					</div>

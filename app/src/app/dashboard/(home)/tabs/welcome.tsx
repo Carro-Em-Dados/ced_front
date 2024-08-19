@@ -2,7 +2,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import styles from "./welcome.module.scss";
 import Image from "next/image";
-import DropdownComponent from "@/custom/dropdown/Dropdown";
 import Dashboard from "../components/dashboard/dashboard";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { Workshop } from "@/interfaces/workshop.type";
