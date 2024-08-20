@@ -4,19 +4,9 @@ import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
 import Image from "next/image";
-import { Input, Tab, Tabs } from "@nextui-org/react";
-import {
-	getDoc,
-	doc,
-	query,
-	collection,
-	where,
-	getDocs,
-} from "firebase/firestore";
+import { Tab, Tabs } from "@nextui-org/react";
 import { User } from "@/interfaces/user.type";
 import { AuthContext } from "@/contexts/auth.context";
-import { useSearchParams } from "next/navigation";
-import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 import EditBasicContract from "./components/EditBasicContract";
 import Services from "./components/Services";
@@ -28,74 +18,19 @@ const Profile = () => {
 		currentWorkshop,
 		loading,
 	} = useContext(AuthContext);
-	//const searchParams = useSearchParams();
-	//const userId = searchParams.get("user");
 
 	const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
-	const [workshop, setWorkshop] = useState<Workshop | undefined>(undefined);
+	const [workshop, setWorkshop] = useState<any | undefined>(undefined);
 	const [contract, setContract] = useState<Contract | undefined>(undefined);
 	const [canEdit, setCanEdit] = useState(false);
 
 	useEffect(() => {
-		const fetchUser = async (id: string) => {
-			if (!db) return;
+		setCurrentUser(myUser);
+	}, [myUser]);
 
-			const docRef = doc(db, "users", id);
-			const docSnap = await getDoc(docRef);
-			if (docSnap.exists()) {
-				const userData = docSnap.data() as User;
-				setCurrentUser(userData);
-				if (userData.workshops) fetchWorkshop(userData.workshops);
-			}
-		};
-
-		const fetchWorkshop = async (workshopId: string) => {
-			if (!db || !workshopId) return;
-
-			const workshopRef = doc(db, "workshops", workshopId);
-			const workshopSnap = await getDoc(workshopRef);
-			if (workshopSnap.exists()) {
-				setWorkshop(workshopSnap.data() as Workshop);
-				/* const contractQuery = query(
-					collection(db, "contracts"),
-					where("workshop", "==", workshopId)
-				);
-				const contractSnap = await getDocs(contractQuery);
-				if (!contractSnap.empty) {
-					const contractData = contractSnap.docs[0].data() as Contract;
-					const contractWithId = {
-						...contractData,
-						id: contractSnap.docs[0].id,
-					};
-					setContract(contractWithId);
-				} */
-			}
-		};
-
-		/* if (userId) {
-			fetchUser(userId as string);
-		} else if (myUser) {
-			fetchUser(myUser.id);
-		} else {
-			const storedUser = localStorage.getItem("user");
-			if (storedUser) {
-				const parsedUser = JSON.parse(storedUser);
-				setCurrentUser(parsedUser);
-				fetchWorkshop(parsedUser.workshops);
-			}
-		} */
-
-		if (myUser) {
-			fetchUser(myUser.id);
-		} else {
-			const storedUser = localStorage.getItem("user");
-			if (storedUser) {
-				const parsedUser = JSON.parse(storedUser);
-				setCurrentUser(parsedUser);
-				fetchWorkshop(parsedUser.workshops);
-			}
-		}
-	}, [/* userId,  */ myUser, db, loading]);
+	useEffect(() => {
+		setWorkshop(currentWorkshop);
+	}, [currentWorkshop]);
 
 	console.log(currentWorkshop);
 
@@ -106,22 +41,11 @@ const Profile = () => {
 		}
 		if (!currentWorkshop) {
 			disabledKeys.push("services");
+			disabledKeys.push("workshop");
 		}
 
 		return disabledKeys;
 	};
-
-	function UserProfile() {
-		return (
-			<div className="flex flex-col gap-5">
-				<div className="flex flex-col text-white">
-					<p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">
-						{currentUser?.name}
-					</p>
-				</div>
-			</div>
-		);
-	}
 
 	useEffect(() => {
 		if (currentUser) {
@@ -130,6 +54,8 @@ const Profile = () => {
 			);
 		}
 	}, [currentUser]);
+
+	console.log(workshop);
 
 	return (
 		<div className={styles.page}>
@@ -166,7 +92,11 @@ const Profile = () => {
 					>
 						<div className={`${styles.content} flex flex-col gap-5`}>
 							{currentUser ? (
-								<UserProfile />
+								<div className="flex flex-col gap-5 text-white">
+									<p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">
+										{currentUser?.name}
+									</p>
+								</div>
 							) : (
 								<p className="text-white">No user found</p>
 							)}
@@ -223,12 +153,57 @@ const Profile = () => {
 										</div>
 									</div>
 								) : (
-									<p className="text-white">No workshop found</p>
+									<p className="text-white">Nenhuma oficina encontrada</p>
 								)}
 							</div>
 						</div>
 					</Tab>
-
+					<Tab
+						key="workshop"
+						title="Informações do contrato"
+					>
+						<div className={`${styles.content} flex flex-col gap-5`}>
+							<div className="text-white w-full flex flex-col">
+								{workshop ? (
+									<div className="flex flex-col gap-5">
+										<div className="flex flex-col gap-5 text-white">
+											<p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">
+												Informações do contrato
+											</p>
+											<div className="flex flex-col gap-10 text-sm">
+												<p>
+													Tipo de contrato:{" "}
+													{workshop.contract.id === "basic"
+														? "Básico"
+														: "Customizado"}
+												</p>
+												<p>
+													Quantidade de cadastros de clientes-motoristas:{" "}
+													{workshop.contract.maxDrivers || 0}
+												</p>
+												<p>
+													Quantidade de cadastros de veículos por
+													clientes-motoristas:{" "}
+													{workshop.contract.maxVehiclesPerDriver || 0}
+												</p>
+												<p>
+													Quantidade de alarmes por KM limite/Data limite por
+													veículo: {workshop.contract.maxAlarmsPerVehicle || 0}
+												</p>
+												<p>
+													Quantidade de alarmes por KM limite/Data limite por
+													veículo:{" "}
+													{workshop.contract.maxMaintenanceAlarmsPerUser || 0}
+												</p>
+											</div>
+										</div>
+									</div>
+								) : (
+									<p className="text-white">Nenhuma oficina encontrada</p>
+								)}
+							</div>
+						</div>
+					</Tab>
 					<Tab
 						key="contract"
 						title="Informações do contrato básico"

@@ -78,7 +78,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 	const [basicContractData, setBasicContractData] = useState<Contract>({
 		maxAlarmsPerVehicle: 0,
 		maxDrivers: 0,
-		maxManuntenanceAlarmsPerUser: 0,
+		maxMaintenanceAlarmsPerUser: 0,
 		maxVehiclesPerDriver: 0,
 		trialPeriod: 0,
 		userDateLimitAlarm: 0,
@@ -106,7 +106,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			setVehicleCount(basicContractData.maxVehiclesPerDriver.toString());
 			setAlarmCount(basicContractData.maxAlarmsPerVehicle.toString());
 			setMaintenanceAlarmCount(
-				basicContractData.maxManuntenanceAlarmsPerUser.toString()
+				basicContractData.maxMaintenanceAlarmsPerUser.toString()
 			);
 			setWorkshopKmNotificationFactor(
 				basicContractData.workshopKmLimitAlarm.toString()
@@ -223,7 +223,7 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 		setLoading(true);
 		const contract = {
 			maxAlarmsPerVehicle: +alarmCount,
-			maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
+			maxMaintenanceAlarmsPerUser: +maintenanceAlarmCount,
 			maxDrivers: +clientMotoristCount,
 			maxVehiclesPerDriver: +vehicleCount,
 			workshopKmLimitAlarm: +workshopKmNotificationFactor,

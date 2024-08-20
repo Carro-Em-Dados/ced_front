@@ -36,7 +36,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 	);
 	const [alarmCount, setAlarmCount] = useState(contract.maxAlarmsPerVehicle);
 	const [maintenanceAlarmCount, setMaintenanceAlarmCount] = useState(
-		contract.maxManuntenanceAlarmsPerUser || 0
+		contract.maxMaintenanceAlarmsPerUser || 0
 	);
 	const [workshopKmNotificationFactor, setWorkshopKmNotificationFactor] =
 		useState(contract.workshopKmLimitAlarm || 0);
@@ -55,7 +55,7 @@ export default function EditContractModal({ contract, setContract }: Props) {
 			maxDrivers: clientMotoristCount,
 			maxVehiclesPerDriver: vehicleCount,
 			maxAlarmsPerVehicle: alarmCount,
-			maxManuntenanceAlarmsPerUser: maintenanceAlarmCount,
+			maxMaintenanceAlarmsPerUser: maintenanceAlarmCount,
 			workshopKmLimitAlarm: workshopKmNotificationFactor,
 			workshopDateLimitAlarm: workshopDateNotificationFactor,
 			userKmLimitAlarm: userKmNotificationFactor,

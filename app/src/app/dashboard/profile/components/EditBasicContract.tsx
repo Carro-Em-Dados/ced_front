@@ -31,7 +31,7 @@ export default function EditBasicContract() {
 			setClientMotoristCount(contractData.maxDrivers);
 			setVehicleCount(contractData.maxVehiclesPerDriver);
 			setAlarmCount(contractData.maxAlarmsPerVehicle);
-			setMaintenanceAlarmCount(contractData.maxManuntenanceAlarmsPerUser);
+			setMaintenanceAlarmCount(contractData.maxMaintenanceAlarmsPerUser);
 			setWorkshopKmNotificationFactor(contractData.workshopKmLimitAlarm);
 			setWorkshopDateNotificationFactor(contractData.workshopDateLimitAlarm);
 			setUserKmNotificationFactor(contractData.userKmLimitAlarm);
@@ -50,7 +50,7 @@ export default function EditBasicContract() {
 			maxDrivers: +clientMotoristCount,
 			maxVehiclesPerDriver: +vehicleCount,
 			maxAlarmsPerVehicle: +alarmCount,
-			maxManuntenanceAlarmsPerUser: +maintenanceAlarmCount,
+			maxMaintenanceAlarmsPerUser: +maintenanceAlarmCount,
 			workshopKmLimitAlarm: +workshopKmNotificationFactor,
 			workshopDateLimitAlarm: +workshopDateNotificationFactor,
 			userKmLimitAlarm: +userKmNotificationFactor,
@@ -65,7 +65,7 @@ export default function EditBasicContract() {
 			setClientMotoristCount(updatedContract.maxDrivers);
 			setVehicleCount(updatedContract.maxVehiclesPerDriver);
 			setAlarmCount(updatedContract.maxAlarmsPerVehicle);
-			setMaintenanceAlarmCount(updatedContract.maxManuntenanceAlarmsPerUser);
+			setMaintenanceAlarmCount(updatedContract.maxMaintenanceAlarmsPerUser);
 			setWorkshopKmNotificationFactor(updatedContract.workshopKmLimitAlarm);
 			setWorkshopDateNotificationFactor(updatedContract.workshopDateLimitAlarm);
 			setUserKmNotificationFactor(updatedContract.userKmLimitAlarm);

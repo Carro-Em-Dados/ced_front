@@ -11,18 +11,8 @@ import {
 	setPersistence,
 	browserSessionPersistence,
 	Auth,
-	updateProfile,
 } from "firebase/auth";
-import {
-	collection,
-	doc,
-	getDoc,
-	getDocs,
-	getFirestore,
-	query,
-	setDoc,
-	where,
-} from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { User } from "../interfaces/user.type";
 import { initializeApp } from "firebase/app";
 import { Workshop } from "@/interfaces/workshop.type";
@@ -122,11 +112,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					let contractData;
 
 					if (contractSnap.exists()) {
-						contractData = contractSnap.data() as Contract;
+						contractData = {
+							...(contractSnap.data() as Contract),
+							id: contractRef.id,
+						};
 					} else {
 						const basicContractRef = doc(db, "contracts", "basic");
 						const basicContractSnap = await getDoc(basicContractRef);
-						contractData = basicContractSnap.data() as Contract;
+						contractData = {
+							...(basicContractSnap.data() as Contract),
+							id: basicContractRef.id,
+						};
 					}
 
 					setCurrentWorkshop({
@@ -137,7 +133,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				} else {
 					const basicContractRef = doc(db, "contracts", "basic");
 					const basicContractSnap = await getDoc(basicContractRef);
-					const contractData = basicContractSnap.data() as Contract;
+					const contractData = {
+						...(basicContractSnap.data() as Contract),
+						id: basicContractRef.id,
+					};
 
 					setCurrentWorkshop({
 						...workshopData,
