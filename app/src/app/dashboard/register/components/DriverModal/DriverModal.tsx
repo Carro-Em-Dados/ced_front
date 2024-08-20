@@ -27,13 +27,15 @@ import styles from "../../styles.module.scss";
 import { Workshop } from "@/interfaces/workshop.type";
 import { toast, Zoom } from "react-toastify";
 import InputMask from "react-input-mask";
+import type { Driver } from "@/interfaces/driver.type";
 
 interface Props {
 	setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
+	drivers: Driver[];
 }
 
-export default function DriverModal({ setDrivers }: Props) {
-	const { db, currentUser } = useContext(AuthContext);
+export default function DriverModal({ setDrivers, drivers }: Props) {
+	const { db, currentUser, currentWorkshop } = useContext(AuthContext);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [name, setName] = useState<string>("");
 	const [age, setAge] = useState<string>("");
@@ -57,8 +59,24 @@ export default function DriverModal({ setDrivers }: Props) {
 	}, [currentUser?.role]);
 
 	const handleAddDriver = async () => {
-		setLoading(true);
 		if (currentUser?.workshops || currentUser?.role === "master") {
+			if (currentUser.role !== "master" && currentWorkshop?.contract) {
+				if (drivers.length > currentWorkshop?.contract?.maxDrivers) {
+					toast.error("Limite de motoristas excedido", {
+						position: "bottom-right",
+						autoClose: 5000,
+						hideProgressBar: true,
+						closeOnClick: true,
+						pauseOnHover: true,
+						draggable: true,
+						progress: undefined,
+						theme: "dark",
+						transition: Zoom,
+					});
+					return;
+				}
+			}
+			setLoading(true);
 			try {
 				const querySnapshot = await getDocs(
 					query(collection(db, "clients"), where("email", "==", email))
@@ -144,6 +162,16 @@ export default function DriverModal({ setDrivers }: Props) {
 
 				const docRef = await addDoc(collection(db, "clients"), driver);
 				setDrivers((drivers) => [...drivers, { ...driver, id: docRef.id }]);
+				setName("");
+				setAge("");
+				setGender("");
+				setPhoneRes("");
+				setPhoneCom("");
+				setAddressRes("");
+				setAddressCom("");
+				setRegister("");
+				setCNH("");
+				setEmail("");
 				onOpenChange();
 			} catch (error) {
 				toast.error("Erro ao adicionar motorista", {
@@ -472,8 +500,9 @@ export default function DriverModal({ setDrivers }: Props) {
 							</ModalBody>
 							<ModalFooter>
 								<Button
-									color="danger"
+									color="default"
 									variant="light"
+									className="rounded-full px-5 text-white"
 									onClick={onClose}
 								>
 									Cancelar
@@ -482,10 +511,7 @@ export default function DriverModal({ setDrivers }: Props) {
 									color="success"
 									className={styles.modalButton}
 									disabled={!email || loading}
-									onClick={() => {
-										handleAddDriver();
-										onClose();
-									}}
+									onClick={handleAddDriver}
 								>
 									Adicionar
 								</Button>

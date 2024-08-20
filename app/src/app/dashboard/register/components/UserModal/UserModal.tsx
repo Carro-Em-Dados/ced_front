@@ -169,8 +169,9 @@ export default function UserModal({ setUsers }: Props) {
 							</ModalBody>
 							<ModalFooter>
 								<Button
-									color="danger"
+									color="default"
 									variant="light"
+									className="rounded-full px-5 text-white"
 									onClick={onClose}
 								>
 									Cancelar

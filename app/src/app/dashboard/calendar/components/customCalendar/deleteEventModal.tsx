@@ -96,8 +96,8 @@ export default function DeleteEventModal({
 								<Button
 									color="default"
 									variant="light"
+									className="rounded-full px-5 text-white"
 									onClick={onClose}
-									className="!text-white rounded-full"
 								>
 									Cancelar
 								</Button>

@@ -299,8 +299,9 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
 							</ModalBody>
 							<ModalFooter>
 								<Button
-									color="danger"
+									color="default"
 									variant="light"
+									className="rounded-full px-5 text-white"
 									onClick={onClose}
 								>
 									Cancelar

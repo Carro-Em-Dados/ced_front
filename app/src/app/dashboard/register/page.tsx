@@ -194,7 +194,10 @@ const Register = () => {
 									)
 								)}
 								<div className={styles.buttonContainer}>
-									<DriverModal setDrivers={setDrivers} />
+									<DriverModal
+										setDrivers={setDrivers}
+										drivers={drivers}
+									/>
 								</div>
 							</div>
 						) : currentUser?.role === "master" ? (
@@ -218,7 +221,10 @@ const Register = () => {
 									/>
 								))}
 								<div className={styles.buttonContainer}>
-									<DriverModal setDrivers={setDrivers} />
+									<DriverModal
+										setDrivers={setDrivers}
+										drivers={drivers}
+									/>
 								</div>
 							</div>
 						) : (
