@@ -24,6 +24,7 @@ import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import clsx from "clsx";
 
 interface CustomTableProps {
 	data: any[];
@@ -49,7 +50,6 @@ function CustomTable(props: CustomTableProps) {
 
 	const handleOpenUser = async (clientId: string) => {
 		if (!clientId) {
-			console.error("Client ID is undefined or null");
 			return;
 		}
 
@@ -63,7 +63,6 @@ function CustomTable(props: CustomTableProps) {
 				const driverDoc = await getDoc(driverDocRef);
 
 				if (!driverDoc.exists()) {
-					console.error("Client document not found");
 					setLoading(false);
 					return;
 				}
@@ -115,8 +114,6 @@ function CustomTable(props: CustomTableProps) {
 						}
 					}
 
-					console.log(totalKm, criticalCount, closeCount, expiredCount);
-
 					setUserVehicleInfo({
 						totalKm,
 						criticalCount,
@@ -124,10 +121,9 @@ function CustomTable(props: CustomTableProps) {
 						expiredCount,
 					});
 				}
-
-				setLoading(false);
 			} catch (error) {
-				console.error("Erro ao buscar informações do usuário:", error);
+				console.log(error);
+			} finally {
 				setLoading(false);
 			}
 		}
@@ -164,8 +160,6 @@ function CustomTable(props: CustomTableProps) {
 						else closeCount++;
 					}
 
-					console.log(vehicleKm, criticalCount, closeCount, expiredCount);
-
 					setVehicleInfo({
 						vehicleKm,
 						criticalCount,
@@ -173,10 +167,9 @@ function CustomTable(props: CustomTableProps) {
 						expiredCount,
 					});
 				}
-
-				setLoading(false);
 			} catch (error) {
 				console.error("Erro ao buscar informações do veículo:", error);
+			} finally {
 				setLoading(false);
 			}
 		}
@@ -272,7 +265,19 @@ function CustomTable(props: CustomTableProps) {
 						<TableCell className={styles.cell}>{row.km_current}</TableCell>
 						<TableCell className={styles.cell}>{row.km_threshold}</TableCell>
 						<TableCell className={styles.cell}>{row.date_threshold}</TableCell>
-						<TableCell className={styles.cell}>{row.status}</TableCell>
+						<TableCell className={styles.cell}>
+							<span
+								className={`rounded-lg px-2 py-1 ${
+									row.status === "Próxima"
+										? "!bg-[#D3C544]"
+										: row.status === "Crítica"
+										? "!bg-[#2D2F2D]"
+										: "!bg-[#B73F25]"
+								}`}
+							>
+								{row.status}
+							</span>
+						</TableCell>
 						<TableCell className={styles.cell}>
 							<a
 								className="text-sky-500 underline"

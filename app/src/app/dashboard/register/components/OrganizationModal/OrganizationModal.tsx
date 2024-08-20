@@ -24,6 +24,7 @@ import { Contract } from "@/interfaces/contract.type";
 import InputMask from "react-input-mask";
 import { createGoogleCalendar } from "@/services/google-calendar";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { FaArrowLeft } from "react-icons/fa";
 
 interface Props {
 	setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -314,7 +315,6 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 			]);
 			onOpenChange();
 		} catch (error) {
-			console.log(error);
 			toast.error("Erro ao criar organização", {
 				position: "bottom-right",
 				autoClose: 5000,
@@ -1242,9 +1242,11 @@ export default function OrganizationModal({ setWorkshops }: Props) {
 							<ModalFooter>
 								{tab !== "tab1" && (
 									<Button
-										className={`${styles.modalButton} bg-gradient-to-r from-blue-400 via-green-500 to-yellow-500`}
+										variant="light"
 										onClick={prevPage}
+										className="rounded-full px-5 text-white"
 									>
+										<FaArrowLeft />
 										Voltar
 									</Button>
 								)}

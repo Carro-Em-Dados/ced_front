@@ -131,8 +131,6 @@ const Register = () => {
 		);
 	};
 
-	console.log(users);
-
 	return (
 		<div className={styles.page}>
 			<Navbar />

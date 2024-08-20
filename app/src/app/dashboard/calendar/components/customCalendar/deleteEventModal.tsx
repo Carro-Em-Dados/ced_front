@@ -49,7 +49,6 @@ export default function DeleteEventModal({
 			onOpenChange();
 			onClose();
 		} catch (error) {
-			console.log(error);
 			toast.error("Erro ao deletar agendamento", {
 				position: "bottom-right",
 				autoClose: 5000,

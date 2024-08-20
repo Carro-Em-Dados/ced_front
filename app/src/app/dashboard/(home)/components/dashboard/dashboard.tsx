@@ -84,7 +84,6 @@ export default function Dashboard({
 
 	const fetchMaintenances = async () => {
 		if (!db) {
-			console.error("Database not initialized");
 			return;
 		}
 
@@ -114,9 +113,6 @@ export default function Dashboard({
 					maintenanceData.id = docSnap.id;
 
 					if (!maintenanceData.car_id) {
-						console.warn(
-							`Maintenance data missing car_id: ${maintenanceData.id}`
-						);
 						continue;
 					}
 
@@ -161,15 +157,8 @@ export default function Dashboard({
 								}
 							}
 						} else if (selectedWorkshop !== "all") {
-							console.warn(
-								`Vehicle data missing owner: ${maintenanceData.car_id}`
-							);
 							continue;
 						}
-					} else {
-						console.warn(
-							`Vehicle document not found: ${maintenanceData.car_id}`
-						);
 					}
 
 					const status = calculateStatus(maintenanceData, kmCurrent);
@@ -216,9 +205,6 @@ export default function Dashboard({
 					maintenanceData.id = docSnap.id;
 
 					if (!maintenanceData.car_id) {
-						console.warn(
-							`Maintenance data missing car_id: ${maintenanceData.id}`
-						);
 						continue;
 					}
 
@@ -263,15 +249,8 @@ export default function Dashboard({
 								}
 							}
 						} else if (selectedWorkshop !== "all") {
-							console.warn(
-								`Vehicle data missing owner: ${maintenanceData.car_id}`
-							);
 							continue;
 						}
-					} else {
-						console.warn(
-							`Vehicle document not found: ${maintenanceData.car_id}`
-						);
 					}
 
 					const status = calculateStatus(maintenanceData, kmCurrent);
@@ -312,7 +291,6 @@ export default function Dashboard({
 
 	const fetchMonitoredVehicles = async () => {
 		if (!db) {
-			console.error("Database not initialized");
 			return;
 		}
 
@@ -335,7 +313,6 @@ export default function Dashboard({
 				const ownerId = vehicleData.owner;
 
 				if (!ownerId && selectedWorkshop !== "all") {
-					console.warn(`Vehicle data missing owner: ${vehicleData.id}`);
 					continue;
 				}
 
@@ -369,7 +346,6 @@ export default function Dashboard({
 					const gpsDistance = vehicleData?.gps_distance || 0;
 					totalKM += obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 				}
-				console.log(vehicleData.obd2_distance, vehicleData.gps_distance);
 			}
 
 			setTotalVehicles(monitoredVehicles);
@@ -394,8 +370,6 @@ export default function Dashboard({
 		setCurrentPage(page);
 		fetchMaintenances();
 	};
-
-	console.log(maintenances);
 
 	const countMaintenanceStatuses = (maintenances: MaintenanceData[]) => {
 		let criticalCount = 0;
@@ -547,8 +521,6 @@ export default function Dashboard({
 		});
 	};
 
-	console.log(filterOptions);
-
 	useEffect(() => {
 		setSelectedFilterOption({
 			selected: "",
@@ -565,8 +537,6 @@ export default function Dashboard({
 		sumSelectedKmCounter();
 	}, [counter]);
 
-	console.log(counter);
-
 	const sumSelectedKmCounter = async () => {
 		let sum = 0;
 		const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
@@ -577,9 +547,6 @@ export default function Dashboard({
 		});
 		setFilterSum(sum);
 	};
-
-	console.log(counterType);
-	console.log(filterType);
 
 	return (
 		<div className={clsx(styles.dashboardContainer, "mb-10")}>

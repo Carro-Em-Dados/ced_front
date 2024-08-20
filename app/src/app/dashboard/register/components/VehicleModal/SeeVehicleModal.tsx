@@ -49,8 +49,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 	>([]);
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-	console.log(maintenances, maintenancesDeleting);
-
 	const fetchMaintenances = async () => {
 		try {
 			const maintenanceCollection = collection(db, "maintenances");
@@ -136,7 +134,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
 			const deletions = maintenancesDeleting.map((m) => {
 				if (m.id) {
-					console.log(`Deletando documento com ID: ${m.id}`);
 					return deleteDoc(doc(db, "maintenances", m.id));
 				}
 				return Promise.resolve();

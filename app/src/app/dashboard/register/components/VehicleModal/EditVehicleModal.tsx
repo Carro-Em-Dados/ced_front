@@ -58,7 +58,6 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			const data = await response.json();
 			setVehiclesBrands(data);
 		} catch (error) {
-			console.log("Erro ao resgatar marcas da API ", error);
 			setFailed({ ...failed, brand: true });
 		} finally {
 			setLoadingFetch(false);
@@ -75,7 +74,6 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 			const data = await response.json();
 			setVehiclesModels(data.modelos);
 		} catch (error) {
-			console.log("Erro ao resgatar modelos da API ", error);
 			setFailed({ ...failed, model: true });
 		} finally {
 			setLoadingFetch(false);
@@ -106,7 +104,6 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 
 			setVehicleYears(processedData);
 		} catch (error) {
-			console.log("Erro ao resgatar anos da API ", error);
 			setFailed({ ...failed, year: true });
 		} finally {
 			setLoadingFetch(false);
