@@ -32,6 +32,8 @@ const Profile = () => {
 		setWorkshop(currentWorkshop);
 	}, [currentWorkshop]);
 
+	console.log(currentWorkshop);
+
 	const getDisabledKeys = () => {
 		const disabledKeys: string[] = [];
 		if (myUser?.role !== "master") {

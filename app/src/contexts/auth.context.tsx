@@ -106,8 +106,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			if (workshopSnap.exists()) {
 				const workshopData = workshopSnap.data() as Workshop;
 
-				if (workshopData.contract_id) {
-					const contractRef = doc(db, "contracts", workshopData.contract_id);
+				if (workshopData.contract) {
+					const contractRef = doc(db, "contracts", workshopData.contract);
 					const contractSnap = await getDoc(contractRef);
 					let contractData;
 

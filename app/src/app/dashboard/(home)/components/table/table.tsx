@@ -24,7 +24,6 @@ import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { Vehicle } from "@/interfaces/vehicle.type";
-import clsx from "clsx";
 
 interface CustomTableProps {
 	data: any[];
