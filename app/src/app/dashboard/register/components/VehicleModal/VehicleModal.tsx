@@ -364,12 +364,13 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 												onKeyDown={(e: any) => e.continuePropagation()}
 												disabled={loadingFetch}
 												onSelectionChange={(key) => {
+													const keyString = key ? key.toString() : "";
 													setSelectedBrand(
 														vehiclesBrands.find(
-															(brand) => brand.nome == key.toString()
+															(brand) => brand.nome == keyString
 														)?.codigo || ""
 													);
-													setManufacturer(key.toString() || "");
+													setManufacturer(keyString || "");
 												}}
 												selectedKey={manufacturer}
 											>
@@ -405,12 +406,13 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 												className="dark"
 												onKeyDown={(e: any) => e.continuePropagation()}
 												onSelectionChange={(key) => {
+													const keyString = key ? key.toString() : "";
 													setSelectedModel(
 														vehiclesModels.find(
-															(model) => model.nome == key.toString()
+															(model) => model.nome == keyString
 														)?.codigo || ""
 													);
-													setSelectedModel(key.toString() || "");
+													setSelectedModel(keyString || "");
 												}}
 												disabled={!manufacturer || loadingFetch}
 												selectedKey={carModel}
@@ -451,7 +453,8 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 												className="dark"
 												onKeyDown={(e: any) => e.continuePropagation()}
 												onSelectionChange={(key) => {
-													setYear(key ? key.toString() : "");
+													const keyString = key ? key.toString() : "";
+													setYear(keyString || "");
 												}}
 												disabled={!manufacturer || loadingFetch}
 												selectedKey={year}
