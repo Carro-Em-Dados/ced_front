@@ -68,7 +68,7 @@ export default function DeleteEventModal({
 			<Button
 				color="danger"
 				onClick={onOpen}
-				className="!text-white rounded-full"
+				className="!text-white rounded-full px-5 bg-[#DC1B1B]"
 			>
 				Deletar
 			</Button>
@@ -102,7 +102,7 @@ export default function DeleteEventModal({
 								</Button>
 								<Button
 									color="danger"
-									className="!text-white rounded-full"
+									className="!text-white rounded-full px-5 bg-[#DC1B1B]"
 									onClick={deleteEvent}
 								>
 									Deletar
