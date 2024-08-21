@@ -1,3 +1,5 @@
+import { Contract } from "@/interfaces/contract.type";
+
 export interface Workshop {
 	id: string;
 	contract_number: string;
@@ -30,6 +32,6 @@ export interface Workshop {
 	state_registration: string;
 	municipal_registration: string;
 	clients: string[];
-	contract: string;
+	contract: string | Contract;
 	google_calendar_id?: string;
 }
