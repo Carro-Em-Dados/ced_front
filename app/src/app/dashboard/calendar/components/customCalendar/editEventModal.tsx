@@ -7,7 +7,6 @@ import {
 	ModalFooter,
 	ModalHeader,
 	Textarea,
-	useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
 import styles from "../../../register/styles.module.scss";
@@ -117,6 +116,15 @@ export default function EditEventModal({
 
 	const onClose = () => setOpen(false);
 
+	useEffect(() => {
+		const [hours, minutes] = start.split(":").map(Number);
+		const startDate = new Date();
+		startDate.setHours(hours);
+		startDate.setMinutes(minutes);
+		startDate.setHours(startDate.getHours() + 2);
+		setEnd(startDate.toTimeString().split(" ")[0].substring(0, 5));
+	}, [start]);
+
 	return (
 		<Modal
 			isOpen={open}
@@ -169,6 +177,7 @@ export default function EditEventModal({
 									</div>
 									<div className="flex flex-col gap-2 w-full">
 										<Input
+											disabled
 											label="Horário de término"
 											type="time"
 											value={end}

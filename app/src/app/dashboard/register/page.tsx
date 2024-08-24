@@ -123,12 +123,7 @@ const Register = () => {
 	};
 
 	const getUsersWithoutWorkshop = () => {
-		return users.filter(
-			(user) =>
-				!user.workshops ||
-				user.workshops === "" ||
-				user.workshops === currentWorkshop?.id
-		);
+		return users.filter((user) => user.workshops === currentWorkshop?.id);
 	};
 
 	return (
