@@ -80,7 +80,10 @@ export default function UserModal({ setUsers }: Props) {
 		<>
 			<Button
 				color="success"
-				className={styles.button}
+				className={clsx(
+					styles.button,
+					"!fixed bottom-0 right-0 z-10 shadow-md mb-5 mr-5"
+				)}
 				onClick={onOpen}
 			>
 				<MdLibraryAdd className={styles.addIcon} />

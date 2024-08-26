@@ -275,6 +275,7 @@ export default function Dashboard({
 						status: status,
 						obd2Distance,
 						gpsDistance,
+						id: maintenanceData.id,
 					});
 				}
 

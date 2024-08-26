@@ -28,6 +28,7 @@ const Register = () => {
 	const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 	const [workshops, setWorkshops] = useState<Workshop[]>([]);
 	const [appUsers, setAppUsers] = useState<AppUser[]>([]);
+	const [tab, setTab] = useState("");
 	const { currentWorkshop } = useContext(AuthContext);
 
 	const fetchData = useCallback(async () => {
@@ -129,6 +130,19 @@ const Register = () => {
 	return (
 		<div className={styles.page}>
 			<Navbar />
+			{tab === "drivers" ? (
+				<DriverModal
+					setDrivers={setDrivers}
+					drivers={drivers}
+				/>
+			) : tab === "organizations" ? (
+				currentUser?.role === "master" && (
+					<OrganizationModal setWorkshops={setWorkshops} />
+				)
+			) : (
+				currentUser?.role === "master" && <UserModal setUsers={setUsers} />
+			)}
+
 			<div className={styles.pageWrap}>
 				<div className={styles.rectangleContainer}>
 					<Image
@@ -156,6 +170,9 @@ const Register = () => {
 					classNames={{
 						tabContent:
 							"group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
+					}}
+					onSelectionChange={(key) => {
+						setTab(key as string);
 					}}
 				>
 					<Tab
@@ -186,12 +203,6 @@ const Register = () => {
 										/>
 									)
 								)}
-								<div className={styles.buttonContainer}>
-									<DriverModal
-										setDrivers={setDrivers}
-										drivers={drivers}
-									/>
-								</div>
 							</div>
 						) : currentUser?.role === "master" ? (
 							<div className={styles.driverTab}>
@@ -213,12 +224,6 @@ const Register = () => {
 										setVehicles={setVehicles}
 									/>
 								))}
-								<div className={styles.buttonContainer}>
-									<DriverModal
-										setDrivers={setDrivers}
-										drivers={drivers}
-									/>
-								</div>
 							</div>
 						) : (
 							<p className="text-white text-sm">
@@ -241,11 +246,6 @@ const Register = () => {
 									drivers={drivers}
 								/>
 							))}
-							{currentUser?.role === "master" && (
-								<div className={styles.buttonContainer}>
-									<OrganizationModal setWorkshops={setWorkshops} />
-								</div>
-							)}
 						</div>
 					</Tab>
 					<Tab
@@ -271,11 +271,6 @@ const Register = () => {
 											workshops={workshops}
 										/>
 								  ))}
-							{currentUser?.role === "master" && (
-								<div className={styles.buttonContainer}>
-									<UserModal setUsers={setUsers} />
-								</div>
-							)}
 						</div>
 					</Tab>
 				</Tabs>

@@ -2,7 +2,8 @@ interface Schedules {
 	allDay: boolean;
 	driver: string;
 	vehicle: string;
-	service: string;
+	service?: string;
+	maintenance?: string;
 	note: string;
 	start: any;
 	end: any;

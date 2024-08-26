@@ -15,13 +15,22 @@ import clsx from "clsx";
 import styles from "../../../register/styles.module.scss";
 import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { useContext, useEffect, useState } from "react";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import {
+	collection,
+	addDoc,
+	getDocs,
+	query,
+	where,
+	doc,
+	getDoc,
+} from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { createGoogleEvent } from "@/services/google-calendar";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { MaintenanceWithName } from "./customCalendar";
 import type { Vehicle } from "@/interfaces/vehicle.type";
+import { useSearchParams } from "next/navigation";
 
 interface Props {
 	events: any;
@@ -62,6 +71,11 @@ export default function CreateEventModal({
 	const [selectedService, setSelectedService] = useState<any>();
 	const [selectedVehicle, setSelectedVehicle] = useState<any>();
 	const [driverName, setDriverName] = useState<string>("");
+	const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
+	const searchParams = useSearchParams();
+	const vehicle = searchParams.get("v");
+	const driver = searchParams.get("d");
+	const maintenance = searchParams.get("m");
 
 	const { db, currentWorkshop } = useContext(AuthContext);
 
@@ -73,6 +87,28 @@ export default function CreateEventModal({
 		startDate.setHours(startDate.getHours() + 2);
 		setEnd(startDate.toTimeString().split(" ")[0].substring(0, 5));
 	}, [start]);
+
+	useEffect(() => {
+		setSelectedDriver(driver);
+		setSelectedVehicle(vehicle);
+		if (driver || vehicle || maintenance) {
+			onOpen();
+			if (maintenance) {
+				getMaintenanceName(maintenance);
+			}
+		}
+	}, [driver, vehicle, maintenance]);
+
+	const getMaintenanceName = async (main: string) => {
+		if (!currentWorkshop) return;
+		const docRef = doc(db, "maintenances", main);
+		await getDoc(docRef).then((doc) => {
+			if (doc.exists()) {
+				console.log(doc.data().service);
+				setMaintenanceTitle(doc.data().service);
+			}
+		});
+	};
 
 	const createEvent = async () => {
 		if (!currentWorkshop) return;
@@ -140,7 +176,9 @@ export default function CreateEventModal({
 				return;
 			}
 
-			const newEvent: Schedules = {
+			let newEvent: Schedules;
+
+			newEvent = {
 				allDay: false,
 				driver: selectedDriver,
 				vehicle: selectedVehicle,
@@ -150,6 +188,19 @@ export default function CreateEventModal({
 				end: newEventEnd,
 				workshop: currentWorkshop.id,
 			};
+
+			if (maintenance) {
+				newEvent = {
+					allDay: false,
+					driver: selectedDriver,
+					vehicle: selectedVehicle,
+					maintenance: maintenance,
+					note,
+					start: newEventStart,
+					end: newEventEnd,
+					workshop: currentWorkshop.id,
+				};
+			}
 
 			if (currentWorkshop.google_calendar_id)
 				newEvent.google_event_id =
@@ -335,30 +386,47 @@ export default function CreateEventModal({
 										</Autocomplete>
 									</div>
 
-									<Autocomplete
-										label="Serviço"
-										variant="bordered"
-										className="dark"
-										defaultItems={services.map((service) => ({
-											value: service.id,
-											label: service.service,
-										}))}
-										onKeyDown={(e: any) => e.continuePropagation()}
-										onSelectionChange={(key) => {
-											const keyString = key ? key.toString() : "";
-											setSelectedService(keyString);
-										}}
-										selectedKey={selectedService}
-									>
-										{(item) => (
-											<AutocompleteItem
-												key={item.value}
-												value={item.value}
-											>
-												{item.label}
-											</AutocompleteItem>
-										)}
-									</Autocomplete>
+									{maintenance ? (
+										<Input
+											disabled
+											label="Manutenção"
+											type="text"
+											value={maintenanceTitle}
+											variant="bordered"
+											className="dark"
+											classNames={{
+												input: ["bg-transparent text-white"],
+												inputWrapper: [
+													"border border-2 !border-white focus:border-white",
+												],
+											}}
+										/>
+									) : (
+										<Autocomplete
+											label="Serviço"
+											variant="bordered"
+											className="dark"
+											defaultItems={services.map((service) => ({
+												value: service.id,
+												label: service.service,
+											}))}
+											onKeyDown={(e: any) => e.continuePropagation()}
+											onSelectionChange={(key) => {
+												const keyString = key ? key.toString() : "";
+												setSelectedService(keyString);
+											}}
+											selectedKey={selectedService}
+										>
+											{(item) => (
+												<AutocompleteItem
+													key={item.value}
+													value={item.value}
+												>
+													{item.label}
+												</AutocompleteItem>
+											)}
+										</Autocomplete>
+									)}
 									<div className="flex flex-col gap-2 w-full">
 										<Textarea
 											placeholder="Observação"

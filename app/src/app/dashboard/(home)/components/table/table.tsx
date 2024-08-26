@@ -280,7 +280,11 @@ function CustomTable(props: CustomTableProps) {
 						<TableCell className={styles.cell}>
 							<a
 								className="text-sky-500 underline"
-								href="/dashboard/calendar"
+								href={`/dashboard/calendar?${
+									row.vehicleId ? `v=${row.vehicleId}` : ""
+								}${row.clientId ? `&d=${row.clientId}` : ""}${
+									row.maintenance ? `&m=${row.id}` : ""
+								}`}
 							>
 								Agendar
 							</a>
