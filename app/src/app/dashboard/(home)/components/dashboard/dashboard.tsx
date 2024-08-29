@@ -358,7 +358,11 @@ export default function Dashboard({
 
 	const calculateStatus = (maintenance: Maintenance, kmCurrent: number) => {
 		const now = new Date();
-		if (maintenance.dateLimit && maintenance.dateLimit < now) {
+		const dateLimit = maintenance.dateLimit
+			? maintenance.dateLimit.toDate()
+			: null;
+
+		if (dateLimit && dateLimit < now) {
 			return "Vencida";
 		} else if (maintenance.kmLimit && maintenance.kmLimit < kmCurrent) {
 			return "Crítica";

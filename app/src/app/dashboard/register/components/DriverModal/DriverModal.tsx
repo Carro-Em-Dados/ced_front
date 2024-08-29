@@ -1,5 +1,7 @@
 import { AuthContext } from "@/contexts/auth.context";
 import {
+	Autocomplete,
+	AutocompleteItem,
 	Button,
 	Input,
 	Modal,
@@ -376,57 +378,55 @@ export default function DriverModal({ setDrivers, drivers }: Props) {
 											</SelectItem>
 										</Select>
 									</div>
-									<div className="flex flex-row gap-4">
-										<div className="flex flex-row gap-5">
-											<InputMask
-												mask="(99) 99999-9999"
-												value={phoneRes}
-												onChange={(e) => setPhoneRes(e.target.value)}
-												maskChar={null}
-											>
-												{
-													((inputProps: any) => (
-														<Input
-															{...inputProps}
-															type="text"
-															label="Celular"
-															variant="bordered"
-															className="dark"
-															classNames={{
-																input: ["bg-transparent text-white"],
-																inputWrapper: [
-																	"border border-2 !border-white focus:border-white",
-																],
-															}}
-														/>
-													)) as unknown as ReactNode
-												}
-											</InputMask>
-											<InputMask
-												mask="(99) 99999-9999"
-												value={phoneCom}
-												onChange={(e) => setPhoneCom(e.target.value)}
-												maskChar={null}
-											>
-												{
-													((inputProps: any) => (
-														<Input
-															{...inputProps}
-															type="text"
-															label="Telefone"
-															variant="bordered"
-															className="dark"
-															classNames={{
-																input: ["bg-transparent text-white"],
-																inputWrapper: [
-																	"border border-2 !border-white focus:border-white",
-																],
-															}}
-														/>
-													)) as unknown as ReactNode
-												}
-											</InputMask>
-										</div>
+									<div className="flex flex-row gap-5">
+										<InputMask
+											mask="(99) 99999-9999"
+											value={phoneRes}
+											onChange={(e) => setPhoneRes(e.target.value)}
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														{...inputProps}
+														type="text"
+														label="Celular"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
+										<InputMask
+											mask="(99) 99999-9999"
+											value={phoneCom}
+											onChange={(e) => setPhoneCom(e.target.value)}
+											maskChar={null}
+										>
+											{
+												((inputProps: any) => (
+													<Input
+														{...inputProps}
+														type="text"
+														label="Telefone"
+														variant="bordered"
+														className="dark"
+														classNames={{
+															input: ["bg-transparent text-white"],
+															inputWrapper: [
+																"border border-2 !border-white focus:border-white",
+															],
+														}}
+													/>
+												)) as unknown as ReactNode
+											}
+										</InputMask>
 									</div>
 									<div>
 										<Input
@@ -478,25 +478,30 @@ export default function DriverModal({ setDrivers, drivers }: Props) {
 									</div>
 									{currentUser?.role === "master" && (
 										<div>
-											<Select
-												name="workshops"
+											<Autocomplete
+												label="Oficina"
 												variant="bordered"
-												className="dark text-white"
-												classNames={{
-													trigger: "!border-white rounded-[1em]",
+												className="dark"
+												defaultItems={workshops.map((workshop) => ({
+													value: workshop.id.toString(),
+													label: workshop.fantasy_name,
+												}))}
+												onKeyDown={(e: any) => e.continuePropagation()}
+												selectedKey={selectedWorkshop}
+												onSelectionChange={(key: any) => {
+													const keyString = key.toString() || "";
+													setSelectedWorkshop(keyString || "");
 												}}
-												value={selectedWorkshop}
-												onChange={(e) => setSelectedWorkshop(e.target.value)}
 											>
-												{workshops.map((workshop) => (
-													<SelectItem
-														key={workshop.id}
-														value={workshop.id}
+												{(item) => (
+													<AutocompleteItem
+														key={item.value}
+														value={item.value}
 													>
-														{workshop.fantasy_name}
-													</SelectItem>
-												))}
-											</Select>
+														{item.label}
+													</AutocompleteItem>
+												)}
+											</Autocomplete>
 										</div>
 									)}
 								</div>

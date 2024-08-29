@@ -282,6 +282,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 			const selectedModelCode = vehiclesModels.find(
 				(model) => model.nome === carModel
 			)?.codigo;
+			console.log(selectedModelCode);
 			setSelectedModel(selectedModelCode || "");
 		}
 	}, [carModel, vehiclesModels]);
@@ -412,7 +413,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 															(model) => model.nome == keyString
 														)?.codigo || ""
 													);
-													setSelectedModel(keyString || "");
+													setCarModel(keyString || "");
 												}}
 												disabled={!manufacturer || loadingFetch}
 												selectedKey={carModel}
