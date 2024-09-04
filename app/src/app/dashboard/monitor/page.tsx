@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useState } from "react";
+import React, { ReactNode, useContext, useState } from "react";
 import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
@@ -8,7 +8,7 @@ import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { Input } from "@nextui-org/react";
 import { FaOilCan, FaSearch } from "react-icons/fa";
 import { AuthContext } from "@/contexts/auth.context";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, or } from "firebase/firestore";
 import { Reading } from "@/interfaces/readings.type";
 import { MdDateRange } from "react-icons/md";
 import { IoCloseCircle, IoSpeedometer } from "react-icons/io5";
@@ -19,13 +19,14 @@ import { RiPinDistanceFill } from "react-icons/ri";
 import clsx from "clsx";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { toast, Zoom } from "react-toastify";
+import InputMask from "react-input-mask";
 
 const verificationOptions = [
   { label: "Email", key: "email" },
   { label: "Nome do cliente", key: "name" },
   { label: "Placa do veículo", key: "license_plate" },
   { label: "Chassi do veículo", key: "vin" },
-  { label: "Telefone", key: "phone" },
+  { label: "Telefone", key: "phone_commercial" },
 ];
 
 export default function Monitor() {
@@ -43,7 +44,7 @@ export default function Monitor() {
       let fetchedVehicleIds: string[] = [];
       let fetchedVehicleDetails: Vehicle[] = [];
 
-      if (verification === "email" || verification === "name") {
+      if (verification === "email" || verification === "name" || verification === "phone_commercial") {
         const userSnapshot = await getDocs(query(collection(db, "appUsers"), where(verification, "==", searchValue)));
         for (const doc of userSnapshot.docs) {
           const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
@@ -80,8 +81,8 @@ export default function Monitor() {
 
       setVehicleIds(fetchedVehicleIds);
       setVehicleData(fetchedVehicleDetails);
-
       if (fetchedVehicleIds.length <= 1 && fetchedVehicleDetails.length <= 1) {
+        setSelectedVehicle(fetchedVehicleDetails[0]);
         await fetchVehicleStats(fetchedVehicleIds[0], fetchedVehicleDetails[0]);
       } else {
         setShowMonitor(false);
@@ -154,23 +155,33 @@ export default function Monitor() {
             </div>
             <div className={styles.searchbarContainer}>
               {verification && (
-                <Input
-                  type="text"
-                  label="Pesquisar por veículo"
+                <InputMask
+                  mask={verification === "phone_commercial" ? "(99) 99999-9999" : ""}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  variant="bordered"
-                  className="dark"
-                  classNames={{
-                    input: ["bg-transparent text-white"],
-                    inputWrapper: ["border border-2 !border-white focus:border-white"],
-                  }}
-                  endContent={
-                    <button onClick={handleSearch} className="self-center">
-                      <FaSearch className="text-white text-lg" />
-                    </button>
+                  maskChar={null}
+                >
+                  {
+                    ((inputProps: any) => (
+                      <Input
+                        {...inputProps}
+                        type="text"
+                        label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: ["border border-2 !border-white focus:border-white"],
+                        }}
+                        endContent={
+                          <button onClick={handleSearch} className="self-center">
+                            <FaSearch className="text-white text-lg" />
+                          </button>
+                        }
+                      />
+                    )) as unknown as ReactNode
                   }
-                />
+                </InputMask>
               )}
             </div>
           </div>
@@ -220,7 +231,15 @@ const VehicleStats = ({ readings, vehicle }: { readings: Reading[]; vehicle: Veh
               <RpmCard rpm={reading.rpm} limit={vehicle.rpm} />
               <SpeedCard speed={reading.speed} limit={vehicle.speed} />
               <FailCard fails={0} />
-              <LastReadingCard lastRead={new Date(reading.createdAt).toLocaleString("pt-BR")} />
+              <LastReadingCard
+                lastRead={new Date(reading.createdAt).toLocaleString("pt-BR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              />
             </div>
           ))
         ) : (

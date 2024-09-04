@@ -1,29 +1,21 @@
 import {
-	Autocomplete,
-	AutocompleteItem,
-	Button,
-	Input,
-	Modal,
-	ModalBody,
-	ModalContent,
-	ModalFooter,
-	ModalHeader,
-	Textarea,
-	useDisclosure,
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Textarea,
+  useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
 import styles from "../../../register/styles.module.scss";
 import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { useContext, useEffect, useState } from "react";
-import {
-	collection,
-	addDoc,
-	getDocs,
-	query,
-	where,
-	doc,
-	getDoc,
-} from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { createGoogleEvent } from "@/services/google-calendar";
@@ -33,438 +25,378 @@ import type { Vehicle } from "@/interfaces/vehicle.type";
 import { useSearchParams } from "next/navigation";
 
 interface Props {
-	events: any;
-	setEvents: React.Dispatch<React.SetStateAction<any[]>>;
-	services: any[];
-	drivers: any[];
+  events: any;
+  setEvents: React.Dispatch<React.SetStateAction<any[]>>;
+  services: any[];
+  drivers: any[];
 }
 
-export default function CreateEventModal({
-	events,
-	setEvents,
-	drivers,
-	services,
-}: Props) {
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
-	const [maintenanceDate, setMaintenanceDate] = useState(() => {
-		const now = new Date();
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, "0");
-		const day = String(now.getDate()).padStart(2, "0");
+export default function CreateEventModal({ events, setEvents, drivers, services }: Props) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [maintenanceDate, setMaintenanceDate] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
 
-		return `${year}-${month}-${day}`;
-	});
-	const [start, setStart] = useState(
-		new Date().toTimeString().split(" ")[0].substring(0, 5)
-	);
+    return `${year}-${month}-${day}`;
+  });
+  const [start, setStart] = useState(new Date().toTimeString().split(" ")[0].substring(0, 5));
 
-	const [end, setEnd] = useState(() => {
-		const [hours, minutes] = start.split(":").map(Number);
-		const startDate = new Date();
-		startDate.setHours(hours);
-		startDate.setMinutes(minutes);
-		startDate.setHours(startDate.getHours() + 2);
-		return startDate.toTimeString().split(" ")[0].substring(0, 5);
-	});
-	const [note, setNote] = useState("");
-	const [selectedDriver, setSelectedDriver] = useState<any>();
-	const [selectedService, setSelectedService] = useState<any>();
-	const [selectedVehicle, setSelectedVehicle] = useState<any>();
-	const [driverName, setDriverName] = useState<string>("");
-	const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
-	const searchParams = useSearchParams();
-	const vehicle = searchParams.get("v");
-	const driver = searchParams.get("d");
-	const maintenance = searchParams.get("m");
+  const [end, setEnd] = useState(() => {
+    const [hours, minutes] = start.split(":").map(Number);
+    const startDate = new Date();
+    startDate.setHours(hours);
+    startDate.setMinutes(minutes);
+    startDate.setHours(startDate.getHours() + 2);
+    return startDate.toTimeString().split(" ")[0].substring(0, 5);
+  });
+  const [note, setNote] = useState("");
+  const [selectedDriver, setSelectedDriver] = useState<any>();
+  const [selectedService, setSelectedService] = useState<any>();
+  const [selectedVehicle, setSelectedVehicle] = useState<any>();
+  const [driverName, setDriverName] = useState<string>("");
+  const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const vehicle = searchParams.get("v");
+  const driver = searchParams.get("d");
+  const maintenance = searchParams.get("m");
 
-	const { db, currentWorkshop } = useContext(AuthContext);
+  const { db, currentWorkshop } = useContext(AuthContext);
 
-	useEffect(() => {
-		const [hours, minutes] = start.split(":").map(Number);
-		const startDate = new Date();
-		startDate.setHours(hours);
-		startDate.setMinutes(minutes);
-		startDate.setHours(startDate.getHours() + 2);
-		setEnd(startDate.toTimeString().split(" ")[0].substring(0, 5));
-	}, [start]);
+  useEffect(() => {
+    const [hours, minutes] = start.split(":").map(Number);
+    const startDate = new Date();
+    startDate.setHours(hours);
+    startDate.setMinutes(minutes);
+    startDate.setHours(startDate.getHours() + 2);
+    setEnd(startDate.toTimeString().split(" ")[0].substring(0, 5));
+  }, [start]);
 
-	useEffect(() => {
-		setSelectedDriver(driver);
-		setSelectedVehicle(vehicle);
-		if (driver || vehicle || maintenance) {
-			onOpen();
-			if (maintenance) {
-				getMaintenanceName(maintenance);
-			}
-		}
-	}, [driver, vehicle, maintenance]);
+  useEffect(() => {
+    setSelectedDriver(driver);
+    setSelectedVehicle(vehicle);
+    if (driver || vehicle || maintenance) {
+      onOpen();
+      if (maintenance) {
+        getMaintenanceName(maintenance);
+      }
+    }
+  }, [driver, vehicle, maintenance]);
 
-	const getMaintenanceName = async (main: string) => {
-		if (!currentWorkshop) return;
-		const docRef = doc(db, "maintenances", main);
-		await getDoc(docRef).then((doc) => {
-			if (doc.exists()) {
-				console.log(doc.data().service);
-				setMaintenanceTitle(doc.data().service);
-			}
-		});
-	};
+  const getMaintenanceName = async (main: string) => {
+    if (!currentWorkshop) return;
+    const docRef = doc(db, "maintenances", main);
+    await getDoc(docRef).then((doc) => {
+      if (doc.exists()) {
+        setMaintenanceTitle(doc.data().service);
+      }
+    });
+  };
 
-	const createEvent = async () => {
-		if (!currentWorkshop) return;
+  const createEvent = async () => {
+    setLoading(true);
+    if (!currentWorkshop) return;
 
-		if (
-			!selectedDriver ||
-			selectedDriver === "" ||
-			!selectedService ||
-			selectedService === "" ||
-			!selectedVehicle ||
-			selectedVehicle === ""
-		) {
-			toast.error("Por favor preencha os campos", {
-				position: "bottom-right",
-				autoClose: 5000,
-				hideProgressBar: true,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined,
-				theme: "dark",
-				transition: Zoom,
-			});
-			return;
-		}
+    if (!selectedDriver || (!selectedService && !maintenanceTitle) || !selectedVehicle) {
+      toast.error("Por favor preencha os campos", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+      return;
+    }
 
-		const newEventStart = new Date(`${maintenanceDate}T${start}`);
-		const newEventEnd = new Date(`${maintenanceDate}T${end}`);
+    const newEventStart = new Date(`${maintenanceDate}T${start}`);
+    const newEventEnd = new Date(`${maintenanceDate}T${end}`);
 
-		if (newEventStart.getTime() > newEventEnd.getTime()) {
-			return toast.error("A data final deve ser superior a data inicial", {
-				position: "bottom-right",
-				autoClose: 5000,
-				hideProgressBar: true,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined,
-				theme: "dark",
-				transition: Zoom,
-			});
-		}
+    if (newEventStart.getTime() > newEventEnd.getTime()) {
+      return toast.error("A data final deve ser superior a data inicial", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    }
 
-		try {
-			const q = query(
-				collection(db, "schedules"),
-				where("workshop", "==", currentWorkshop.id),
-				where("start", "<", newEventEnd),
-				where("end", ">", newEventStart)
-			);
+    try {
+      const q = query(
+        collection(db, "schedules"),
+        where("workshop", "==", currentWorkshop.id),
+        where("start", "<", newEventEnd),
+        where("end", ">", newEventStart)
+      );
 
-			const querySnapshot = await getDocs(q);
-			if (!querySnapshot.empty) {
-				toast.error("Conflito de horário com outro agendamento", {
-					position: "bottom-right",
-					autoClose: 5000,
-					hideProgressBar: true,
-					closeOnClick: true,
-					pauseOnHover: true,
-					draggable: true,
-					progress: undefined,
-					theme: "dark",
-					transition: Zoom,
-				});
-				return;
-			}
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        toast.error("Conflito de horário com outro agendamento", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
+        return;
+      }
 
-			let newEvent: Schedules;
+      let newEvent: Schedules;
 
-			newEvent = {
-				allDay: false,
-				driver: selectedDriver,
-				vehicle: selectedVehicle,
-				service: selectedService,
-				note,
-				start: newEventStart,
-				end: newEventEnd,
-				workshop: currentWorkshop.id,
-			};
+      newEvent = {
+        allDay: false,
+        driver: selectedDriver,
+        vehicle: selectedVehicle,
+        service: selectedService,
+        note,
+        start: newEventStart,
+        end: newEventEnd,
+        workshop: currentWorkshop.id,
+      };
 
-			if (maintenance) {
-				newEvent = {
-					allDay: false,
-					driver: selectedDriver,
-					vehicle: selectedVehicle,
-					maintenance: maintenance,
-					note,
-					start: newEventStart,
-					end: newEventEnd,
-					workshop: currentWorkshop.id,
-				};
-			}
+      if (maintenance) {
+        newEvent = {
+          allDay: false,
+          driver: selectedDriver,
+          vehicle: selectedVehicle,
+          maintenance: maintenance,
+          note,
+          start: newEventStart,
+          end: newEventEnd,
+          workshop: currentWorkshop.id,
+        };
+      }
 
-			if (currentWorkshop.google_calendar_id)
-				newEvent.google_event_id =
-					(await createGoogleEvent(currentWorkshop.google_calendar_id, {
-						end: newEventEnd.toISOString(),
-						start: newEventStart.toISOString(),
-						summary: `[${currentWorkshop.fantasy_name}] ${driverName}`,
-						description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
-						location: `${currentWorkshop?.address ?? ""} - ${
-							currentWorkshop?.city_code ?? ""
-						}, ${currentWorkshop?.state_code ?? ""}`,
-					})) ?? undefined;
+      if (currentWorkshop.google_calendar_id)
+        newEvent.google_event_id =
+          (await createGoogleEvent(currentWorkshop.google_calendar_id, {
+            end: newEventEnd.toISOString(),
+            start: newEventStart.toISOString(),
+            summary: `[${currentWorkshop.fantasy_name}] ${driverName}`,
+            description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
+            location: `${currentWorkshop?.address ?? ""} - ${currentWorkshop?.city_code ?? ""}, ${currentWorkshop?.state_code ?? ""}`,
+          })) ?? undefined;
 
-			const eventRef = await addDoc(collection(db, "schedules"), {
-				...newEvent,
-			});
+      const eventRef = await addDoc(collection(db, "schedules"), {
+        ...newEvent,
+      });
 
-			setEvents((prevEvents) => [
-				...prevEvents,
-				{ id: eventRef.id, title: "Manutenção", ...newEvent },
-			]);
+      setEvents((prevEvents) => [...prevEvents, { id: eventRef.id, title: "Manutenção", ...newEvent }]);
 
-			onOpenChange();
+      onOpenChange();
 
-			setMaintenanceDate(new Date().toISOString().split("T")[0]);
-			setStart(new Date().toTimeString().split(" ")[0].substring(0, 5));
-			setEnd(() => {
-				const now = new Date();
-				const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-				return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
-			});
-			setNote("");
-			setSelectedDriver("");
-			setSelectedService("");
-			setSelectedVehicle("");
-		} catch (error) {
-			toast.error("Erro ao criar agendamento", {
-				position: "bottom-right",
-				autoClose: 5000,
-				hideProgressBar: true,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined,
-				theme: "dark",
-				transition: Zoom,
-			});
-		}
-	};
+      setMaintenanceDate(new Date().toISOString().split("T")[0]);
+      setStart(new Date().toTimeString().split(" ")[0].substring(0, 5));
+      setEnd(() => {
+        const now = new Date();
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+        return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
+      });
+      setNote("");
+      setSelectedDriver("");
+      setSelectedService("");
+      setSelectedVehicle("");
+    } catch (error) {
+      toast.error("Erro ao criar agendamento", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	return (
-		<>
-			<Button
-				color="success"
-				className={clsx(styles.addVehicleBtn, "w-fit")}
-				onClick={onOpen}
-			>
-				Adicionar manutenção
-			</Button>
-			<Modal
-				isOpen={isOpen}
-				className={styles.modal}
-				size="2xl"
-				onOpenChange={onOpenChange}
-			>
-				<ModalContent>
-					{(onClose) => (
-						<>
-							<ModalHeader
-								className={clsx("flex flex-col gap-1", styles.modalTitle)}
-							>
-								Adicionar manutenção
-							</ModalHeader>
-							<ModalBody className="text-white">
-								<div className={clsx(styles.form, "flex flex-col gap-4")}>
-									<div className="flex flex-col gap-2">
-										<Input
-											label="Data de manutenção"
-											type="date"
-											value={maintenanceDate}
-											onChange={(e) => setMaintenanceDate(e.target.value)}
-											variant="bordered"
-											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
-											}}
-										/>
-									</div>
-									<div className="flex flex-row gap-4">
-										<div className="flex flex-col gap-2 w-full">
-											<Input
-												label="Horário de início"
-												type="time"
-												value={start}
-												onChange={(e) => setStart(e.target.value)}
-												variant="bordered"
-												className="dark"
-												classNames={{
-													input: ["bg-transparent text-white"],
-													inputWrapper: [
-														"border border-2 !border-white focus:border-white",
-													],
-												}}
-											/>
-										</div>
-										<div className="flex flex-col gap-2 w-full">
-											<Input
-												disabled
-												label="Horário de término"
-												type="time"
-												value={end}
-												onChange={(e) => setEnd(e.target.value)}
-												variant="bordered"
-												className="dark"
-												classNames={{
-													input: ["bg-transparent text-white"],
-													inputWrapper: [
-														"border border-2 !border-white focus:border-white",
-													],
-												}}
-											/>
-										</div>
-									</div>
-									<div className="flex flex-row gap-5">
-										<Autocomplete
-											label="Motorista"
-											variant="bordered"
-											className="dark"
-											defaultItems={drivers.map((driver) => ({
-												value: driver.id,
-												label: driver.name,
-											}))}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "";
-												setSelectedDriver(keyString);
-												setDriverName(
-													drivers.find((driver) => driver.id === keyString)
-														?.name || ""
-												);
-											}}
-											selectedKey={selectedDriver}
-										>
-											{(item) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-										<Autocomplete
-											label="Veículos"
-											variant="bordered"
-											className="dark"
-											defaultItems={
-												drivers
-													.find((driver) => driver.id === selectedDriver)
-													?.vehicles?.map((vehicle: Vehicle) => ({
-														value: vehicle.id,
-														label: `${vehicle.manufacturer} ${vehicle.car_model}`,
-													})) || []
-											}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "";
-												setSelectedVehicle(keyString);
-											}}
-											selectedKey={selectedVehicle}
-										>
-											{(item: { value: string; label: string }) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-									</div>
+  return (
+    <>
+      <Button color="success" className={clsx(styles.addVehicleBtn, "w-fit")} onClick={onOpen}>
+        Adicionar manutenção
+      </Button>
+      <Modal isOpen={isOpen} className={styles.modal} size="2xl" onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className={clsx("flex flex-col gap-1", styles.modalTitle)}>Adicionar manutenção</ModalHeader>
+              <ModalBody className="text-white">
+                <div className={clsx(styles.form, "flex flex-col gap-4")}>
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      label="Data de manutenção"
+                      type="date"
+                      value={maintenanceDate}
+                      onChange={(e) => setMaintenanceDate(e.target.value)}
+                      variant="bordered"
+                      className="dark"
+                      classNames={{
+                        input: ["bg-transparent text-white"],
+                        inputWrapper: ["border border-2 !border-white focus:border-white"],
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-row gap-4">
+                    <div className="flex flex-col gap-2 w-full">
+                      <Input
+                        label="Horário de início"
+                        type="time"
+                        value={start}
+                        onChange={(e) => setStart(e.target.value)}
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: ["border border-2 !border-white focus:border-white"],
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2 w-full">
+                      <Input
+                        disabled
+                        label="Horário de término"
+                        type="time"
+                        value={end}
+                        onChange={(e) => setEnd(e.target.value)}
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: ["border border-2 !border-white focus:border-white"],
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-row gap-5">
+                    <Autocomplete
+                      label="Motorista"
+                      variant="bordered"
+                      className="dark"
+                      defaultItems={drivers.map((driver) => ({
+                        value: driver.id,
+                        label: driver.name,
+                      }))}
+                      onKeyDown={(e: any) => e.continuePropagation()}
+                      onSelectionChange={(key) => {
+                        const keyString = key ? key.toString() : "";
+                        setSelectedDriver(keyString);
+                        setDriverName(drivers.find((driver) => driver.id === keyString)?.name || "");
+                      }}
+                      selectedKey={selectedDriver}
+                    >
+                      {(item) => (
+                        <AutocompleteItem key={item.value} value={item.value}>
+                          {item.label}
+                        </AutocompleteItem>
+                      )}
+                    </Autocomplete>
+                    <Autocomplete
+                      label="Veículos"
+                      variant="bordered"
+                      className="dark"
+                      defaultItems={
+                        drivers
+                          .find((driver) => driver.id === selectedDriver)
+                          ?.vehicles?.map((vehicle: Vehicle) => ({
+                            value: vehicle.id,
+                            label: `${vehicle.manufacturer} ${vehicle.car_model}`,
+                          })) || []
+                      }
+                      onKeyDown={(e: any) => e.continuePropagation()}
+                      onSelectionChange={(key) => {
+                        const keyString = key ? key.toString() : "";
+                        setSelectedVehicle(keyString);
+                      }}
+                      selectedKey={selectedVehicle}
+                    >
+                      {(item: { value: string; label: string }) => (
+                        <AutocompleteItem key={item.value} value={item.value}>
+                          {item.label}
+                        </AutocompleteItem>
+                      )}
+                    </Autocomplete>
+                  </div>
 
-									{maintenance ? (
-										<Input
-											disabled
-											label="Manutenção"
-											type="text"
-											value={maintenanceTitle}
-											variant="bordered"
-											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
-											}}
-										/>
-									) : (
-										<Autocomplete
-											label="Serviço"
-											variant="bordered"
-											className="dark"
-											defaultItems={services.map((service) => ({
-												value: service.id,
-												label: service.service,
-											}))}
-											onKeyDown={(e: any) => e.continuePropagation()}
-											onSelectionChange={(key) => {
-												const keyString = key ? key.toString() : "";
-												setSelectedService(keyString);
-											}}
-											selectedKey={selectedService}
-										>
-											{(item) => (
-												<AutocompleteItem
-													key={item.value}
-													value={item.value}
-												>
-													{item.label}
-												</AutocompleteItem>
-											)}
-										</Autocomplete>
-									)}
-									<div className="flex flex-col gap-2 w-full">
-										<Textarea
-											placeholder="Observação"
-											value={note}
-											onChange={(e) => setNote(e.target.value)}
-											variant="bordered"
-											className="dark"
-											classNames={{
-												input: ["bg-transparent text-white"],
-												inputWrapper: [
-													"border border-2 !border-white focus:border-white",
-												],
-											}}
-										/>
-									</div>
-								</div>
-							</ModalBody>
-							<ModalFooter>
-								<Button
-									color="default"
-									variant="light"
-									className="rounded-full px-5 text-white"
-									onClick={onClose}
-								>
-									Cancelar
-								</Button>
-								<Button
-									color="success"
-									className={styles.modalButton}
-									onClick={createEvent}
-								>
-									Salvar
-								</Button>
-							</ModalFooter>
-						</>
-					)}
-				</ModalContent>
-			</Modal>
-		</>
-	);
+                  {maintenance ? (
+                    <Input
+                      disabled
+                      label="Manutenção"
+                      type="text"
+                      value={maintenanceTitle}
+                      variant="bordered"
+                      className="dark"
+                      classNames={{
+                        input: ["bg-transparent text-white"],
+                        inputWrapper: ["border border-2 !border-white focus:border-white"],
+                      }}
+                    />
+                  ) : (
+                    <Autocomplete
+                      label="Serviço"
+                      variant="bordered"
+                      className="dark"
+                      defaultItems={services.map((service) => ({
+                        value: service.id,
+                        label: service.service,
+                      }))}
+                      onKeyDown={(e: any) => e.continuePropagation()}
+                      onSelectionChange={(key) => {
+                        const keyString = key ? key.toString() : "";
+                        setSelectedService(keyString);
+                      }}
+                      selectedKey={selectedService}
+                    >
+                      {(item) => (
+                        <AutocompleteItem key={item.value} value={item.value}>
+                          {item.label}
+                        </AutocompleteItem>
+                      )}
+                    </Autocomplete>
+                  )}
+                  <div className="flex flex-col gap-2 w-full">
+                    <Textarea
+                      placeholder="Observação"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      variant="bordered"
+                      className="dark"
+                      classNames={{
+                        input: ["bg-transparent text-white"],
+                        inputWrapper: ["border border-2 !border-white focus:border-white"],
+                      }}
+                    />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" className="rounded-full px-5 text-white" onClick={onClose}>
+                  Cancelar
+                </Button>
+                <Button color="success" disabled={loading} className={styles.modalButton} onClick={createEvent}>
+                  Salvar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
+  );
 }

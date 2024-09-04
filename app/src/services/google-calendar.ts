@@ -61,7 +61,6 @@ export async function createGoogleEvent(
   calendarId: string,
   event: { summary: string; location?: string; start: string; end: string; description?: string }
 ) {
-  console.log("auth:", auth);
   const calendar = google.calendar({ version: "v3", auth });
 
   try {

@@ -1,24 +1,107 @@
 "use client";
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { Workshop } from "@/interfaces/workshop.type";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { AuthContext } from "./auth.context";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
+import { Contract } from "@/interfaces/contract.type";
 
 interface WorkshopContextData {
-
+  workshopInView: (Workshop & { contract: Contract }) | undefined;
+  workshopOptions: (Workshop & { contract: Contract })[];
+  setWorkshopInView: (workshop: Workshop & { contract: Contract }) => void;
+  WorkshopsByOrg: () => JSX.Element;
+  refecth: () => Promise<void>;
 }
 
 interface WorkshopProviderProps {
-    children: ReactNode
+  children: ReactNode;
 }
 
 export const WorkshopContext = createContext<WorkshopContextData>({} as WorkshopContextData);
 
-export function AuthProvider({ children }: WorkshopProviderProps) {
+export function WorkshopProvider({ children }: WorkshopProviderProps) {
+  const { db, currentUser } = useContext(AuthContext);
 
+  const [workshopInView, setWorkshopInView] = useState<(Workshop & { contract: Contract }) | undefined>(undefined);
+  const [workshopOptions, setWorkshopOptions] = useState<(Workshop & { contract: Contract })[]>([]);
+  const [basicContract, setBasicContract] = useState<Contract | null>(null);
+
+  const getContract = async (id: string) => {
+    if (id === "basic" && basicContract) return basicContract;
+    const contractRef = doc(db, "contracts", id);
+    const contractSnap = await getDoc(contractRef);
+    if (!contractSnap.exists()) return null;
+    if (id === "basic" && !basicContract) setBasicContract({ ...contractSnap.data(), id } as Contract);
+    return {
+      ...(contractSnap.data() as Contract),
+      id: contractRef.id,
+    };
+  };
+
+  const getWorkshopByOrganization = async () => {
+    try {
+      if (!currentUser?.id) return;
+      const workshopQuery = query(collection(db, "workshops"), where("owner", "==", currentUser.id));
+      const workshopsSnapshot = await getDocs(workshopQuery);
+      const workshopsPromises = workshopsSnapshot.docs.map(async (doc) => {
+        const workshop = doc.data() as Workshop;
+
+        let contract = await getContract((workshop.contract ?? "basic") as string);
+        if (!contract) await getContract("basic");
+
+        return { ...workshop, contract, id: doc.id } as Workshop & { contract: Contract };
+      });
+
+      const workshops = await Promise.all(workshopsPromises);
+
+      setWorkshopOptions(workshops);
+      setWorkshopInView(workshops[0]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (workshopInView && workshopOptions.length > 0) return;
+    getWorkshopByOrganization();
+  }, [currentUser]);
+
+  const WorkshopsByOrg = () => {
     return (
-        <WorkshopContext.Provider
-            value={{}}>
-            {children}
-        </WorkshopContext.Provider>
+      <Autocomplete
+        label="Selecione a oficina"
+        variant="flat"
+        size="sm"
+        className="dark text-white w-fit"
+        defaultItems={workshopOptions.map((w) => ({
+          value: w.id,
+          label: w.company_name,
+        }))}
+        onKeyDown={(e: any) => e.continuePropagation()}
+        onSelectionChange={(key) => {
+          if (!key) return;
+          const keyString = key ? key.toString() : "none";
+          setWorkshopInView(workshopOptions.find((w) => w.id === keyString));
+        }}
+        selectedKey={workshopInView?.id}
+      >
+        {(item) => (
+          <AutocompleteItem key={item.value} value={item.value}>
+            {item.label}
+          </AutocompleteItem>
+        )}
+      </Autocomplete>
     );
+  };
+
+  return (
+    <WorkshopContext.Provider
+      value={{ setWorkshopInView, workshopInView, workshopOptions, refecth: getWorkshopByOrganization, WorkshopsByOrg }}
+    >
+      {children}
+    </WorkshopContext.Provider>
+  );
 }
 
-export default AuthProvider;
+export default WorkshopProvider;
