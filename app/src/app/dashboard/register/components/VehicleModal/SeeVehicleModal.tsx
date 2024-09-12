@@ -216,10 +216,10 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                   <Tab className={`${styles.tabButton} !p-0`} key="alarms" title="Manutenções">
                     <div className="flex flex-col gap-5 justify-between w-full">
                       {maintenances?.map((maintenance, index) => (
-                        <div className="flex flex-row gap-2 items-center" key={`${maintenance.id} ${index}`}>
+                        <div className="grid grid-cols-12 gap-2 items-center" key={`${maintenance.id} ${index}`}>
                           <Select
                             variant="bordered"
-                            className="dark text-white"
+                            className="dark text-white col-span-5"
                             classNames={{
                               trigger: "!border-white rounded-medium",
                               value: "text-white",
@@ -241,7 +241,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             value={maintenance.kmLimit.toString()}
                             onChange={(e) => updateMaintenance(index, "kmLimit", Number(e.target.value))}
                             variant="bordered"
-                            className="dark"
+                            className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
@@ -254,7 +254,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             value={maintenance?.dateLimit instanceof Date ? maintenance.dateLimit.toISOString().split("T")[0] : ""}
                             onChange={(e) => updateMaintenance(index, "dateLimit", new Date(e.target.value))}
                             variant="bordered"
-                            className="dark"
+                            className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
@@ -267,7 +267,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             value={maintenance.price.toString()}
                             onChange={(e) => updateMaintenance(index, "price", Number(e.target.value))}
                             variant="bordered"
-                            className="dark"
+                            className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
@@ -278,7 +278,10 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                               </div>
                             }
                           />
-                          <button className="p-2 rounded-full hover:bg-white/10" onClick={() => deleteMaintenance(index)}>
+                          <button
+                            className="col-span-1 h-full w-auto flex items-center justify-center p-2 rounded-full hover:bg-white/10"
+                            onClick={() => deleteMaintenance(index)}
+                          >
                             <FaRegTrashCan />
                           </button>
                         </div>
