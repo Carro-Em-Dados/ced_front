@@ -16,7 +16,7 @@ import styles from "../../styles.module.scss";
 import clsx from "clsx";
 import { doc, setDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, deleteUser } from "firebase/auth";
 import { toast, Zoom } from "react-toastify";
 import { roleLabel } from "@/constants/rolesLabel";
 

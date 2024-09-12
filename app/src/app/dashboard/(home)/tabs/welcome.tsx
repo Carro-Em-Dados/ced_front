@@ -95,7 +95,15 @@ export default function Welcome() {
           </Autocomplete>
         </div>
       </div>
-      {selectedWorkshop ? <Dashboard selectedWorkshop={selectedWorkshop} workshopName={workshopName} /> : <WelcomeImage />}
+      {selectedWorkshop ? (
+        <Dashboard
+          contractId={(workshops.find((w) => w.id === selectedWorkshop)?.contract as string) || ""}
+          selectedWorkshop={selectedWorkshop}
+          workshopName={workshopName}
+        />
+      ) : (
+        <WelcomeImage />
+      )}
     </div>
   );
 }

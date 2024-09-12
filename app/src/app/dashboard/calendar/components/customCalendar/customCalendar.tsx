@@ -14,6 +14,8 @@ import { toast, Zoom } from "react-toastify";
 import type { Vehicle } from "@/interfaces/vehicle.type";
 import type { AppUser } from "@/interfaces/appUser.type";
 import type { Driver } from "@/interfaces/driver.type";
+import { WorkshopContext } from "@/contexts/workshop.context";
+import { Role } from "@/types/enums/role.enum";
 
 const localizer = momentLocalizer(moment);
 
@@ -38,13 +40,16 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
-  const { db, currentWorkshop } = useContext(AuthContext);
+  const { db, currentWorkshop, currentUser } = useContext(AuthContext);
+  const { workshopInView, WorkshopsByOrg } = useContext(WorkshopContext);
+
+  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
 
   const fetchSchedules = async () => {
-    if (!currentWorkshop?.id) return;
+    if (!workshop?.id) return;
     setLoading(true);
 
-    const schedulesSnapshot = await getDocs(query(collection(db, "schedules"), where("workshop", "==", currentWorkshop.id)));
+    const schedulesSnapshot = await getDocs(query(collection(db, "schedules"), where("workshop", "==", workshop.id)));
 
     const fetchedSchedules = schedulesSnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -61,22 +66,23 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   };
 
   const getAllMaintenanceInfo = async () => {
+    if (!workshop?.id) return;
     try {
-      const servicesQuery = query(collection(db, "services"), where("workshop", "==", currentWorkshop!.id));
+      const servicesQuery = query(collection(db, "services"), where("workshop", "==", workshop.id));
       const servicesSnapshot = await getDocs(servicesQuery);
       const services = servicesSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      const driversQuery = query(collection(db, "clients"), where("workshops", "==", currentWorkshop!.id));
+      const driversQuery = query(collection(db, "clients"), where("workshops", "==", workshop.id));
       const driversSnapshot = await getDocs(driversQuery);
       const drivers = driversSnapshot.docs.map((doc) => ({
         ...(doc.data() as Driver),
         id: doc.id,
       }));
 
-      const appUsersQuery = query(collection(db, "appUsers"), where("preferred_workshop", "==", currentWorkshop!.id));
+      const appUsersQuery = query(collection(db, "appUsers"), where("preferred_workshop", "==", workshop.id));
       const appUsersSnapshot = await getDocs(appUsersQuery);
       const appUsers = appUsersSnapshot.docs.map((doc) => ({
         ...(doc.data() as AppUser),
@@ -107,17 +113,25 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   useEffect(() => {
     fetchSchedules();
     getAllMaintenanceInfo();
-  }, [currentWorkshop]);
+  }, [workshop]);
 
   const handleSelected = (event: any) => {
     setSelected(event);
     setEditOpen(true);
   };
 
+  if (!workshop)
+    return (
+      <div className="relative flex flex-col gap-10 mx-24 w-full">
+        <p className="text-white">Oficina não encontrada</p>
+      </div>
+    );
+
   return (
     <div className="relative flex flex-col gap-10 mx-24 w-full">
       {!loading && (
         <>
+          {currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}
           <div>
             <CreateEventModal events={events} setEvents={setEvents} services={services} drivers={drivers} />
             <EditEventModal selectedEvent={selected} events={events} setEvents={setEvents} open={editOpen} setOpen={setEditOpen} />

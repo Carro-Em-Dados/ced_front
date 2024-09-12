@@ -49,6 +49,16 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 
   const addVehicle = async () => {
     if (!manufacturer || !carModel || !year || !initialKm || !licensePlate) {
+      const vehicle = {
+        manufacturer,
+        car_model: carModel,
+        year,
+        initial_km: initialKm,
+        license_plate: licensePlate,
+        vin,
+        owner: ownerId,
+      };
+      console.log(vehicle);
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
@@ -197,13 +207,14 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
         setYear(vehicleData.year || "");
         setVin(vehicleData.vin || "");
         setInitialKm(vehicleData.initial_km || 0);
-      } else {
-        setManufacturer(undefined);
-        setCarModel(undefined);
-        setYear(undefined);
-        setVin("");
-        setInitialKm(0);
       }
+      // else {
+      //   setManufacturer(undefined);
+      //   setCarModel(undefined);
+      //   setYear(undefined);
+      //   setVin("");
+      //   setInitialKm(0);
+      // }
     } catch (error) {
       toast.error("Erro ao buscar veículos", {
         position: "bottom-right",
@@ -243,11 +254,11 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     }
   }, [carModel, vehiclesModels]);
 
-  useEffect(() => {
-    if (selectedModel) {
-      fetchVehicleYears(selectedBrand || "", selectedModel);
-    }
-  }, [selectedModel, selectedBrand]);
+  // useEffect(() => {
+  //   if (selectedModel) {
+  //     fetchVehicleYears(selectedBrand || "", selectedModel);
+  //   }
+  // }, [selectedModel, selectedBrand]);
 
   // useEffect(() => {
   //   if (year) {

@@ -38,6 +38,7 @@ export default function Monitor() {
   const [vehicleData, setVehicleData] = useState<Vehicle[]>([]);
   const [vehicleStats, setVehicleStats] = useState<Reading[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  console.log("searchValue:", searchValue);
 
   const handleSearch = async () => {
     try {
@@ -154,35 +155,58 @@ export default function Monitor() {
               />
             </div>
             <div className={styles.searchbarContainer}>
-              {verification && (
-                <InputMask
-                  mask={verification === "phone_commercial" ? "(99) 99999-9999" : ""}
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  maskChar={null}
-                >
-                  {
-                    ((inputProps: any) => (
-                      <Input
-                        {...inputProps}
-                        type="text"
-                        label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
-                        variant="bordered"
-                        className="dark"
-                        classNames={{
-                          input: ["bg-transparent text-white"],
-                          inputWrapper: ["border border-2 !border-white focus:border-white"],
-                        }}
-                        endContent={
-                          <button onClick={handleSearch} className="self-center">
-                            <FaSearch className="text-white text-lg" />
-                          </button>
-                        }
-                      />
-                    )) as unknown as ReactNode
-                  }
-                </InputMask>
-              )}
+              {verification &&
+                (verification === "phone_commercial" ? (
+                  <InputMask
+                    mask={verification === "phone_commercial" ? "(99) 99999-9999" : ""}
+                    value={searchValue}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                    }}
+                    maskChar={null}
+                  >
+                    {
+                      ((inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          type="text"
+                          label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
+                          variant="bordered"
+                          className="dark"
+                          classNames={{
+                            input: ["bg-transparent text-white"],
+                            inputWrapper: ["border border-2 !border-white focus:border-white"],
+                          }}
+                          endContent={
+                            <button onClick={handleSearch} className="self-center">
+                              <FaSearch className="text-white text-lg" />
+                            </button>
+                          }
+                        />
+                      )) as unknown as ReactNode
+                    }
+                  </InputMask>
+                ) : (
+                  <Input
+                    type="text"
+                    label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
+                    variant="bordered"
+                    className="dark"
+                    classNames={{
+                      input: ["bg-transparent text-white"],
+                      inputWrapper: ["border border-2 !border-white focus:border-white"],
+                    }}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                    }}
+                    value={searchValue}
+                    endContent={
+                      <button onClick={handleSearch} className="self-center">
+                        <FaSearch className="text-white text-lg" />
+                      </button>
+                    }
+                  />
+                ))}
             </div>
           </div>
 
