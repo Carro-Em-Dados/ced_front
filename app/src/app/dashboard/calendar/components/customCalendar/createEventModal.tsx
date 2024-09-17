@@ -111,14 +111,14 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
         theme: "dark",
         transition: Zoom,
       });
-      return;
+      return setLoading(false);
     }
 
     const newEventStart = new Date(`${maintenanceDate}T${start}`);
     const newEventEnd = new Date(`${maintenanceDate}T${end}`);
 
     if (newEventStart.getTime() > newEventEnd.getTime()) {
-      return toast.error("A data final deve ser superior a data inicial", {
+      toast.error("A data final deve ser superior a data inicial", {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: true,
@@ -129,6 +129,7 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
         theme: "dark",
         transition: Zoom,
       });
+      return setLoading(false);
     }
 
     try {
@@ -136,7 +137,8 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
         collection(db, "schedules"),
         where("workshop", "==", currentWorkshop.id),
         where("start", "<", newEventEnd),
-        where("end", ">", newEventStart)
+        where("end", ">", newEventStart),
+        where("driver", "==", selectedDriver)
       );
 
       const querySnapshot = await getDocs(q);
@@ -152,7 +154,7 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
           theme: "dark",
           transition: Zoom,
         });
-        return;
+        return setLoading(false);
       }
 
       let newEvent: Schedules;
@@ -181,15 +183,18 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
         };
       }
 
-      if (currentWorkshop.google_calendar_id)
+      if (currentWorkshop.google_calendar_id) {
+        const driverEmail = drivers.find((d) => d.id === selectedDriver)?.email ?? "";
         newEvent.google_event_id =
           (await createGoogleEvent(currentWorkshop.google_calendar_id, {
+            attendees: driverEmail ? [{ email: driverEmail }] : undefined,
             end: newEventEnd.toISOString(),
             start: newEventStart.toISOString(),
             summary: `[${currentWorkshop.fantasy_name}] ${driverName}`,
             description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
             location: `${currentWorkshop?.address ?? ""} - ${currentWorkshop?.city_code ?? ""}, ${currentWorkshop?.state_code ?? ""}`,
           })) ?? undefined;
+      }
 
       const eventRef = await addDoc(collection(db, "schedules"), {
         ...newEvent,

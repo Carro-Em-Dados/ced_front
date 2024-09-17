@@ -59,7 +59,7 @@ export async function createGoogleCalendar(name: string, owners: string[]) {
 }
 export async function createGoogleEvent(
   calendarId: string,
-  event: { summary: string; location?: string; start: string; end: string; description?: string }
+  event: { summary: string; location?: string; start: string; end: string; description?: string; attendees?: { email: string }[] }
 ) {
   const calendar = google.calendar({ version: "v3", auth });
 
@@ -84,13 +84,16 @@ export async function createGoogleEvent(
           dateTime: event.end,
           timeZone: "America/Sao_Paulo",
         },
-
-        // attendees: [{ email: "lpage@example.com" }, { email: "sbrin@example.com" }],
+        // attendees: event.attendees,
+        reminders: {
+          useDefault: true,
+        },
       },
     });
 
     return data.data.id;
   } catch (error) {
+    console.log("error:", error);
     throw new Error("Event not created");
   }
 }
