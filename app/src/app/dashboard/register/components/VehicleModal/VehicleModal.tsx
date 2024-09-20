@@ -368,7 +368,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                     <Input
                       type="number"
                       min={1900}
-                      max={2100}
+                      max={new Date().getFullYear()}
                       label="Ano"
                       value={year}
                       onChange={(e) => setYear(e.target.value)}

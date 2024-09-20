@@ -8,7 +8,7 @@ import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { Input } from "@nextui-org/react";
 import { FaOilCan, FaSearch } from "react-icons/fa";
 import { AuthContext } from "@/contexts/auth.context";
-import { collection, getDocs, query, where, or } from "firebase/firestore";
+import { collection, getDocs, query, where, or, orderBy, limit } from "firebase/firestore";
 import { Reading } from "@/interfaces/readings.type";
 import { MdDateRange } from "react-icons/md";
 import { IoCloseCircle, IoSpeedometer } from "react-icons/io5";
@@ -38,7 +38,6 @@ export default function Monitor() {
   const [vehicleData, setVehicleData] = useState<Vehicle[]>([]);
   const [vehicleStats, setVehicleStats] = useState<Reading[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  console.log("searchValue:", searchValue);
 
   const handleSearch = async () => {
     try {
@@ -106,7 +105,9 @@ export default function Monitor() {
   const fetchVehicleStats = async (vehicleId: string, vehicle: Vehicle) => {
     try {
       const readings: Reading[] = [];
-      const readingsSnapshot = await getDocs(query(collection(db, "readings"), where("car_id", "==", vehicleId)));
+      const readingsSnapshot = await getDocs(
+        query(collection(db, "readings"), where("car_id", "==", vehicleId), orderBy("createdAt", "desc"), limit(1))
+      );
       readingsSnapshot.forEach((doc) => {
         readings.push({ id: doc.id, ...doc.data() } as Reading);
       });

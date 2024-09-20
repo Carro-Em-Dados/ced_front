@@ -151,7 +151,10 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
       };
 
       const docRef = await addDoc(collection(db, "clients"), driver);
-      setDrivers((drivers) => [...drivers, { ...driver, id: docRef.id }]);
+      setDrivers((drivers) => {
+        console.log("drivers:", drivers);
+        return [...drivers, { ...driver, id: docRef.id }];
+      });
       setName("");
       setAge("");
       setGender("");
@@ -312,7 +315,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
                         )) as unknown as ReactNode
                       }
                     </InputMask>
-                    <InputMask mask="(99) 99999-9999" value={phoneCom} onChange={(e) => setPhoneCom(e.target.value)} maskChar={null}>
+                    <InputMask mask="9999-9999" value={phoneCom} onChange={(e) => setPhoneCom(e.target.value)} maskChar={null}>
                       {
                         ((inputProps: any) => (
                           <Input
@@ -359,18 +362,23 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
                     />
                   </div>
                   <div>
-                    <Input
-                      type="text"
-                      label="CNH"
-                      value={cnh}
-                      onChange={(e) => setCNH(e.target.value)}
-                      variant="bordered"
-                      className="dark"
-                      classNames={{
-                        input: ["bg-transparent text-white"],
-                        inputWrapper: ["border border-2 !border-white focus:border-white"],
-                      }}
-                    />
+                    <InputMask mask="999999999" value={cnh} onChange={(e) => setCNH(e.target.value)} maskChar={null}>
+                      {
+                        ((inputProps: any) => (
+                          <Input
+                            {...inputProps}
+                            type="text"
+                            label="CNH"
+                            variant="bordered"
+                            className="dark"
+                            classNames={{
+                              input: ["bg-transparent text-white"],
+                              inputWrapper: ["border border-2 !border-white focus:border-white"],
+                            }}
+                          />
+                        )) as unknown as ReactNode
+                      }
+                    </InputMask>
                   </div>
                   {[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && (
                     <div>
