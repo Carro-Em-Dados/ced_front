@@ -17,6 +17,7 @@ import { Autocomplete, AutocompleteItem, Button, Radio, RadioGroup, Select, Sele
 import { Contract } from "@/interfaces/contract.type";
 import { Reading } from "@/interfaces/readings.type";
 import moment from "moment";
+import { Timestamp } from "firebase-admin/firestore";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -188,10 +189,8 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             maintenance: maintenanceData.service,
             km_current: kmCurrent,
             km_threshold: maintenanceData.kmLimit || 0,
-            date_threshold: maintenanceData.dateLimit
-              ? new Date(maintenanceData.dateLimit.seconds * 1000 + maintenanceData.dateLimit.nanoseconds / 1000000).toLocaleDateString(
-                  "pt-BR"
-                )
+            date_threshold: maintenanceData?.dateLimit?.seconds
+              ? (maintenanceData.dateLimit as Timestamp).toDate().toLocaleDateString("pt-BR")
               : "",
             status: status,
             id: maintenanceData.id,

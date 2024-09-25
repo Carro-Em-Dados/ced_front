@@ -100,6 +100,8 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   };
 
   const updateMaintenance = (index: number, field: keyof Maintenance, value: any) => {
+    console.log("field:", field);
+    console.log("value:", value);
     const updatedMaintenances = [...maintenances];
     updatedMaintenances[index] = {
       ...updatedMaintenances[index],
@@ -252,7 +254,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             min={0}
                             label="Data Limite"
                             value={maintenance?.dateLimit instanceof Date ? maintenance.dateLimit.toISOString().split("T")[0] : ""}
-                            onChange={(e) => updateMaintenance(index, "dateLimit", new Date(e.target.value))}
+                            onChange={(e) => updateMaintenance(index, "dateLimit", new Date(e.target.value + "T00:00:00"))}
                             variant="bordered"
                             className="dark col-span-2"
                             classNames={{
