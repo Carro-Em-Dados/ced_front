@@ -10,7 +10,12 @@ interface WorkshopContextData {
   workshopInView: (Workshop & { contract: Contract }) | undefined;
   workshopOptions: (Workshop & { contract: Contract })[];
   setWorkshopInView: (workshop: Workshop & { contract: Contract }) => void;
-  WorkshopsByOrg: () => JSX.Element;
+  setWorkshopOptions: (workshops: (Workshop & { contract: Contract })[]) => void;
+  WorkshopsByOrg: (props: {
+    options?: (Workshop & { contract: Contract })[];
+    selected?: string;
+    onSelectionChange?: (key: any) => void;
+  }) => JSX.Element;
   refecth: () => Promise<void>;
 }
 
@@ -67,24 +72,35 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
     getWorkshopByOrganization();
   }, [currentUser]);
 
-  const WorkshopsByOrg = () => {
+  const WorkshopsByOrg = ({
+    options,
+    selected,
+    onSelectionChange,
+  }: {
+    options?: (Workshop & { contract: Contract })[];
+    selected?: string;
+    onSelectionChange?: (key: any) => void;
+  }) => {
     return (
       <Autocomplete
         label="Selecione a oficina"
         variant="flat"
         size="sm"
         className="dark text-white w-fit"
-        defaultItems={workshopOptions.map((w) => ({
+        defaultItems={(options || workshopOptions).map((w) => ({
           value: w.id,
           label: w.company_name,
         }))}
         onKeyDown={(e: any) => e.continuePropagation()}
-        onSelectionChange={(key) => {
-          if (!key) return;
-          const keyString = key ? key.toString() : "none";
-          setWorkshopInView(workshopOptions.find((w) => w.id === keyString));
-        }}
-        selectedKey={workshopInView?.id}
+        onSelectionChange={
+          onSelectionChange ||
+          ((key) => {
+            if (!key) return;
+            const keyString = key ? key.toString() : "none";
+            setWorkshopInView((options || workshopOptions).find((w) => w.id === keyString));
+          })
+        }
+        selectedKey={selected || workshopInView?.id}
       >
         {(item) => (
           <AutocompleteItem key={item.value} value={item.value}>
@@ -97,7 +113,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
 
   return (
     <WorkshopContext.Provider
-      value={{ setWorkshopInView, workshopInView, workshopOptions, refecth: getWorkshopByOrganization, WorkshopsByOrg }}
+      value={{ setWorkshopInView, workshopInView, workshopOptions, setWorkshopOptions, refecth: getWorkshopByOrganization, WorkshopsByOrg }}
     >
       {children}
     </WorkshopContext.Provider>

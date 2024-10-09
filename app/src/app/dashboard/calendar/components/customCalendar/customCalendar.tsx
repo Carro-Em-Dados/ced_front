@@ -16,6 +16,8 @@ import type { AppUser } from "@/interfaces/appUser.type";
 import type { Driver } from "@/interfaces/driver.type";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Contract } from "@/interfaces/contract.type";
 
 const localizer = momentLocalizer(moment);
 
@@ -42,8 +44,10 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [drivers, setDrivers] = useState<any[]>([]);
   const { db, currentWorkshop, currentUser } = useContext(AuthContext);
   const { workshopInView, WorkshopsByOrg } = useContext(WorkshopContext);
-
-  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+  const [workshop, setWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(
+    currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop
+  );
+  const [workshops, setWorkshops] = useState<(Workshop & { contract: Contract })[]>([]);
 
   const fetchSchedules = async () => {
     if (!workshop?.id) return;
@@ -115,6 +119,18 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
     getAllMaintenanceInfo();
   }, [workshop]);
 
+  const fetchAllWorkshops = async () => {
+    const workshopsSnapshot = await getDocs(query(collection(db, "workshops")));
+    if (!workshopsSnapshot.docs.length) return;
+    const workshops = workshopsSnapshot.docs.map((doc) => ({ ...(doc.data() as Workshop & { contract: Contract }), id: doc.id }));
+    setWorkshop(workshops[0]);
+    setWorkshops(workshops);
+  };
+
+  useEffect(() => {
+    if (currentUser?.role === Role.MASTER) fetchAllWorkshops();
+  }, [currentUser]);
+
   const handleSelected = (event: any) => {
     setSelected(event);
     setEditOpen(true);
@@ -132,6 +148,13 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
       {!loading && (
         <>
           {currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}
+          {currentUser?.role === Role.MASTER && (
+            <WorkshopsByOrg
+              options={workshops}
+              selected={workshop?.id}
+              onSelectionChange={(key) => setWorkshop(workshops.find((w) => w.id === key))}
+            />
+          )}
           <div>
             <CreateEventModal events={events} setEvents={setEvents} services={services} drivers={drivers} />
             <EditEventModal selectedEvent={selected} events={events} setEvents={setEvents} open={editOpen} setOpen={setEditOpen} />

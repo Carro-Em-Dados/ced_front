@@ -37,7 +37,7 @@ interface Props {
 export default function WorkshopModal({ setWorkshops }: Props) {
   const { db, currentUser } = useContext(AuthContext);
   const { refecth } = useContext(WorkshopContext);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [tab, setTab] = useState("tab1");
   const [fantasyName, setFantasyName] = useState("");
   const [contractNumber, setContractNumber] = useState("");
@@ -312,6 +312,47 @@ export default function WorkshopModal({ setWorkshops }: Props) {
     if (!querySnapshot.empty) setOrganizationUsers(querySnapshot.docs.map((doc) => doc.data() as User));
   };
 
+  const handleClose = () => {
+    setTab("tab1");
+    setFantasyName("");
+    setContractNumber("");
+    setRegistrationNumber("");
+    setCorporateName("");
+    setCnpj("");
+    setStateRegistration("");
+    setMunicipalRegistration("");
+    setEmail("");
+    setOwner("");
+    setPhone("");
+    setContact("");
+    setProfileType("basic");
+    setClientMotoristCount("");
+    setVehicleCount("");
+    setAlarmCount("");
+    setMaintenanceAlarmCount("");
+    setWorkshopKmNotificationFactor("");
+    setWorkshopDateNotificationFactor("");
+    setUserKmNotificationFactor("");
+    setUserDateNotificationFactor("");
+    setEmployeesCount("");
+    setProductiveVacanciesCount("");
+    setAverageTicket("");
+    setBilling("");
+    setMonthlyFinancialGoal("");
+    setBranch("");
+    setWebsite("");
+    setCnae("");
+    setCnaeOthers("");
+    setInstagram("");
+    setFacebook("");
+    setYoutube("");
+    setLinkedin("");
+    setTwitter("");
+    setOther1("");
+    setOther2("");
+    onClose();
+  };
+
   return (
     <>
       <Button color="success" className={clsx(styles.button, "!fixed bottom-0 right-0 z-10 shadow-md mb-5 mr-5")} onClick={onOpen}>
@@ -323,6 +364,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
         className={`${styles.modal} overflow-auto`}
         size={"2xl"}
         onOpenChange={onOpenChange}
+        onClose={handleClose}
         placement="top-center"
         scrollBehavior="outside"
       >
@@ -660,13 +702,13 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                               <SelectItem key={"10"} value="10">
                                 10 dias
                               </SelectItem>
-                              <SelectItem key={"15 dias"} value="15 dias">
+                              <SelectItem key={"15"} value="15">
                                 15 dias
                               </SelectItem>
                             </Select>
                           </div>
                         </fieldset>
-                        <h2 className={styles.modalLabel}>Fator de disparo de notificação à oficina</h2>
+                        <h2 className={styles.modalLabel}>Fator de disparo de notificação ao usuário</h2>
                         <fieldset className="text-white flex gap-2">
                           <div className="flex flex-col gap-2 w-full">
                             <label htmlFor="userKmLimitNotificationFactor">KM Limite</label>

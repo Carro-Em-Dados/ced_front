@@ -91,7 +91,7 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
         phone_commercial: phoneCom,
         role: "client",
         register: register,
-        workshops: workshop?.id,
+        workshops: [Role.ORGANIZATION, Role.MASTER].includes(currentUser?.role as Role) ? selectedWorkshop : workshop?.id,
       };
 
       const docRef = doc(db, "clients", id);
