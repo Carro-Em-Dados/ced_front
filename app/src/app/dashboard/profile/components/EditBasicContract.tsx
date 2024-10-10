@@ -1,7 +1,7 @@
+import styles from "../../register/styles.module.scss";
 import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { useContext, useEffect, useState } from "react";
-import styles from "../../register/styles.module.scss";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Contract } from "@/interfaces/contract.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
@@ -13,10 +13,12 @@ export default function EditBasicContract() {
   const [vehicleCount, setVehicleCount] = useState(0);
   const [alarmCount, setAlarmCount] = useState(0);
   const [maintenanceAlarmCount, setMaintenanceAlarmCount] = useState(0);
-  const [workshopKmNotificationFactor, setWorkshopKmNotificationFactor] = useState(0);
-  const [workshopDateNotificationFactor, setWorkshopDateNotificationFactor] = useState(0);
-  const [userKmNotificationFactor, setUserKmNotificationFactor] = useState(0);
-  const [userDateNotificationFactor, setUserDateNotificationFactor] = useState(0);
+  const [workshopKmNotificationFactor, setWorkshopKmNotificationFactor] = useState(1000);
+  const [workshopDateNotificationFactor, setWorkshopDateNotificationFactor] = useState(1);
+  const [userKmNotificationFactor, setUserKmNotificationFactor] = useState(200);
+  const [userDateNotificationFactor, setUserDateNotificationFactor] = useState(1);
+  const [freemiumPeriod, setFreemiumPeriod] = useState(0);
+  const [workshopScheduleLimit, setWorkshopScheduleLimit] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const loadContract = async () => {
@@ -25,14 +27,16 @@ export default function EditBasicContract() {
 
     if (contractSnap.exists()) {
       const contractData = contractSnap.data() as Contract;
-      setClientMotoristCount(contractData.maxDrivers);
-      setVehicleCount(contractData.maxVehiclesPerDriver);
-      setAlarmCount(contractData.maxAlarmsPerVehicle);
-      setMaintenanceAlarmCount(contractData.maxMaintenanceAlarmsPerUser);
-      setWorkshopKmNotificationFactor(contractData.workshopKmLimitAlarm);
-      setWorkshopDateNotificationFactor(contractData.workshopDateLimitAlarm);
-      setUserKmNotificationFactor(contractData.userKmLimitAlarm);
-      setUserDateNotificationFactor(contractData.userDateLimitAlarm);
+      setClientMotoristCount(contractData?.maxDrivers ?? 0);
+      setVehicleCount(contractData?.maxVehiclesPerDriver ?? 0);
+      setAlarmCount(contractData?.maxAlarmsPerVehicle ?? 0);
+      setMaintenanceAlarmCount(contractData?.maxMaintenanceAlarmsPerUser ?? 0);
+      setWorkshopKmNotificationFactor(contractData?.workshopKmLimitAlarm ?? 1000);
+      setWorkshopDateNotificationFactor(contractData?.workshopDateLimitAlarm ?? 1);
+      setUserKmNotificationFactor(contractData?.userKmLimitAlarm ?? 200);
+      setUserDateNotificationFactor(contractData?.userDateLimitAlarm ?? 1);
+      setFreemiumPeriod(contractData?.freemiumPeriod ?? 0);
+      setWorkshopScheduleLimit(contractData?.workshopScheduleLimit ?? 0);
     }
 
     setLoading(false);
@@ -52,12 +56,14 @@ export default function EditBasicContract() {
       workshopDateLimitAlarm: +workshopDateNotificationFactor,
       userKmLimitAlarm: +userKmNotificationFactor,
       userDateLimitAlarm: +userDateNotificationFactor,
+      freemiumPeriod: +freemiumPeriod,
+      workshopScheduleLimit: +workshopScheduleLimit,
     };
     setLoading(true);
 
     try {
       const contractDocRef = doc(db, "contracts", "basic");
-      await updateDoc(contractDocRef, updatedContract);
+      await setDoc(contractDocRef, updatedContract);
 
       setClientMotoristCount(updatedContract.maxDrivers);
       setVehicleCount(updatedContract.maxVehiclesPerDriver);
@@ -67,6 +73,8 @@ export default function EditBasicContract() {
       setWorkshopDateNotificationFactor(updatedContract.workshopDateLimitAlarm);
       setUserKmNotificationFactor(updatedContract.userKmLimitAlarm);
       setUserDateNotificationFactor(updatedContract.userDateLimitAlarm);
+      setFreemiumPeriod(updatedContract.freemiumPeriod);
+      setWorkshopScheduleLimit(updatedContract.workshopScheduleLimit);
     } catch (error) {
       toast.error("Erro ao atualizar contrato", {
         position: "bottom-right",
@@ -95,6 +103,23 @@ export default function EditBasicContract() {
               type="number"
               value={clientMotoristCount.toString()}
               onChange={(e) => setClientMotoristCount(+e.target.value)}
+              variant="bordered"
+              className="dark"
+              classNames={{
+                input: ["bg-transparent text-white"],
+                inputWrapper: ["border border-2 !border-white focus:border-white"],
+              }}
+              disabled={loading}
+              isDisabled={loading}
+            />
+          </div>
+          <div>
+            <Input
+              min={0}
+              label="Quantidade máxima de agendamentos*"
+              type="number"
+              value={workshopScheduleLimit.toString()}
+              onChange={(e) => setWorkshopScheduleLimit(+e.target.value)}
               variant="bordered"
               className="dark"
               classNames={{
@@ -146,6 +171,23 @@ export default function EditBasicContract() {
               type="number"
               value={maintenanceAlarmCount.toString()}
               onChange={(e) => setMaintenanceAlarmCount(+e.target.value)}
+              variant="bordered"
+              className="dark"
+              classNames={{
+                input: ["bg-transparent text-white"],
+                inputWrapper: ["border border-2 !border-white focus:border-white"],
+              }}
+              disabled={loading}
+              isDisabled={loading}
+            />
+          </div>
+          <div>
+            <Input
+              min={0}
+              label="Período de experimentação (dias)*"
+              type="number"
+              value={freemiumPeriod.toString()}
+              onChange={(e) => setFreemiumPeriod(+e.target.value)}
               variant="bordered"
               className="dark"
               classNames={{

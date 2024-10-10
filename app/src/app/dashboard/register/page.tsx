@@ -23,7 +23,7 @@ import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
 
 const Register = () => {
-  const { db, currentUser } = useContext(AuthContext);
+  const { db, currentUser, isPremium } = useContext(AuthContext);
   const { workshopInView, WorkshopsByOrg } = useContext(WorkshopContext);
   const { currentWorkshop } = useContext(AuthContext);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -148,7 +148,7 @@ const Register = () => {
   return (
     <div className={styles.page}>
       <Navbar />
-      {tab === "drivers" ? (
+      {tab === "drivers" && isPremium ? (
         <DriverModal workshops={workshops} workshop={workshop} setDrivers={setDrivers} drivers={drivers} />
       ) : tab === "workshops" ? (
         [Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && <WorkshopModal setWorkshops={setWorkshops} />
@@ -166,8 +166,8 @@ const Register = () => {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
-        <h1 className={styles.mainTitle}>Cadastramento</h1>
-        <p className={styles.subtext}>Adicione usuários, oficinas e veículos</p>
+        <h1 className={styles.mainTitle}>Configurações</h1>
+        <p className={styles.subtext}>Adicione motoristas e associe carros a eles abaixo.</p>
         <div className="py-2">{currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}</div>
         <Tabs
           aria-label="config-tabs"

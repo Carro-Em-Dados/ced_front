@@ -34,7 +34,7 @@ interface Props {
 
 export default function DriverModal({ workshop, workshops, setDrivers, drivers }: Props) {
   const { db, currentUser, currentWorkshop } = useContext(AuthContext);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [name, setName] = useState<string>("");
   const [age, setAge] = useState<string>("");
   const [gender, setGender] = useState<string>("");
@@ -121,17 +121,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
         await updateDoc(doc(db, "clients", existingDriverDoc.id), updatedDriver);
 
         setDrivers((drivers) => drivers.map((drv) => (drv.email === email ? { ...drv, ...updatedDriver } : drv)));
-        setName("");
-        setAge("");
-        setGender("");
-        setPhoneRes("");
-        setPhoneCom("");
-        setAddressRes("");
-        setAddressCom("");
-        setRegister("");
-        setCNH("");
-        setEmail("");
-        onOpenChange();
+        handleClose();
         return;
       }
 
@@ -152,20 +142,9 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
 
       const docRef = await addDoc(collection(db, "clients"), driver);
       setDrivers((drivers) => {
-        console.log("drivers:", drivers);
         return [...drivers, { ...driver, id: docRef.id }];
       });
-      setName("");
-      setAge("");
-      setGender("");
-      setPhoneRes("");
-      setPhoneCom("");
-      setAddressRes("");
-      setAddressCom("");
-      setRegister("");
-      setCNH("");
-      setEmail("");
-      onOpenChange();
+      handleClose();
     } catch (error) {
       toast.error("Erro ao adicionar motorista", {
         position: "bottom-right",
@@ -182,6 +161,20 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
       setLoading(false);
     }
     return;
+  };
+
+  const handleClose = () => {
+    setName("");
+    setAge("");
+    setGender("");
+    setPhoneRes("");
+    setPhoneCom("");
+    setAddressRes("");
+    setAddressCom("");
+    setRegister("");
+    setCNH("");
+    setEmail("");
+    onClose();
   };
 
   const queryDrivers = async () => {
@@ -228,7 +221,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
         <MdLibraryAdd className={styles.addIcon} />
         Adicionar motorista
       </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
+      <Modal isOpen={isOpen} onClose={handleClose} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
         <ModalContent>
           {(onClose) => (
             <>

@@ -1,4 +1,5 @@
 import { Contract } from "@/interfaces/contract.type";
+import { Timestamp } from "firebase/firestore";
 
 export interface Workshop {
   id: string;
@@ -35,4 +36,5 @@ export interface Workshop {
   contract: string | Contract;
   owner: string;
   google_calendar_id?: string;
+  createdAt: Timestamp;
 }

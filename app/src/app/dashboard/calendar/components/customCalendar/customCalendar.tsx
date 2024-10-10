@@ -43,7 +43,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [services, setServices] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const { db, currentWorkshop, currentUser } = useContext(AuthContext);
-  const { workshopInView, WorkshopsByOrg } = useContext(WorkshopContext);
+  const { workshopInView, WorkshopsByOrg, getAllWorkshops } = useContext(WorkshopContext);
   const [workshop, setWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(
     currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop
   );
@@ -120,16 +120,19 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   }, [workshop]);
 
   const fetchAllWorkshops = async () => {
-    const workshopsSnapshot = await getDocs(query(collection(db, "workshops")));
-    if (!workshopsSnapshot.docs.length) return;
-    const workshops = workshopsSnapshot.docs.map((doc) => ({ ...(doc.data() as Workshop & { contract: Contract }), id: doc.id }));
-    setWorkshop(workshops[0]);
-    setWorkshops(workshops);
+    const _worshops = await getAllWorkshops();
+    if (!_worshops || !_worshops?.length) return;
+    setWorkshop(_worshops[0]);
+    setWorkshops(_worshops);
   };
 
   useEffect(() => {
     if (currentUser?.role === Role.MASTER) fetchAllWorkshops();
   }, [currentUser]);
+
+  useEffect(() => {
+    setWorkshop(workshopInView);
+  }, [workshopInView]);
 
   const handleSelected = (event: any) => {
     setSelected(event);
@@ -156,7 +159,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
             />
           )}
           <div>
-            <CreateEventModal events={events} setEvents={setEvents} services={services} drivers={drivers} />
+            <CreateEventModal workshop={workshop} events={events} setEvents={setEvents} services={services} drivers={drivers} />
             <EditEventModal selectedEvent={selected} events={events} setEvents={setEvents} open={editOpen} setOpen={setEditOpen} />
           </div>
           <Calendar

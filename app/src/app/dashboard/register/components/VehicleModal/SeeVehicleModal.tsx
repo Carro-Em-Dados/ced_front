@@ -1,12 +1,12 @@
 import {
+  Autocomplete,
+  AutocompleteItem,
   Button,
   Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalHeader,
-  Select,
-  SelectItem,
   Tab,
   Tabs,
   useDisclosure,
@@ -34,7 +34,7 @@ interface Props {
 }
 
 export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
-  const { db, currentWorkshop, currentUser } = useContext(AuthContext);
+  const { db, currentWorkshop, currentUser, isPremium } = useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [maintenancesDeleting, setMaintenancesDeleting] = useState<Maintenance[]>([]);
@@ -100,8 +100,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   };
 
   const updateMaintenance = (index: number, field: keyof Maintenance, value: any) => {
-    console.log("field:", field);
-    console.log("value:", value);
     const updatedMaintenances = [...maintenances];
     updatedMaintenances[index] = {
       ...updatedMaintenances[index],
@@ -219,7 +217,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                     <div className="flex flex-col gap-5 justify-between w-full">
                       {maintenances?.map((maintenance, index) => (
                         <div className="grid grid-cols-12 gap-2 items-center" key={`${maintenance.id} ${index}`}>
-                          <Select
+                          {/* <Select
                             variant="bordered"
                             className="dark text-white col-span-5"
                             classNames={{
@@ -235,7 +233,28 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                                 {maintenance}
                               </SelectItem>
                             ))}
-                          </Select>
+                          </Select> */}
+                          <Autocomplete
+                            variant="bordered"
+                            className="dark text-white col-span-5"
+                            aria-label="maintenance"
+                            defaultItems={defaultMaintenance.map((m) => ({
+                              value: m,
+                              label: m,
+                            }))}
+                            allowsCustomValue={!!isPremium}
+                            onKeyDown={(e: any) => e.continuePropagation()}
+                            onSelectionChange={(key) => {
+                              updateMaintenance(index, "service", key);
+                            }}
+                            defaultSelectedKey={maintenance.service}
+                          >
+                            {(item) => (
+                              <AutocompleteItem key={item.value} value={item.value}>
+                                {item.label}
+                              </AutocompleteItem>
+                            )}
+                          </Autocomplete>
                           <Input
                             type="number"
                             min={0}

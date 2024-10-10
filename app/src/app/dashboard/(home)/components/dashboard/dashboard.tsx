@@ -74,11 +74,12 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
         maxDrivers: 0,
         maxVehiclesPerDriver: 0,
         maxMaintenanceAlarmsPerUser: 0,
-        trialPeriod: 0,
+        freemiumPeriod: 0,
         userDateLimitAlarm: 99999,
         userKmLimitAlarm: 99999,
         workshopDateLimitAlarm: 99999,
         workshopKmLimitAlarm: 99999,
+        workshopScheduleLimit: 99999,
         id: "",
       });
     try {

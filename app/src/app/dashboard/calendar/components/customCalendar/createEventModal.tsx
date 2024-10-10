@@ -23,16 +23,21 @@ import { Maintenance } from "@/interfaces/maintenances.type";
 import { MaintenanceWithName } from "./customCalendar";
 import type { Vehicle } from "@/interfaces/vehicle.type";
 import { useSearchParams } from "next/navigation";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Contract } from "@/interfaces/contract.type";
 
 interface Props {
   events: any;
   setEvents: React.Dispatch<React.SetStateAction<any[]>>;
   services: any[];
   drivers: any[];
+  workshop: Workshop & {
+    contract: Contract;
+  };
 }
 
-export default function CreateEventModal({ events, setEvents, drivers, services }: Props) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+export default function CreateEventModal({ events, workshop, setEvents, drivers, services }: Props) {
+  const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
   const [maintenanceDate, setMaintenanceDate] = useState(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -63,6 +68,11 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
   const driver = searchParams.get("d");
   const maintenance = searchParams.get("m");
 
+  const remainingSchedules =
+    (workshop.contract.workshopScheduleLimit ?? 0) - (events.length ?? 0) < 0
+      ? 0
+      : (workshop.contract.workshopScheduleLimit ?? 0) - (events.length ?? 0);
+
   const { db, currentWorkshop } = useContext(AuthContext);
 
   useEffect(() => {
@@ -85,6 +95,20 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
     }
   }, [driver, vehicle, maintenance]);
 
+  const handleClose = () => {
+    setMaintenanceDate(new Date().toISOString().split("T")[0]);
+    setStart(new Date().toTimeString().split(" ")[0].substring(0, 5));
+    setEnd(() => {
+      const now = new Date();
+      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+      return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
+    });
+    setNote("");
+    setSelectedDriver("");
+    setSelectedService("");
+    setSelectedVehicle("");
+    onClose();
+  };
   const getMaintenanceName = async (main: string) => {
     if (!currentWorkshop) return;
     const docRef = doc(db, "maintenances", main);
@@ -202,19 +226,7 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
 
       setEvents((prevEvents) => [...prevEvents, { id: eventRef.id, title: "Manutenção", ...newEvent }]);
 
-      onOpenChange();
-
-      setMaintenanceDate(new Date().toISOString().split("T")[0]);
-      setStart(new Date().toTimeString().split(" ")[0].substring(0, 5));
-      setEnd(() => {
-        const now = new Date();
-        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-        return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
-      });
-      setNote("");
-      setSelectedDriver("");
-      setSelectedService("");
-      setSelectedVehicle("");
+      handleClose();
     } catch (error) {
       toast.error("Erro ao criar agendamento", {
         position: "bottom-right",
@@ -237,7 +249,7 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
       <Button color="success" className={clsx(styles.addVehicleBtn, "w-fit")} onClick={onOpen}>
         Adicionar manutenção
       </Button>
-      <Modal isOpen={isOpen} className={styles.modal} size="2xl" onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} className={styles.modal} onClose={handleClose} size="2xl" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -388,13 +400,14 @@ export default function CreateEventModal({ events, setEvents, drivers, services 
                       }}
                     />
                   </div>
+                  <p>Agendamentos restantes: {remainingSchedules}</p>
                 </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="default" variant="light" className="rounded-full px-5 text-white" onClick={onClose}>
                   Cancelar
                 </Button>
-                <Button color="success" disabled={loading} className={styles.modalButton} onClick={createEvent}>
+                <Button color="success" disabled={loading || !remainingSchedules} className={styles.modalButton} onClick={createEvent}>
                   Salvar
                 </Button>
               </ModalFooter>

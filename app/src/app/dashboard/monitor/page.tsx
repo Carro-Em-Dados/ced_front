@@ -1,5 +1,5 @@
 "use client";
-import React, { ReactNode, useContext, useState } from "react";
+import React, { ReactNode, useContext, useEffect, useState } from "react";
 import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
@@ -20,6 +20,7 @@ import clsx from "clsx";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { toast, Zoom } from "react-toastify";
 import InputMask from "react-input-mask";
+import { useRouter } from "next/router";
 
 const verificationOptions = [
   { label: "Email", key: "email" },
@@ -30,7 +31,7 @@ const verificationOptions = [
 ];
 
 export default function Monitor() {
-  const { db } = useContext(AuthContext);
+  const { db, isPremium } = useContext(AuthContext);
   const [verification, setVerification] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [showMonitor, setShowMonitor] = useState(false);
@@ -38,6 +39,11 @@ export default function Monitor() {
   const [vehicleData, setVehicleData] = useState<Vehicle[]>([]);
   const [vehicleStats, setVehicleStats] = useState<Reading[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    isPremium !== null && !isPremium && router.push("/");
+  }, []);
 
   const handleSearch = async () => {
     try {

@@ -12,11 +12,13 @@ import {
   browserSessionPersistence,
   Auth,
 } from "firebase/auth";
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, Firestore, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { User } from "../interfaces/user.type";
 import { initializeApp } from "firebase/app";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
+import { isPremium as _isPremium } from "@/services/firebase-admin";
+import { Role } from "@/types/enums/role.enum";
 
 interface AuthContextData {
   login: (email: string, password: string) => Promise<void>;
@@ -26,9 +28,10 @@ interface AuthContextData {
   signUp: (email: string, name: string, password: string) => Promise<void>;
   currentUser: User | undefined;
   currentWorkshop: (Workshop & { contract?: Contract | null }) | undefined;
-  db: any;
+  db: Firestore;
   loading: boolean;
   auth: Auth;
+  isPremium: boolean | null;
 }
 
 interface AuthProviderProps {
@@ -54,6 +57,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [currentWorkshop, setCurrentWorkshop] = useState<(Workshop & { contract?: Contract | null }) | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isPremium, setIsPremium] = useState<null | boolean>(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser?.role === Role.MASTER) return setIsPremium(true);
+    if (!currentWorkshop) return;
+    async function checkPremium(
+      workshop:
+        | (Workshop & {
+            contract?: Contract | null;
+          })
+        | undefined
+    ) {
+      setIsPremium(await _isPremium(JSON.stringify(workshop)));
+    }
+    checkPremium(currentWorkshop);
+  }, [currentWorkshop, currentUser]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -280,6 +300,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         db,
         loading,
         auth,
+        isPremium,
       }}
     >
       {children}

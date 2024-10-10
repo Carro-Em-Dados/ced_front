@@ -34,7 +34,7 @@ interface Props {
 export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
   const { db, currentWorkshop, currentUser } = useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [name, setName] = useState<string>("");
   const [age, setAge] = useState<string>("");
   const [gender, setGender] = useState<string>("");
@@ -98,7 +98,7 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
 
       await updateDoc(docRef, updatedDriver).then(() => {
         setDrivers((drivers) => drivers.map((driver) => (driver.id === id ? { ...driver, ...updatedDriver } : driver)));
-        onOpenChange();
+        handleClose();
       });
     } catch (error) {
       toast.error("Erro ao editar motorista", {
@@ -117,12 +117,16 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
     }
   }
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
     <>
       <button onClick={onOpen}>
         <FaEye />
       </button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={handleClose} className={styles.modal} size="2xl" scrollBehavior="outside">
         <ModalContent>
           {(onClose) => (
             <>

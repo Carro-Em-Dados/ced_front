@@ -25,7 +25,7 @@ interface Props {
 }
 
 export default function UserModal({ setUsers }: Props) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const { db } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,11 +51,7 @@ export default function UserModal({ setUsers }: Props) {
       await setDoc(docRef, newUser);
 
       setUsers((prevUsers) => [...prevUsers, newUser]);
-      setName("");
-      setEmail("");
-      setPassword("");
-      setRole("user");
-      onOpenChange();
+      handleClose();
     } catch (error: any) {
       toast.error("Erro ao adicionar usuário", {
         position: "bottom-right",
@@ -73,13 +69,21 @@ export default function UserModal({ setUsers }: Props) {
     }
   };
 
+  const handleClose = () => {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setRole("user");
+    onClose();
+  };
+
   return (
     <>
       <Button color="success" className={clsx(styles.button, "!fixed bottom-0 right-0 z-10 shadow-md mb-5 mr-5")} onClick={onOpen}>
         <MdLibraryAdd className={styles.addIcon} />
         Adicionar usuário
       </Button>
-      <Modal isOpen={isOpen} className={styles.modal} size={"lg"} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} className={styles.modal} onClose={handleClose} size={"lg"} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>

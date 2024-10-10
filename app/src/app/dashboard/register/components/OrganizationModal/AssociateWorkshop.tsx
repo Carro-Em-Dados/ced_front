@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Props) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const { db } = useContext(AuthContext);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,8 +43,7 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
       const driverRef = doc(db, "clients", selectedDriver.id);
       await updateDoc(driverRef, { workshops: workshop.id });
       setDrivers((prevDrivers) => prevDrivers.map((d) => (d.id === selectedDriver.id ? { ...d, workshops: workshop.id } : d)));
-      setSelectedDriver(null);
-      onOpenChange();
+      handleClose();
     } catch (error) {
       toast.error("Erro ao associar motorista a oficina", {
         position: "bottom-right",
@@ -62,12 +61,17 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
     }
   };
 
+  const handleClose = () => {
+    setSelectedDriver(null);
+    onClose();
+  };
+
   return (
     <>
       <Button color="success" className={styles.addVehicleBtn} onClick={onOpen}>
         Associar usuário
       </Button>
-      <Modal isOpen={isOpen} className={styles.modal} size={"lg"} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onClose={handleClose} className={styles.modal} size={"lg"} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>

@@ -12,13 +12,19 @@ import EditBasicContract from "./components/EditBasicContract";
 import Services from "./components/Services";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
+import { Workshop } from "@/interfaces/workshop.type";
 
 const Profile = () => {
   const { currentUser: myUser, currentWorkshop } = useContext(AuthContext);
   const { WorkshopsByOrg, workshopInView } = useContext(WorkshopContext);
 
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
-  const [workshop, setWorkshop] = useState<any | undefined>(undefined);
+  const [workshop, setWorkshop] = useState<
+    | (Workshop & {
+        contract?: Contract | null;
+      })
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     setCurrentUser(myUser);
@@ -129,6 +135,14 @@ const Profile = () => {
                     <div className="flex flex-col gap-5 text-white">
                       <p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">Informações do contrato</p>
                       <div className="flex flex-col gap-10 text-sm">
+                        {workshop.contract.id === "basic" && (
+                          <p>
+                            Período de experimentação: Até{" "}
+                            {new Date(
+                              (workshop?.createdAt?.toMillis() ?? 0) + (workshop?.contract?.freemiumPeriod ?? 0) * 24 * 60 * 60 * 1000
+                            ).toLocaleDateString("pt-BR")}
+                          </p>
+                        )}
                         <p>Tipo de contrato: {workshop.contract.id === "basic" ? "Básico" : "Customizado"}</p>
                         <p>Quantidade de cadastros de clientes-motoristas: {workshop.contract.maxDrivers || 0}</p>
                         <p>Quantidade de cadastros de veículos por clientes-motoristas: {workshop.contract.maxVehiclesPerDriver || 0}</p>

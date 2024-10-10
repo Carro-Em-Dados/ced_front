@@ -16,7 +16,7 @@ interface Props {
 
 export default function EditOrganization({ workshop, setWorkshops }: Props) {
   const { db } = useContext(AuthContext);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [fantasyName, setFantasyName] = useState(workshop.fantasy_name || "");
   const [contractNumber, setContractNumber] = useState(workshop.contract_number || "");
   const [registrationNumber, setRegistrationNumber] = useState(workshop.registration_number || "");
@@ -48,7 +48,7 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
       const workshopDocRef = doc(db, "workshops", workshop.id);
       await updateDoc(workshopDocRef, updatedWorkshop);
       setWorkshops((prevWorkshops) => prevWorkshops.map((w) => (w.id === workshop.id ? { ...w, ...updatedWorkshop } : w)));
-      onOpenChange();
+      handleClose();
     } catch (error) {
       toast.error("Erro ao editar oficina", {
         position: "bottom-right",
@@ -66,12 +66,16 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
     }
   };
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
     <>
       <button onClick={onOpen}>
         <BiEdit className={styles.addIcon} />
       </button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} onClose={handleClose} className={styles.modal} size="2xl" scrollBehavior="outside">
         <ModalContent>
           {(onClose) => (
             <>

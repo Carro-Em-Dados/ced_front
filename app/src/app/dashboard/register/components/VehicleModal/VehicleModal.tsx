@@ -32,7 +32,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const [initialKm, setInitialKm] = useState(0);
   const [licensePlate, setLicensePlate] = useState("");
   const [vin, setVin] = useState("");
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [vehiclesBrands, setVehiclesBrands] = useState<any[]>([]);
   const [vehiclesModels, setVehiclesModels] = useState<any[]>([]);
   // const [vehicleYears, setVehicleYears] = useState<any[]>([]);
@@ -58,7 +58,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
         vin,
         owner: ownerId,
       };
-      console.log(vehicle);
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
@@ -125,7 +124,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 
       const docRef = await addDoc(collection(db, "vehicles"), vehicle);
       setVehicles((vehicles) => [...vehicles, { ...vehicle, id: docRef.id }]);
-      onOpenChange();
+      handleClose();
     } catch (error) {
       toast.error("Erro ao adicionar veículo", {
         position: "bottom-right",
@@ -230,6 +229,17 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     }
   };
 
+  const handleClose = () => {
+    setYear(undefined);
+    setInitialKm(0);
+    setLicensePlate("");
+    setVin("");
+    setSelectedBrand(undefined);
+    setSelectedModel(undefined);
+    setSelectedYear(undefined);
+    onClose();
+  };
+
   useEffect(() => {
     fetchVehiclesBrandsApi();
   }, []);
@@ -271,7 +281,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
       <Button color="success" className={styles.addVehicleBtn} onClick={onOpen}>
         Adicionar carro
       </Button>
-      <Modal isOpen={isOpen} className={styles.modal} size="2xl" onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onClose={handleClose} className={styles.modal} size="2xl" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>

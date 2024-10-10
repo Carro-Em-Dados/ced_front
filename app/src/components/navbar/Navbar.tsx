@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styles from "./Navbar.module.scss";
 import NavbarButtonHome from "./navbarButtonHome/NavbarButtonHome";
 import NavbarButtonProfile from "./navbarButtonProfile/NavbarButtonProfile";
@@ -12,28 +12,23 @@ import { AuthContext } from "@/contexts/auth.context";
 import NavbarButtonCalendar from "./navbarButtonCalendar/NavbarButtonCalendar";
 
 function Navbar() {
-	const { currentWorkshop } = useContext(AuthContext);
+  const { isPremium } = useContext(AuthContext);
 
-	return (
-		<div className={styles.navbar}>
-			<div className={styles.logoContainer}>
-				<Image
-					src="/logo1.png"
-					alt="Logotipo Carro em Dados"
-					fill
-					style={{ objectFit: "contain" }}
-				/>
-			</div>
-			<div className={styles.buttonsContainer}>
-				<NavbarButtonHome />
-				{currentWorkshop?.contract?.id !== "basic" && <NavbarButtonMonitor />}
-				<NavbarButtonRegistration />
-				<NavbarButtonProfile />
-				<NavbarButtonCalendar />
-				<NavbarButtonLogout />
-			</div>
-		</div>
-	);
+  return (
+    <div className={styles.navbar}>
+      <div className={styles.logoContainer}>
+        <Image src="/logo1.png" alt="Logotipo Carro em Dados" fill style={{ objectFit: "contain" }} />
+      </div>
+      <div className={styles.buttonsContainer}>
+        <NavbarButtonHome />
+        {isPremium && <NavbarButtonMonitor />}
+        <NavbarButtonRegistration />
+        <NavbarButtonProfile />
+        <NavbarButtonCalendar />
+        <NavbarButtonLogout />
+      </div>
+    </div>
+  );
 }
 
 export default Navbar;

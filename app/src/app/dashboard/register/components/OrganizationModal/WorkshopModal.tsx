@@ -18,7 +18,7 @@ import {
 import clsx from "clsx";
 import { MdLibraryAdd } from "react-icons/md";
 import styles from "../../styles.module.scss";
-import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, where } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { defaultServices } from "@/constants/defaultServices";
 import { toast, Zoom } from "react-toastify";
@@ -29,6 +29,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { Role } from "@/types/enums/role.enum";
 import { User } from "@/interfaces/user.type";
 import { WorkshopContext } from "@/contexts/workshop.context";
+import { getCurrentTimestamp } from "@/services/firebase-admin";
 
 interface Props {
   setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -54,6 +55,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
   const [clientMotoristCount, setClientMotoristCount] = useState("");
   const [vehicleCount, setVehicleCount] = useState("");
   const [alarmCount, setAlarmCount] = useState("");
+  const [schedulesLimit, setSchedulesLimit] = useState("");
   const [maintenanceAlarmCount, setMaintenanceAlarmCount] = useState("");
   const [workshopKmNotificationFactor, setWorkshopKmNotificationFactor] = useState("");
   const [workshopDateNotificationFactor, setWorkshopDateNotificationFactor] = useState("");
@@ -83,11 +85,12 @@ export default function WorkshopModal({ setWorkshops }: Props) {
     maxDrivers: 0,
     maxMaintenanceAlarmsPerUser: 0,
     maxVehiclesPerDriver: 0,
-    trialPeriod: 0,
+    freemiumPeriod: 0,
     userDateLimitAlarm: 0,
     userKmLimitAlarm: 0,
     workshopDateLimitAlarm: 0,
     workshopKmLimitAlarm: 0,
+    workshopScheduleLimit: 0,
     id: "",
   });
 
@@ -107,15 +110,17 @@ export default function WorkshopModal({ setWorkshops }: Props) {
     setWorkshopDateNotificationFactor("");
     setUserKmNotificationFactor("");
     setUserDateNotificationFactor("");
+    setSchedulesLimit("");
     if (profileType === "basic") {
-      setClientMotoristCount(basicContractData.maxDrivers.toString());
-      setVehicleCount(basicContractData.maxVehiclesPerDriver.toString());
-      setAlarmCount(basicContractData.maxAlarmsPerVehicle.toString());
-      setMaintenanceAlarmCount(basicContractData.maxMaintenanceAlarmsPerUser.toString());
-      setWorkshopKmNotificationFactor(basicContractData.workshopKmLimitAlarm.toString());
-      setWorkshopDateNotificationFactor(basicContractData.workshopDateLimitAlarm.toString());
-      setUserKmNotificationFactor(basicContractData.userKmLimitAlarm.toString());
-      setUserDateNotificationFactor(basicContractData.userDateLimitAlarm.toString());
+      setClientMotoristCount(basicContractData?.maxDrivers?.toString());
+      setVehicleCount(basicContractData?.maxVehiclesPerDriver?.toString());
+      setAlarmCount(basicContractData?.maxAlarmsPerVehicle?.toString());
+      setMaintenanceAlarmCount(basicContractData?.maxMaintenanceAlarmsPerUser?.toString());
+      setWorkshopKmNotificationFactor(basicContractData?.workshopKmLimitAlarm?.toString());
+      setWorkshopDateNotificationFactor(basicContractData?.workshopDateLimitAlarm?.toString());
+      setUserKmNotificationFactor(basicContractData?.userKmLimitAlarm?.toString());
+      setUserDateNotificationFactor(basicContractData?.userDateLimitAlarm?.toString());
+      setSchedulesLimit(basicContractData?.workshopScheduleLimit?.toString());
     }
   }, [profileType, basicContractData]);
 
@@ -222,7 +227,8 @@ export default function WorkshopModal({ setWorkshops }: Props) {
       workshopDateLimitAlarm: +workshopDateNotificationFactor,
       userKmLimitAlarm: +userKmNotificationFactor,
       userDateLimitAlarm: +userDateNotificationFactor,
-      trialPeriod: 7,
+      freemiumPeriod: 0,
+      workshopScheduleLimit: +schedulesLimit,
     };
 
     try {
@@ -260,6 +266,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
           other2,
         },
         contract: profileType === "basic" ? "basic" : contractRef.id,
+        createdAt: Timestamp.fromMillis(await getCurrentTimestamp()),
       };
 
       (workshop as any).google_calendar_id = await createGoogleCalendar(`${workshop.fantasy_name} - ${workshop.cnpj}`, [
@@ -279,7 +286,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
 
       setWorkshops((workshops) => [...workshops, { ...workshop, id: workshopRef.id }]);
       refecth();
-      onOpenChange();
+      handleClose();
     } catch (error) {
       toast.error("Erro ao criar oficina", {
         position: "bottom-right",
@@ -580,7 +587,8 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                           <p>Qtd. de cadastros de clientes-motoristas: {clientMotoristCount}</p>
                           <p>Qtd. de cadastros de veículos por clientes-motoristas: {vehicleCount}</p>
                           <p>Qtd. de alarmes por KM limite/Data limite por veículo: {alarmCount}</p>
-                          <p>Período (dias) de experimentação do plano customizado: {7}</p>
+                          <p>Qtd. de agendamentos de manutenções: {basicContractData?.workshopScheduleLimit ?? 0}</p>
+                          <p>Período (dias) de experimentação do plano customizado: {basicContractData?.freemiumPeriod ?? 0}</p>
                         </div>
                       </div>
                     ) : (
@@ -638,6 +646,21 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                               type="number"
                               value={maintenanceAlarmCount}
                               onChange={(e) => setMaintenanceAlarmCount(e.target.value)}
+                              variant="bordered"
+                              className="dark"
+                              classNames={{
+                                input: ["bg-transparent text-white"],
+                                inputWrapper: ["border border-2 !border-white focus:border-white"],
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              min={0}
+                              label="Qtd. de agendamentos de manutenções*"
+                              type="number"
+                              value={schedulesLimit}
+                              onChange={(e) => setSchedulesLimit(e.target.value)}
                               variant="bordered"
                               className="dark"
                               classNames={{

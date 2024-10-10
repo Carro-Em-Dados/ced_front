@@ -25,7 +25,7 @@ interface Props {
 
 export default function EraseModal({ id, type, name, state }: Props) {
   const { db } = useContext(AuthContext);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
   const deleteItem = async () => {

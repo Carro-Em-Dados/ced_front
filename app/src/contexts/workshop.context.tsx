@@ -17,6 +17,7 @@ interface WorkshopContextData {
     onSelectionChange?: (key: any) => void;
   }) => JSX.Element;
   refecth: () => Promise<void>;
+  getAllWorkshops: () => Promise<(Workshop & { contract: Contract })[] | undefined>;
 }
 
 interface WorkshopProviderProps {
@@ -62,6 +63,28 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
 
       setWorkshopOptions(workshops);
       setWorkshopInView(workshops[0]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getAllWorkshops = async () => {
+    try {
+      if (!currentUser?.id) return;
+      const workshopQuery = query(collection(db, "workshops"));
+      const workshopsSnapshot = await getDocs(workshopQuery);
+      const workshopsPromises = workshopsSnapshot.docs.map(async (doc) => {
+        const workshop = doc.data() as Workshop;
+
+        let contract = await getContract((workshop.contract ?? "basic") as string);
+        if (!contract) await getContract("basic");
+
+        return { ...workshop, contract, id: doc.id } as Workshop & { contract: Contract };
+      });
+
+      const workshops = await Promise.all(workshopsPromises);
+
+      return workshops;
     } catch (error) {
       console.log(error);
     }
@@ -113,7 +136,15 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
 
   return (
     <WorkshopContext.Provider
-      value={{ setWorkshopInView, workshopInView, workshopOptions, setWorkshopOptions, refecth: getWorkshopByOrganization, WorkshopsByOrg }}
+      value={{
+        setWorkshopInView,
+        workshopInView,
+        workshopOptions,
+        getAllWorkshops,
+        setWorkshopOptions,
+        refecth: getWorkshopByOrganization,
+        WorkshopsByOrg,
+      }}
     >
       {children}
     </WorkshopContext.Provider>

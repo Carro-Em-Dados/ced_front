@@ -27,7 +27,7 @@ interface Props {
 
 export default function EditContractModal({ contract, setContract }: Props) {
 	const { db } = useContext(AuthContext);
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 	const [clientMotoristCount, setClientMotoristCount] = useState(
 		contract.maxDrivers || 0
 	);
