@@ -20,7 +20,7 @@ import clsx from "clsx";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { toast, Zoom } from "react-toastify";
 import InputMask from "react-input-mask";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const verificationOptions = [
   { label: "Email", key: "email" },
