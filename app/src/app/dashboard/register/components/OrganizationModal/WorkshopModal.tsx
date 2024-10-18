@@ -102,26 +102,17 @@ export default function WorkshopModal({ setWorkshops }: Props) {
   }, []);
 
   useEffect(() => {
-    setClientMotoristCount("");
-    setVehicleCount("");
-    setAlarmCount("");
-    setMaintenanceAlarmCount("");
-    setWorkshopKmNotificationFactor("");
-    setWorkshopDateNotificationFactor("");
-    setUserKmNotificationFactor("");
-    setUserDateNotificationFactor("");
-    setSchedulesLimit("");
-    if (profileType === "basic") {
-      setClientMotoristCount(basicContractData?.maxDrivers?.toString());
-      setVehicleCount(basicContractData?.maxVehiclesPerDriver?.toString());
-      setAlarmCount(basicContractData?.maxAlarmsPerVehicle?.toString());
-      setMaintenanceAlarmCount(basicContractData?.maxMaintenanceAlarmsPerUser?.toString());
-      setWorkshopKmNotificationFactor(basicContractData?.workshopKmLimitAlarm?.toString());
-      setWorkshopDateNotificationFactor(basicContractData?.workshopDateLimitAlarm?.toString());
-      setUserKmNotificationFactor(basicContractData?.userKmLimitAlarm?.toString());
-      setUserDateNotificationFactor(basicContractData?.userDateLimitAlarm?.toString());
-      setSchedulesLimit(basicContractData?.workshopScheduleLimit?.toString());
-    }
+    const isBasicContract = profileType === "basic";
+
+    setClientMotoristCount(isBasicContract ? basicContractData?.maxDrivers?.toString() : "");
+    setVehicleCount(isBasicContract ? basicContractData?.maxVehiclesPerDriver?.toString() : "");
+    setAlarmCount(isBasicContract ? basicContractData?.maxAlarmsPerVehicle?.toString() : "");
+    setMaintenanceAlarmCount(isBasicContract ? basicContractData?.maxMaintenanceAlarmsPerUser?.toString() : "");
+    setWorkshopKmNotificationFactor(isBasicContract ? basicContractData?.workshopKmLimitAlarm?.toString() : "");
+    setWorkshopDateNotificationFactor(isBasicContract ? basicContractData?.workshopDateLimitAlarm?.toString() : "");
+    setUserKmNotificationFactor(isBasicContract ? basicContractData?.userKmLimitAlarm?.toString() : "");
+    setUserDateNotificationFactor(isBasicContract ? basicContractData?.userDateLimitAlarm?.toString() : "");
+    setSchedulesLimit(isBasicContract ? basicContractData?.workshopScheduleLimit?.toString() : "");
   }, [profileType, basicContractData]);
 
   const tabs = ["tab1", "tab2", "tab3", "tab4"];
@@ -268,11 +259,14 @@ export default function WorkshopModal({ setWorkshops }: Props) {
         contract: profileType === "basic" ? "basic" : contractRef.id,
         createdAt: Timestamp.fromMillis(await getCurrentTimestamp()),
       };
+      console.log("workshop:", workshop);
 
       (workshop as any).google_calendar_id = await createGoogleCalendar(`${workshop.fantasy_name} - ${workshop.cnpj}`, [
         workshop.email,
         "carroemdados@gmail.com",
       ]);
+
+      console.log("workshop dps:", workshop);
 
       const workshopRef = await addDoc(collection(db, "workshops"), workshop);
 
@@ -288,6 +282,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
       refecth();
       handleClose();
     } catch (error) {
+      console.log("error:", error);
       toast.error("Erro ao criar oficina", {
         position: "bottom-right",
         autoClose: 5000,
@@ -321,6 +316,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
 
   const handleClose = () => {
     setTab("tab1");
+    setProfileType("basic");
     setFantasyName("");
     setContractNumber("");
     setRegistrationNumber("");
@@ -329,27 +325,28 @@ export default function WorkshopModal({ setWorkshops }: Props) {
     setStateRegistration("");
     setMunicipalRegistration("");
     setEmail("");
-    setOwner("");
+    setOwner(currentUser?.role === Role.ORGANIZATION ? currentUser?.id : "");
     setPhone("");
     setContact("");
-    setProfileType("basic");
     setClientMotoristCount("");
     setVehicleCount("");
     setAlarmCount("");
+    setSchedulesLimit("");
     setMaintenanceAlarmCount("");
     setWorkshopKmNotificationFactor("");
     setWorkshopDateNotificationFactor("");
     setUserKmNotificationFactor("");
     setUserDateNotificationFactor("");
-    setEmployeesCount("");
-    setProductiveVacanciesCount("");
-    setAverageTicket("");
-    setBilling("");
-    setMonthlyFinancialGoal("");
-    setBranch("");
+    setAddress("");
     setWebsite("");
     setCnae("");
     setCnaeOthers("");
+    setEmployeesCount("");
+    setProductiveVacanciesCount("");
+    setBranch("");
+    setAverageTicket("");
+    setBilling("");
+    setMonthlyFinancialGoal("");
     setInstagram("");
     setFacebook("");
     setYoutube("");
@@ -568,7 +565,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                         setProfileType(e.target.value);
                       }}
                     >
-                      <Radio value="basic">
+                      <Radio value="basic" disabled={!basicContractData.id}>
                         <p className={styles.modalText}>Básico</p>
                       </Radio>
                       <span className={styles.horizontalSpace} />
@@ -587,7 +584,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                           <p>Qtd. de cadastros de clientes-motoristas: {clientMotoristCount}</p>
                           <p>Qtd. de cadastros de veículos por clientes-motoristas: {vehicleCount}</p>
                           <p>Qtd. de alarmes por KM limite/Data limite por veículo: {alarmCount}</p>
-                          <p>Qtd. de agendamentos de manutenções: {basicContractData?.workshopScheduleLimit ?? 0}</p>
+                          <p>Qtd. de agendamentos de manutenções: {schedulesLimit}</p>
                           <p>Período (dias) de experimentação do plano customizado: {basicContractData?.freemiumPeriod ?? 0}</p>
                         </div>
                       </div>
