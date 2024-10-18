@@ -259,14 +259,11 @@ export default function WorkshopModal({ setWorkshops }: Props) {
         contract: profileType === "basic" ? "basic" : contractRef.id,
         createdAt: Timestamp.fromMillis(await getCurrentTimestamp()),
       };
-      console.log("workshop:", workshop);
 
       (workshop as any).google_calendar_id = await createGoogleCalendar(`${workshop.fantasy_name} - ${workshop.cnpj}`, [
         workshop.email,
         "carroemdados@gmail.com",
       ]);
-
-      console.log("workshop dps:", workshop);
 
       const workshopRef = await addDoc(collection(db, "workshops"), workshop);
 
@@ -282,7 +279,6 @@ export default function WorkshopModal({ setWorkshops }: Props) {
       refecth();
       handleClose();
     } catch (error) {
-      console.log("error:", error);
       toast.error("Erro ao criar oficina", {
         position: "bottom-right",
         autoClose: 5000,
