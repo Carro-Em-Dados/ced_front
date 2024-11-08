@@ -18,6 +18,8 @@ import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Spinner } from "@nextui-org/react";
 
 const localizer = momentLocalizer(moment);
 
@@ -39,21 +41,35 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [maintenances, setMaintenances] = useState<MaintenanceWithName[]>([]);
   const [selected, setSelected] = useState();
   const [editOpen, setEditOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState({
+    schedules: true,
+    maintenances: true,
+    workshops: true,
+  });
+  console.log("loading:", loading);
   const [services, setServices] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
-  const { db, currentWorkshop, currentUser } = useContext(AuthContext);
-  const { workshopInView, WorkshopsByOrg, getAllWorkshops } = useContext(WorkshopContext);
-  const [workshop, setWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(
-    currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop
-  );
-  const [workshops, setWorkshops] = useState<(Workshop & { contract: Contract })[]>([]);
+  const { db, currentWorkshop: userWorkshop, loading: userLoading, currentUser } = useContext(AuthContext);
+  const {
+    WorkshopsByOrg,
+    getAllWorkshops,
+    setWorkshopInView,
+    workshopOptions: organizationWorkshops,
+    isLoading: organizationLoading,
+  } = useContext(WorkshopContext);
+
+  const [allWorkshops, setAllWorkshops] = useState<(Workshop & { contract: Contract })[]>([]);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(undefined);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const workshopIdFromQueryParams = searchParams.get("w");
 
   const fetchSchedules = async () => {
-    if (!workshop?.id) return;
-    setLoading(true);
+    if (!selectedWorkshop?.id) return;
+    setLoading((prevLoading) => ({ ...prevLoading, schedules: true }));
 
-    const schedulesSnapshot = await getDocs(query(collection(db, "schedules"), where("workshop", "==", workshop.id)));
+    const schedulesSnapshot = await getDocs(query(collection(db, "schedules"), where("workshop", "==", selectedWorkshop.id)));
 
     const fetchedSchedules = schedulesSnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -66,27 +82,28 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
     }));
 
     setEvents(fetchedSchedules);
-    setLoading(false);
+    setLoading((prevLoading) => ({ ...prevLoading, schedules: false }));
   };
 
   const getAllMaintenanceInfo = async () => {
-    if (!workshop?.id) return;
+    if (!selectedWorkshop?.id) return;
+    setLoading((prevLoading) => ({ ...prevLoading, maintenances: true }));
     try {
-      const servicesQuery = query(collection(db, "services"), where("workshop", "==", workshop.id));
+      const servicesQuery = query(collection(db, "services"), where("workshop", "==", selectedWorkshop.id));
       const servicesSnapshot = await getDocs(servicesQuery);
       const services = servicesSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      const driversQuery = query(collection(db, "clients"), where("workshops", "==", workshop.id));
+      const driversQuery = query(collection(db, "clients"), where("workshops", "==", selectedWorkshop.id));
       const driversSnapshot = await getDocs(driversQuery);
       const drivers = driversSnapshot.docs.map((doc) => ({
         ...(doc.data() as Driver),
         id: doc.id,
       }));
 
-      const appUsersQuery = query(collection(db, "appUsers"), where("preferred_workshop", "==", workshop.id));
+      const appUsersQuery = query(collection(db, "appUsers"), where("preferred_workshop", "==", selectedWorkshop.id));
       const appUsersSnapshot = await getDocs(appUsersQuery);
       const appUsers = appUsersSnapshot.docs.map((doc) => ({
         ...(doc.data() as AppUser),
@@ -111,35 +128,89 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
       setServices(services);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading((prevLoading) => ({ ...prevLoading, maintenances: false }));
     }
   };
-
-  useEffect(() => {
-    fetchSchedules();
-    getAllMaintenanceInfo();
-  }, [workshop]);
 
   const fetchAllWorkshops = async () => {
     const _worshops = await getAllWorkshops();
     if (!_worshops || !_worshops?.length) return;
-    setWorkshop(_worshops[0]);
-    setWorkshops(_worshops);
+    setAllWorkshops(_worshops);
+    setLoading((prevLoading) => ({ ...prevLoading, workshops: false }));
   };
-
-  useEffect(() => {
-    if (currentUser?.role === Role.MASTER) fetchAllWorkshops();
-  }, [currentUser]);
-
-  useEffect(() => {
-    setWorkshop(workshopInView);
-  }, [workshopInView]);
 
   const handleSelected = (event: any) => {
     setSelected(event);
     setEditOpen(true);
   };
 
-  if (!workshop)
+  useEffect(
+    function getWorkshopsByRole() {
+      const userRole = currentUser?.role as Role;
+      if (userRole === Role.MASTER) fetchAllWorkshops();
+      if (userRole === Role.ORGANIZATION) return;
+      if (userRole === Role.USER) return;
+    },
+    [currentUser]
+  );
+
+  useEffect(
+    function setInitialWorkshop() {
+      const userRole = currentUser?.role as Role;
+
+      const willOpenCreateScheduleModal = !!workshopIdFromQueryParams;
+
+      switch (userRole) {
+        case Role.ORGANIZATION:
+          if (!organizationWorkshops || !organizationWorkshops?.length) return;
+          if (!willOpenCreateScheduleModal) {
+            setSelectedWorkshop(organizationWorkshops[0]);
+          }
+          const _orgWorkshop = organizationWorkshops.find((workshop) => workshop.id === workshopIdFromQueryParams);
+          if (!_orgWorkshop) return router.push("/dashboard/calendar");
+          setSelectedWorkshop(_orgWorkshop);
+          break;
+        case Role.MASTER:
+          if (!allWorkshops || !allWorkshops?.length) return;
+          if (!willOpenCreateScheduleModal) return setSelectedWorkshop(allWorkshops[0]);
+          const _masterWorkshop = allWorkshops.find((workshop) => workshop.id === workshopIdFromQueryParams);
+          if (!_masterWorkshop) return router.push("/dashboard/calendar");
+          setSelectedWorkshop(_masterWorkshop);
+          break;
+        case Role.USER:
+          if (!userWorkshop) return;
+          if (willOpenCreateScheduleModal && userWorkshop?.id !== workshopIdFromQueryParams) return router.push("/dashboard/calendar");
+          setSelectedWorkshop(userWorkshop);
+          break;
+        default:
+          break;
+      }
+    },
+    [userWorkshop, workshopIdFromQueryParams, allWorkshops, organizationWorkshops, currentUser, router, userLoading]
+  );
+
+  useEffect(() => {
+    fetchSchedules();
+    getAllMaintenanceInfo();
+  }, [selectedWorkshop]);
+
+  useEffect(
+    function handleLoading() {
+      if (!userLoading) return setLoading((prevLoading) => ({ ...prevLoading, workshops: false }));
+      if (!organizationLoading) return setLoading((prevLoading) => ({ ...prevLoading, workshops: false }));
+    },
+    [userLoading, organizationLoading, currentUser]
+  );
+
+  if (loading.schedules || loading.maintenances || loading.workshops)
+    return (
+      <div className="relative flex flex-col gap-10 mx-24 w-full">
+        <Spinner color="white" />
+      </div>
+    );
+
+  if (!selectedWorkshop)
     return (
       <div className="relative flex flex-col gap-10 mx-24 w-full">
         <p className="text-white">Oficina não encontrada</p>
@@ -148,34 +219,39 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
 
   return (
     <div className="relative flex flex-col gap-10 mx-24 w-full">
-      {!loading && (
-        <>
-          {currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}
-          {currentUser?.role === Role.MASTER && (
-            <WorkshopsByOrg
-              options={workshops}
-              selected={workshop?.id}
-              onSelectionChange={(key) => setWorkshop(workshops.find((w) => w.id === key))}
-            />
-          )}
-          <div>
-            <CreateEventModal workshop={workshop} events={events} setEvents={setEvents} services={services} drivers={drivers} />
-            <EditEventModal selectedEvent={selected} events={events} setEvents={setEvents} open={editOpen} setOpen={setEditOpen} />
-          </div>
-          <Calendar
-            localizer={localizer}
-            events={events}
-            views={["week"]}
-            defaultView="week"
-            allDayAccessor="allDay"
-            titleAccessor="title"
-            startAccessor="start"
-            endAccessor="end"
-            selected={selected}
-            onSelectEvent={handleSelected}
-          />
-        </>
+      {currentUser?.role === Role.ORGANIZATION && (
+        <WorkshopsByOrg
+          selected={selectedWorkshop?.id}
+          onSelectionChange={(key) => {
+            setSelectedWorkshop(organizationWorkshops.find((w) => w.id === key));
+          }}
+        />
       )}
+      {currentUser?.role === Role.MASTER && (
+        <WorkshopsByOrg
+          options={allWorkshops}
+          selected={selectedWorkshop?.id}
+          onSelectionChange={(key) => {
+            setSelectedWorkshop(allWorkshops.find((w) => w.id === key));
+          }}
+        />
+      )}
+      <div>
+        <CreateEventModal workshop={selectedWorkshop} events={events} setEvents={setEvents} services={services} drivers={drivers} />
+        <EditEventModal selectedEvent={selected} events={events} setEvents={setEvents} open={editOpen} setOpen={setEditOpen} />
+      </div>
+      <Calendar
+        localizer={localizer}
+        events={events}
+        views={["week"]}
+        defaultView="week"
+        allDayAccessor="allDay"
+        titleAccessor="title"
+        startAccessor="start"
+        endAccessor="end"
+        selected={selected}
+        onSelectEvent={handleSelected}
+      />
     </div>
   );
 }

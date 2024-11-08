@@ -242,7 +242,7 @@ function CustomTable(props: CustomTableProps) {
                 className="text-sky-500 underline"
                 href={`/dashboard/calendar?${row.vehicleId ? `v=${row.vehicleId}` : ""}${row.clientId ? `&d=${row.clientId}` : ""}${
                   row.maintenance ? `&m=${row.id}` : ""
-                }`}
+                }${row.workshopId ? `&w=${row.workshopId}` : ""}`}
               >
                 Agendar
               </a>

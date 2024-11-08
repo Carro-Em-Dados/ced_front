@@ -22,7 +22,7 @@ import { createGoogleEvent } from "@/services/google-calendar";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { MaintenanceWithName } from "./customCalendar";
 import type { Vehicle } from "@/interfaces/vehicle.type";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 
@@ -73,7 +73,8 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
       ? 0
       : (workshop.contract.workshopScheduleLimit ?? 0) - (events.length ?? 0);
 
-  const { db, currentWorkshop } = useContext(AuthContext);
+  const { db } = useContext(AuthContext);
+  const router = useRouter();
 
   useEffect(() => {
     const [hours, minutes] = start.split(":").map(Number);
@@ -107,10 +108,11 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
     setSelectedDriver("");
     setSelectedService("");
     setSelectedVehicle("");
+    router.push("/dashboard/calendar");
     onClose();
   };
   const getMaintenanceName = async (main: string) => {
-    if (!currentWorkshop) return;
+    if (!workshop) return;
     const docRef = doc(db, "maintenances", main);
     await getDoc(docRef).then((doc) => {
       if (doc.exists()) {
@@ -121,7 +123,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
 
   const createEvent = async () => {
     setLoading(true);
-    if (!currentWorkshop) return;
+    if (!workshop) return;
 
     if (!selectedDriver || (!selectedService && !maintenanceTitle) || !selectedVehicle) {
       toast.error("Por favor preencha os campos", {
@@ -159,7 +161,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
     try {
       const q = query(
         collection(db, "schedules"),
-        where("workshop", "==", currentWorkshop.id),
+        where("workshop", "==", workshop.id),
         where("start", "<", newEventEnd),
         where("end", ">", newEventStart),
         where("driver", "==", selectedDriver)
@@ -191,7 +193,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
         note,
         start: newEventStart,
         end: newEventEnd,
-        workshop: currentWorkshop.id,
+        workshop: workshop.id,
       };
 
       if (maintenance) {
@@ -203,20 +205,20 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
           note,
           start: newEventStart,
           end: newEventEnd,
-          workshop: currentWorkshop.id,
+          workshop: workshop.id,
         };
       }
 
-      if (currentWorkshop.google_calendar_id) {
+      if (workshop.google_calendar_id) {
         const driverEmail = drivers.find((d) => d.id === selectedDriver)?.email ?? "";
         newEvent.google_event_id =
-          (await createGoogleEvent(currentWorkshop.google_calendar_id, {
+          (await createGoogleEvent(workshop.google_calendar_id, {
             attendees: driverEmail ? [{ email: driverEmail }] : undefined,
             end: newEventEnd.toISOString(),
             start: newEventStart.toISOString(),
-            summary: `[${currentWorkshop.fantasy_name}] ${driverName}`,
+            summary: `[${workshop.fantasy_name}] ${driverName}`,
             description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
-            location: `${currentWorkshop?.address ?? ""} - ${currentWorkshop?.city_code ?? ""}, ${currentWorkshop?.state_code ?? ""}`,
+            location: `${workshop?.address ?? ""} - ${workshop?.city_code ?? ""}, ${workshop?.state_code ?? ""}`,
           })) ?? undefined;
       }
 

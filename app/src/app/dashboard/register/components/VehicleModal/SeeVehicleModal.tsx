@@ -273,12 +273,18 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             min={0}
                             label="Data Limite"
                             value={maintenance?.dateLimit instanceof Date ? maintenance.dateLimit.toISOString().split("T")[0] : ""}
-                            onChange={(e) => updateMaintenance(index, "dateLimit", new Date(e.target.value + "T00:00:00"))}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value) return updateMaintenance(index, "dateLimit", null);
+                              const date = new Date(value + "T00:00:00");
+                              if (date.toString() === "Invalid Date") return;
+                              updateMaintenance(index, "dateLimit", date);
+                            }}
                             variant="bordered"
                             className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
+                              inputWrapper: ["border border-2 !border-#373131 focus:border-white"],
                             }}
                           />
                           <Input

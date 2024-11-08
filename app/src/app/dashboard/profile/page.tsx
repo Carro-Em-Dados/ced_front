@@ -148,7 +148,8 @@ const Profile = () => {
                         <p>Quantidade de cadastros de veículos por clientes-motoristas: {workshop.contract.maxVehiclesPerDriver || 0}</p>
                         <p>Quantidade de alarmes por KM limite/Data limite por veículo: {workshop.contract.maxAlarmsPerVehicle || 0}</p>
                         <p>
-                          Quantidade de alarmes por KM limite/Data limite por veículo: {workshop.contract.maxMaintenanceAlarmsPerUser || 0}
+                          Quantidade de alarmes por KM limite/Data limite por cliente-motorista:{" "}
+                          {workshop.contract.maxMaintenanceAlarmsPerUser || 0}
                         </p>
                       </div>
                     </div>

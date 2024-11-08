@@ -807,6 +807,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                 <CustomTable
                   data={maintenances.map((row) => ({
                     ...row,
+                    workshopId: selectedWorkshop,
                   }))}
                 />
               </div>

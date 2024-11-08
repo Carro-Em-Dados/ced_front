@@ -18,6 +18,7 @@ interface WorkshopContextData {
   }) => JSX.Element;
   refecth: () => Promise<void>;
   getAllWorkshops: () => Promise<(Workshop & { contract: Contract })[] | undefined>;
+  isLoading: boolean;
 }
 
 interface WorkshopProviderProps {
@@ -32,6 +33,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
   const [workshopInView, setWorkshopInView] = useState<(Workshop & { contract: Contract }) | undefined>(undefined);
   const [workshopOptions, setWorkshopOptions] = useState<(Workshop & { contract: Contract })[]>([]);
   const [basicContract, setBasicContract] = useState<Contract | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getContract = async (id: string) => {
     if (id === "basic" && basicContract) return basicContract;
@@ -48,6 +50,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
   const getWorkshopByOrganization = async () => {
     try {
       if (!currentUser?.id) return;
+      setIsLoading(true);
       const workshopQuery = query(collection(db, "workshops"), where("owner", "==", currentUser.id));
       const workshopsSnapshot = await getDocs(workshopQuery);
       const workshopsPromises = workshopsSnapshot.docs.map(async (doc) => {
@@ -65,6 +68,8 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
       setWorkshopInView(workshops[0]);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,6 +149,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
         setWorkshopOptions,
         refecth: getWorkshopByOrganization,
         WorkshopsByOrg,
+        isLoading,
       }}
     >
       {children}

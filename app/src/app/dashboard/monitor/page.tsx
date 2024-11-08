@@ -5,7 +5,7 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
 import Image from "next/image";
 import DropdownComponent from "@/custom/dropdown/Dropdown";
-import { Input } from "@nextui-org/react";
+import { Input, Spinner } from "@nextui-org/react";
 import { FaOilCan, FaSearch } from "react-icons/fa";
 import { AuthContext } from "@/contexts/auth.context";
 import { collection, getDocs, query, where, or, orderBy, limit } from "firebase/firestore";
@@ -27,7 +27,7 @@ const verificationOptions = [
   { label: "Nome do cliente", key: "name" },
   { label: "Placa do veículo", key: "license_plate" },
   { label: "Chassi do veículo", key: "vin" },
-  { label: "Telefone", key: "phone_commercial" },
+  { label: "Telefone", key: "phone_residential" },
 ];
 
 export default function Monitor() {
@@ -39,6 +39,7 @@ export default function Monitor() {
   const [vehicleData, setVehicleData] = useState<Vehicle[]>([]);
   const [vehicleStats, setVehicleStats] = useState<Reading[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,31 +48,38 @@ export default function Monitor() {
 
   const handleSearch = async () => {
     try {
+      setLoading(true);
       let fetchedVehicleIds: string[] = [];
       let fetchedVehicleDetails: Vehicle[] = [];
 
-      if (verification === "email" || verification === "name" || verification === "phone_commercial") {
+      if (verification === "email" || verification === "name" || verification === "phone_residential") {
         const userSnapshot = await getDocs(query(collection(db, "appUsers"), where(verification, "==", searchValue)));
-        for (const doc of userSnapshot.docs) {
-          const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
-          vehicleSnapshot.forEach((vehicleDoc) => {
-            fetchedVehicleIds.push(vehicleDoc.id);
-            fetchedVehicleDetails.push({
-              id: vehicleDoc.id,
-              ...vehicleDoc.data(),
-            } as Vehicle);
-          });
+
+        if (!userSnapshot.empty) {
+          for (const doc of userSnapshot.docs) {
+            const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
+            vehicleSnapshot.forEach((vehicleDoc) => {
+              fetchedVehicleIds.push(vehicleDoc.id);
+              fetchedVehicleDetails.push({
+                id: vehicleDoc.id,
+                ...vehicleDoc.data(),
+              } as Vehicle);
+            });
+          }
         }
+
         const driverSnapshot = await getDocs(query(collection(db, "clients"), where(verification, "==", searchValue)));
-        for (const doc of driverSnapshot.docs) {
-          const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
-          vehicleSnapshot.forEach((vehicleDoc) => {
-            fetchedVehicleIds.push(vehicleDoc.id);
-            fetchedVehicleDetails.push({
-              id: vehicleDoc.id,
-              ...vehicleDoc.data(),
-            } as Vehicle);
-          });
+        if (!driverSnapshot.empty) {
+          for (const doc of driverSnapshot.docs) {
+            const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
+            vehicleSnapshot.forEach((vehicleDoc) => {
+              fetchedVehicleIds.push(vehicleDoc.id);
+              fetchedVehicleDetails.push({
+                id: vehicleDoc.id,
+                ...vehicleDoc.data(),
+              } as Vehicle);
+            });
+          }
         }
       }
 
@@ -87,6 +95,21 @@ export default function Monitor() {
 
       setVehicleIds(fetchedVehicleIds);
       setVehicleData(fetchedVehicleDetails);
+
+      if (!fetchedVehicleIds.length) {
+        return toast.info("Nenhuma leitura encontrada", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
+      }
+
       if (fetchedVehicleIds.length <= 1 && fetchedVehicleDetails.length <= 1) {
         setSelectedVehicle(fetchedVehicleDetails[0]);
         await fetchVehicleStats(fetchedVehicleIds[0], fetchedVehicleDetails[0]);
@@ -105,6 +128,8 @@ export default function Monitor() {
         theme: "dark",
         transition: Zoom,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -163,9 +188,9 @@ export default function Monitor() {
             </div>
             <div className={styles.searchbarContainer}>
               {verification &&
-                (verification === "phone_commercial" ? (
+                (verification === "phone_residential" ? (
                   <InputMask
-                    mask={verification === "phone_commercial" ? "(99) 99999-9999" : ""}
+                    mask={verification === "phone_residential" ? "(99) 99999-9999" : ""}
                     value={searchValue}
                     onChange={(e) => {
                       setSearchValue(e.target.value);
@@ -183,6 +208,9 @@ export default function Monitor() {
                           classNames={{
                             input: ["bg-transparent text-white"],
                             inputWrapper: ["border border-2 !border-white focus:border-white"],
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSearch();
                           }}
                           endContent={
                             <button onClick={handleSearch} className="self-center">
@@ -207,6 +235,9 @@ export default function Monitor() {
                       setSearchValue(e.target.value);
                     }}
                     value={searchValue}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
                     endContent={
                       <button onClick={handleSearch} className="self-center">
                         <FaSearch className="text-white text-lg" />
@@ -216,6 +247,12 @@ export default function Monitor() {
                 ))}
             </div>
           </div>
+
+          {loading && (
+            <div className="flex items-center justify-center w-full h-full my-12">
+              <Spinner color="white" />
+            </div>
+          )}
 
           {vehicleData.length > 1 && !showMonitor && (
             <div className="text-white flex flex-col gap-5 my-5">

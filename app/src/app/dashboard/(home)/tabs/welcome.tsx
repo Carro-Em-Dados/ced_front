@@ -13,6 +13,7 @@ import { Role } from "@/types/enums/role.enum";
 export default function Welcome() {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [selectedWorkshop, setSelectedWorkshop] = useState<string | null>(null);
+  console.log("selectedWorkshop:", selectedWorkshop);
   const [workshopName, setWorkshopName] = useState("");
   const { currentUser, currentWorkshop, db } = useContext(AuthContext);
 
