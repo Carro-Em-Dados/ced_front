@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, doc, getDoc, getDocs, query, where, limit, startAfter, orderBy } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, limit, startAfter, getCountFromServer, orderBy } from "firebase/firestore";
 import { useState, useEffect, useContext } from "react";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { AppUser } from "@/interfaces/appUser.type";
@@ -48,8 +48,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
   const [contractInfo, setContractInfo] = useState<Contract>();
   const [currentPage, setCurrentPage] = useState(0);
-  const [lastVisible, setLastVisible] = useState<any>(null);
-  const [totalPending, setTotalPending] = useState(0);
+  const [lastVisibleDocs, setLastVisibleDocs] = useState<Map<number, any>>(new Map());
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalKM, setTotalKM] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -94,7 +93,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     }
   };
 
-  const fetchMaintenances = async () => {
+  const fetchMaintenances = async (_currentPage: number = 0) => {
     if (!db) return;
 
     try {
@@ -106,8 +105,8 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
 
       baseQuery = query(collection(db, "maintenances"), ...queryParams);
 
-      const countSnapshot = await getDocs(baseQuery);
-      const totalItems = countSnapshot.size;
+      const countSnapshot = await getCountFromServer(baseQuery);
+      const totalItems = countSnapshot.data().count;
       setTotalPages(Math.ceil(totalItems / itemsPerPage));
 
       if (selectedWorkshop === "all") {
@@ -175,7 +174,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             }
           }
 
-          const status = calculateStatus(maintenanceData, kmCurrent);
+          const status = calculateStatus(maintenanceData, kmCurrent, {
+            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
+            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+          });
 
           const maintenance = {
             obd2Distance,
@@ -197,22 +199,32 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             id: maintenanceData.id,
           };
 
-          const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
-          const isWithinDateAlarmThreshold = maintenance.date_threshold
-            ? moment().isSameOrAfter(
-                moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
-              )
-            : false;
+          // const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
+          // const isWithinDateAlarmThreshold = maintenance.date_threshold
+          //   ? moment().isSameOrAfter(
+          //       moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
+          //     )
+          //   : false;
 
-          if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
+          // if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
+
+          maintenanceList.push(maintenance);
         }
 
         setMaintenances(maintenanceList);
-        setTotalPending(totalItems);
+        const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastVisibleDocs((prevMap) => prevMap.set(_currentPage, lastVisibleDoc));
       } else {
-        let q = query(baseQuery, orderBy("date"), limit(itemsPerPage), lastVisible ? startAfter(lastVisible) : limit(itemsPerPage));
+        let q = query(baseQuery, orderBy("date"));
+        if (!_currentPage) {
+          q = query(baseQuery, orderBy("date"), limit(itemsPerPage));
+        } else {
+          const lastVisible = lastVisibleDocs.get(_currentPage - 1);
+          console.log("lastVisible:", lastVisible);
+          if (lastVisible) q = query(baseQuery, orderBy("date"), limit(itemsPerPage), startAfter(lastVisible));
+        }
 
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(q!);
         const maintenanceList: MaintenanceData[] = [];
 
         for (const docSnap of querySnapshot.docs) {
@@ -275,7 +287,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             }
           }
 
-          const status = calculateStatus(maintenanceData, kmCurrent);
+          const status = calculateStatus(maintenanceData, kmCurrent, {
+            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
+            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+          });
 
           const maintenance = {
             client: clientName,
@@ -299,21 +314,21 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             id: maintenanceData.id,
           };
 
-          const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
-          const isWithinDateAlarmThreshold = maintenance.date_threshold
-            ? moment().isSameOrAfter(
-                moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
-              )
-            : false;
+          // const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
+          // const isWithinDateAlarmThreshold = maintenance.date_threshold
+          //   ? moment().isSameOrAfter(
+          //       moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
+          //     )
+          //   : false;
 
-          if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
+          // if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
 
-          maintenanceList.push();
+          maintenanceList.push(maintenance);
         }
 
         setMaintenances(maintenanceList);
-        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-        setTotalPending(totalItems);
+        const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastVisibleDocs((prevMap) => prevMap.set(_currentPage, lastVisibleDoc));
       }
     } catch (error) {
       console.error("Error fetching maintenances: ", error);
@@ -394,33 +409,45 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     }
   };
 
-  const calculateStatus = (maintenance: Maintenance, kmCurrent: number) => {
+  const calculateStatus = (
+    maintenance: Maintenance,
+    kmCurrent: number,
+    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number }
+  ) => {
     const now = new Date();
     const dateLimit = maintenance.dateLimit ? maintenance.dateLimit.toDate() : null;
+    const maintenanceKm = maintenance.kmLimit;
 
-    if (dateLimit && dateLimit < now) {
+    const kmBeforeLimit = limits.workshopKmLimitAlarm;
+    const dateBeforeLimit = limits.workshopDateLimitAlarm;
+
+    if (dateLimit && dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >= now.getTime()) {
+      return "Próxima";
+    } else if (dateLimit && dateLimit.getTime() <= now.getTime()) {
       return "Vencida";
-    } else if (maintenance.kmLimit && maintenance.kmLimit < kmCurrent) {
-      return "Crítica";
+    } else if (maintenanceKm && maintenanceKm - kmBeforeLimit <= kmCurrent) {
+      return "Próxima";
+    } else if (maintenanceKm && maintenanceKm <= kmCurrent) {
+      return "Vencida";
     }
-    return "Próxima";
+    return "Ok";
   };
 
   const handlePageChange = (page: number) => {
     if (page < 0 || page >= totalPages) return;
     setCurrentPage(page);
-    fetchMaintenances();
+    fetchMaintenances(page);
   };
 
   const countMaintenanceStatuses = (maintenances: MaintenanceData[]) => {
-    let criticalCount = 0;
+    let okCount = 0;
     let upcomingCount = 0;
     let overdueCount = 0;
 
     maintenances.forEach((maintenance) => {
       switch (maintenance.status) {
-        case "Crítica":
-          criticalCount++;
+        case "Ok":
+          okCount++;
           break;
         case "Próxima":
           upcomingCount++;
@@ -434,7 +461,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     });
 
     return {
-      critical: criticalCount,
+      ok: okCount,
       upcoming: upcomingCount,
       overdue: overdueCount,
     };
@@ -443,7 +470,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
   useEffect(() => {
     setMaintenances([]);
     setCurrentPage(0);
-    setLastVisible(null);
+    setLastVisibleDocs(new Map());
     fetchContract();
     setCounterType("total");
   }, [selectedWorkshop]);
@@ -805,6 +832,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             <>
               <div className={styles.tableContainer}>
                 <CustomTable
+                  contractLimits={{
+                    dateLimitBefore: contractInfo?.workshopDateLimitAlarm || 0,
+                    kmLimitBefore: contractInfo?.workshopKmLimitAlarm || 0,
+                  }}
                   data={maintenances.map((row) => ({
                     ...row,
                     workshopId: selectedWorkshop,
@@ -815,14 +846,14 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                 <Button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 0}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white disabled:opacity-50"
                 >
                   Anterior
                 </Button>
                 <Button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages - 1}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white disabled:opacity-50"
                 >
                   Próxima
                 </Button>

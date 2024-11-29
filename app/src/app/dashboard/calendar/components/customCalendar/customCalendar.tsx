@@ -46,7 +46,6 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
     maintenances: true,
     workshops: true,
   });
-  console.log("loading:", loading);
   const [services, setServices] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const { db, currentWorkshop: userWorkshop, loading: userLoading, currentUser } = useContext(AuthContext);
@@ -62,7 +61,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [selectedWorkshop, setSelectedWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(undefined);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = new URLSearchParams(window.location.search);
   const workshopIdFromQueryParams = searchParams.get("w");
 
   const fetchSchedules = async () => {

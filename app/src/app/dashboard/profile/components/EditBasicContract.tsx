@@ -203,7 +203,7 @@ export default function EditBasicContract() {
         <h2 className={styles.modalLabel}>Fator de disparo de notificação à oficina</h2>
         <fieldset className="text-white flex gap-2">
           <div className="flex flex-col gap-2 w-full">
-            <label htmlFor="workshopKmLimitAlarm">KM Limite</label>
+            <label htmlFor="workshopKmLimitAlarm">KM antes do Limite</label>
             <Select
               name="workshopKmLimitAlarm"
               variant="bordered"
@@ -235,7 +235,7 @@ export default function EditBasicContract() {
             </Select>
           </div>
           <div className="flex flex-col gap-2 w-full">
-            <label htmlFor="workshopDateNotificationFactor">Data Limite</label>
+            <label htmlFor="workshopDateNotificationFactor">Data antes do Limite</label>
             <Select
               name="workshopDateNotificationFactor"
               variant="bordered"

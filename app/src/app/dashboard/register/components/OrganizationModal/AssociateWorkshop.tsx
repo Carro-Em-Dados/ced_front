@@ -4,7 +4,7 @@ import styles from "../../styles.module.scss";
 import clsx from "clsx";
 import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, getDocs, query, collection, where } from "firebase/firestore";
 import { Driver } from "@/interfaces/driver.type";
 import { toast, Zoom } from "react-toastify";
 
@@ -42,7 +42,30 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
     try {
       const driverRef = doc(db, "clients", selectedDriver.id);
       await updateDoc(driverRef, { workshops: workshop.id });
+
+      const driverVehiclesRef = query(collection(db, "vehicles"), where("owner", "==", selectedDriver.id));
+      const driverVehiclesSnapshot = await getDocs(driverVehiclesRef);
+      const vehicleIds = driverVehiclesSnapshot.docs.map((doc) => doc.id);
+
+      if (vehicleIds.length) {
+        const maintainancesRef = query(collection(db, "maintenances"), where("car_id", "in", vehicleIds));
+        const maintainancesSnapshot = await getDocs(maintainancesRef);
+        const updatePromises = maintainancesSnapshot.docs.map((doc) => updateDoc(doc.ref, { workshop: workshop.id }));
+        await Promise.all(updatePromises);
+      }
+
       setDrivers((prevDrivers) => prevDrivers.map((d) => (d.id === selectedDriver.id ? { ...d, workshops: workshop.id } : d)));
+      toast.success("Motorista associado com sucesso!", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
       handleClose();
     } catch (error) {
       toast.error("Erro ao associar motorista a oficina", {

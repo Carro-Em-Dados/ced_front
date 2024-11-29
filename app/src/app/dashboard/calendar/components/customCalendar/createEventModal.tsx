@@ -22,7 +22,7 @@ import { createGoogleEvent } from "@/services/google-calendar";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { MaintenanceWithName } from "./customCalendar";
 import type { Vehicle } from "@/interfaces/vehicle.type";
-import { useRouter, useSearchParams } from "next/navigation";
+import { ReadonlyURLSearchParams, useRouter, useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 
@@ -63,10 +63,10 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
   const [driverName, setDriverName] = useState<string>("");
   const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const searchParams = useSearchParams();
-  const vehicle = searchParams.get("v");
-  const driver = searchParams.get("d");
-  const maintenance = searchParams.get("m");
+  let searchParams = new URLSearchParams(window.location.search);
+  let vehicle = searchParams.get("v");
+  let driver = searchParams.get("d");
+  let maintenance = searchParams.get("m");
 
   const remainingSchedules =
     (workshop.contract.workshopScheduleLimit ?? 0) - (events.length ?? 0) < 0
@@ -105,10 +105,19 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
       return oneHourLater.toTimeString().split(" ")[0].substring(0, 5);
     });
     setNote("");
-    setSelectedDriver("");
-    setSelectedService("");
-    setSelectedVehicle("");
-    router.push("/dashboard/calendar");
+    setSelectedDriver(undefined);
+    setSelectedService(undefined);
+    setSelectedVehicle(undefined);
+    setDriverName("");
+    setMaintenanceTitle("");
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete("v");
+    newUrl.searchParams.delete("d");
+    newUrl.searchParams.delete("m");
+    newUrl.searchParams.delete("w");
+    window.history.pushState({}, "", newUrl.toString());
+    searchParams = new URLSearchParams("");
+    // router.push("/dashboard/calendar");
     onClose();
   };
   const getMaintenanceName = async (main: string) => {

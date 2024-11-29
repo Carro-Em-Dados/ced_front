@@ -13,6 +13,10 @@ import { Timestamp } from "firebase-admin/firestore";
 
 interface CustomTableProps {
   data: any[];
+  contractLimits: {
+    kmLimitBefore: number;
+    dateLimitBefore: number;
+  };
 }
 
 function CustomTable(props: CustomTableProps) {
@@ -22,13 +26,13 @@ function CustomTable(props: CustomTableProps) {
   const [loading, setLoading] = useState(true);
   const [userVehicleInfo, setUserVehicleInfo] = useState({
     totalKm: 0,
-    criticalCount: 0,
+    okCount: 0,
     closeCount: 0,
     expiredCount: 0,
   });
   const [vehicleInfo, setVehicleInfo] = useState({
     vehicleKm: 0,
-    criticalCount: 0,
+    okCount: 0,
     closeCount: 0,
     expiredCount: 0,
   });
@@ -68,7 +72,7 @@ function CustomTable(props: CustomTableProps) {
           const vehiclesSnapshot = await getDocs(vehiclesQuery);
 
           let totalKm = 0;
-          let criticalCount = 0;
+          let okCount = 0;
           let closeCount = 0;
           let expiredCount = 0;
 
@@ -87,9 +91,12 @@ function CustomTable(props: CustomTableProps) {
 
               for (const maintenanceDoc of maintenancesSnapshot.docs) {
                 const maintenanceData = maintenanceDoc.data() as Maintenance;
-                const status = calculateStatus(maintenanceData, vehicleKm);
+                const status = calculateStatus(maintenanceData, vehicleKm, {
+                  workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
+                  workshopDateLimitAlarm: props.contractLimits.dateLimitBefore,
+                });
                 if (status === "Vencida") expiredCount++;
-                else if (status === "Crítica") criticalCount++;
+                else if (status === "Ok") okCount++;
                 else closeCount++;
               }
             }
@@ -97,7 +104,7 @@ function CustomTable(props: CustomTableProps) {
 
           setUserVehicleInfo({
             totalKm,
-            criticalCount,
+            okCount,
             closeCount,
             expiredCount,
           });
@@ -126,21 +133,24 @@ function CustomTable(props: CustomTableProps) {
 
         const maintenancesQuery = query(collection(db, "maintenances"), where("car_id", "==", vehicleId));
         const maintenancesSnapshot = await getDocs(maintenancesQuery);
-        let criticalCount = 0;
+        let okCount = 0;
         let closeCount = 0;
         let expiredCount = 0;
 
         for (const maintenanceDoc of maintenancesSnapshot.docs) {
           const maintenanceData = maintenanceDoc.data() as Maintenance;
-          const status = calculateStatus(maintenanceData, vehicleKm);
+          const status = calculateStatus(maintenanceData, vehicleKm, {
+            workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
+            workshopDateLimitAlarm: props.contractLimits.dateLimitBefore,
+          });
           if (status === "Vencida") expiredCount++;
-          else if (status === "Crítica") criticalCount++;
+          else if (status === "Ok") okCount++;
           else closeCount++;
         }
 
         setVehicleInfo({
           vehicleKm,
-          criticalCount,
+          okCount,
           closeCount,
           expiredCount,
         });
@@ -152,15 +162,28 @@ function CustomTable(props: CustomTableProps) {
     }
   };
 
-  const calculateStatus = (maintenance: Maintenance, kmCurrent: number) => {
-    const now = new Date().getTime();
-    const maintenanceDate = maintenance?.dateLimit?.seconds && (maintenance.dateLimit as Timestamp).toMillis();
-    if (maintenanceDate && maintenanceDate < now) {
+  const calculateStatus = (
+    maintenance: Maintenance,
+    kmCurrent: number,
+    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number }
+  ) => {
+    const now = new Date();
+    const dateLimit = maintenance.dateLimit ? maintenance.dateLimit.toDate() : null;
+    const maintenanceKm = maintenance.kmLimit;
+
+    const kmBeforeLimit = limits.workshopKmLimitAlarm;
+    const dateBeforeLimit = limits.workshopDateLimitAlarm;
+
+    if (dateLimit && dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >= now.getTime()) {
+      return "Próxima";
+    } else if (dateLimit && dateLimit.getTime() <= now.getTime()) {
       return "Vencida";
-    } else if (maintenance.kmLimit && maintenance.kmLimit < kmCurrent) {
-      return "Crítica";
+    } else if (maintenanceKm && maintenanceKm - kmBeforeLimit <= kmCurrent) {
+      return "Próxima";
+    } else if (maintenanceKm && maintenanceKm <= kmCurrent) {
+      return "Vencida";
     }
-    return "Próxima";
+    return "Ok";
   };
 
   return (
@@ -189,7 +212,7 @@ function CustomTable(props: CustomTableProps) {
                       <>
                         <p className="font-bold mb-1">Dados do usuário</p>
                         <p>Total KM: {userVehicleInfo.totalKm}</p>
-                        <p>Manutenções Críticas: {userVehicleInfo.criticalCount}</p>
+                        <p>Manutenções Críticas: {userVehicleInfo.okCount}</p>
                         <p>Manutenções Próximas: {userVehicleInfo.closeCount}</p>
                         <p>Manutenções Vencidas: {userVehicleInfo.expiredCount}</p>
                       </>
@@ -212,7 +235,7 @@ function CustomTable(props: CustomTableProps) {
                       <>
                         <p className="font-bold mb-1">Dados do veículo</p>
                         <p>KM Rodados: {vehicleInfo.vehicleKm}</p>
-                        <p>Manutenções Críticas: {vehicleInfo.criticalCount}</p>
+                        <p>Manutenções Críticas: {vehicleInfo.okCount}</p>
                         <p>Manutenções Próximas: {vehicleInfo.closeCount}</p>
                         <p>Manutenções Vencidas: {vehicleInfo.expiredCount}</p>
                       </>
