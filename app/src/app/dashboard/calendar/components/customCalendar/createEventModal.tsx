@@ -63,7 +63,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
   const [driverName, setDriverName] = useState<string>("");
   const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  let searchParams = new URLSearchParams(window.location.search);
+  let searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   let vehicle = searchParams.get("v");
   let driver = searchParams.get("d");
   let maintenance = searchParams.get("m");
@@ -110,7 +110,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
     setSelectedVehicle(undefined);
     setDriverName("");
     setMaintenanceTitle("");
-    const newUrl = new URL(window.location.href);
+    const newUrl = new URL(typeof window !== "undefined" ? window.location.href : "/");
     newUrl.searchParams.delete("v");
     newUrl.searchParams.delete("d");
     newUrl.searchParams.delete("m");

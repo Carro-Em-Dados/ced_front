@@ -61,7 +61,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   const [selectedWorkshop, setSelectedWorkshop] = useState<(Workshop & { contract: Contract }) | undefined>(undefined);
 
   const router = useRouter();
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const workshopIdFromQueryParams = searchParams.get("w");
 
   const fetchSchedules = async () => {
