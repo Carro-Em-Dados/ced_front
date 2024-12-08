@@ -33,7 +33,6 @@ interface MaintenanceData {
 export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
     
     const { currentUser } = useContext(AuthContext);
-    console.log(currentUser);
 
     const exportToPDF = async () => {
         const doc = new jsPDF(
