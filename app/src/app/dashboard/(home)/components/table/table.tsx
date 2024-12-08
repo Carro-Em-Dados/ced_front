@@ -254,7 +254,7 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>
               <span
                 className={`rounded-lg px-2 py-1 ${
-                  row.status === "Próxima" ? "!bg-[#D3C544]" : row.status === "Crítica" ? "!bg-[#2D2F2D]" : "!bg-[#B73F25]"
+                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Crítica" ? "!bg-[#2D2F2D]" : "!bg-[#B73F25]"
                 }`}
               >
                 {row.status}
