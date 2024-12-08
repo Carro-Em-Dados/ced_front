@@ -21,12 +21,13 @@ import EditVehicleModal from "./EditVehicleModal";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import EcuLimits from "./EcuLimits";
 import { defaultMaintenance } from "@/constants/defaultMaintenance";
-import { collection, getDocs, addDoc, Timestamp, deleteDoc, doc, updateDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, Timestamp, deleteDoc, doc, updateDoc, query, where, getDoc } from "firebase/firestore";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { toast, Zoom } from "react-toastify";
 import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
+import { Driver } from "@/interfaces/driver.type";
 
 interface Props {
   vehicle: Vehicle;
@@ -39,16 +40,17 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [maintenancesDeleting, setMaintenancesDeleting] = useState<Maintenance[]>([]);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [ alarmsLeft, setAlarmsLeft ] = useState<number>(0);
 
   const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
 
   const fetchMaintenances = async () => {
     try {
       if (!workshop?.id && currentUser?.role !== Role.MASTER) return;
-
       const maintenanceCollection = collection(db, "maintenances");
 
       const queryParams = [where("car_id", "==", vehicle.id)];
+
       if (currentUser?.role !== Role.MASTER) queryParams.push(where("workshop", "==", workshop?.id));
 
       const q = query(maintenanceCollection, ...queryParams);
@@ -83,20 +85,71 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
     fetchMaintenances();
   }, []);
 
-  const addMaintenance = () => {
-    if (!workshop) return;
-    if (!workshop.contract) return;
-    if (maintenances.length >= workshop?.contract?.maxAlarmsPerVehicle!) return;
-    const newMaintenance: Maintenance = {
-      service: "",
-      workshop: workshop!.id,
-      date: Timestamp.now(),
-      price: 0,
-      car_id: vehicle.id,
-      kmLimit: 0,
-      dateLimit: new Date(),
-    };
-    setMaintenances([...maintenances, newMaintenance]);
+  useEffect(() => {
+    if (workshop?.contract.maxAlarmsPerVehicle !== undefined && maintenances.length <= workshop.contract.maxAlarmsPerVehicle) {
+      setAlarmsLeft(workshop.contract.maxAlarmsPerVehicle! - maintenances.length);
+    } else {
+      setAlarmsLeft(0);
+    }
+  }, [maintenances, workshop]);
+
+  const addMaintenance = async () => {
+    if (currentUser?.role !== Role.MASTER) {
+      if (!workshop) return;
+      if (!workshop.contract) return;
+      if (maintenances.length >= workshop?.contract?.maxAlarmsPerVehicle!) return;
+    }
+
+    try {
+      const clientDocRef = doc(db, "clients", vehicle.owner);
+      const clientSnapshot = await getDoc(clientDocRef);
+
+      if (!clientSnapshot.exists()) {
+        toast.error("Cliente não encontrado!", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
+        return;
+      }
+
+      const client = clientSnapshot.data() as Driver;
+
+      console.log("client workshop:", client.workshops);
+      console.log("client:", client);
+      console.log("workshop:", workshop);
+
+      const newMaintenance: Maintenance = {
+        service: "",
+        workshop: workshop ? workshop.id : client.workshops,
+        date: Timestamp.now(),
+        price: 0,
+        car_id: vehicle.id,
+        kmLimit: 0,
+        dateLimit: new Date(),
+      };
+      
+      setMaintenances([...maintenances, newMaintenance]);
+    } catch (error) {
+      console.error("Error fetching client:", error);
+      toast.error("Erro ao buscar cliente", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    }
   };
 
   const updateMaintenance = (index: number, field: keyof Maintenance, value: any) => {
@@ -318,10 +371,9 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                       </Button>
                       <div className="flex flex-row justify-between items-center">
                         <p className="text-sm">
-                          {workshop?.contract?.maxAlarmsPerVehicle !== undefined
-                            ? workshop.contract.maxAlarmsPerVehicle - maintenances.length
-                            : 0}{" "}
-                          alarmes restantes
+                          {currentUser?.role === Role.MASTER
+                            ? "Número de alarmes ilimitado"
+                            : `${alarmsLeft} alarmes restantes`}
                         </p>
                         <Button type="button" className={styles.addVehicleBtn} onClick={saveMaintenancesOnDb}>
                           Salvar
