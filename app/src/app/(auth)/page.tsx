@@ -19,6 +19,7 @@ const Login = () => {
 	const [emailValid, setEmailValid] = useState<boolean>(true);
 	const [passwordValid, setPasswordValid] = useState<boolean>(true);
 	const [loginError, setLoginError] = useState<string | null>(null);
+	const [isButtonPressed, setIsButtonPressed] = useState<boolean>(false);
 	const router = useRouter();
 
 	const HR = () => {
@@ -89,8 +90,21 @@ const Login = () => {
 		return valid;
 	}
 
+	function handleKeyDown(event: React.KeyboardEvent) {
+		if (event.key === "Enter") {
+			triggerButtonAnimation();
+			handleLogin();
+		}
+	}
+
+	function triggerButtonAnimation() {
+		setIsButtonPressed(true);
+		setTimeout(() => setIsButtonPressed(false), 100);
+	}
+
 	return (
-		<div className={styles.page}>
+		<>
+		<div className={styles.page} onKeyDown={handleKeyDown}>
 			<div className={styles.imageContainer}>
 				<Image
 					src="/car_background1.png"
@@ -138,7 +152,9 @@ const Login = () => {
 					{loginError && <p className={styles.error}>{loginError}</p>}
 					<Button
 						color="success"
-						className={styles.button}
+						className={`${styles.button} ${
+							isButtonPressed ? styles.pressed : ""
+						}`}
 						onClick={handleLogin}
 					>
 						ENTRAR
@@ -163,6 +179,7 @@ const Login = () => {
 				</div>
 			</div>
 		</div>
+		</>
 	);
 };
 
