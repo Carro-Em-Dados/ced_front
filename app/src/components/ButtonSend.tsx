@@ -4,6 +4,8 @@ import emailjs from "emailjs-com";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logo from "../../public/logo1.png";
+import { useContext } from "react";
+import { AuthContext } from "@/contexts/auth.context";
 
 interface ButtonProps {
     workshopName: string;
@@ -29,9 +31,14 @@ interface MaintenanceData {
 }
 
 export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
+    
+    const { currentUser } = useContext(AuthContext);
+    console.log(currentUser);
 
     const exportToPDF = async () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF(
+            {compress: true} // remove it when we pay for emailjs subscription
+        ); // Gotta pay emailjs subscription to send pdfs with more than 50kb
     
         doc.setFillColor(255, 255, 255);
         doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, "F");
@@ -113,24 +120,21 @@ export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
 
     const sendEmailWithPDF = async () => {
         try {
-            // Step 1: Generate the PDF Blob using exportToPDF
             const pdfBlob = await exportToPDF();
 
-            // Step 2: Convert the Blob to a Base64 string (required for EmailJS)
             const reader = new FileReader();
             reader.readAsDataURL(pdfBlob);
             reader.onloadend = async () => {
                 const base64PDF = (reader.result as string).split(",")[1]; // Get Base64 content
 
-                // Step 3: Send the email using EmailJS
                 const emailParams = {
-                    to_email: "recipient@example.com", // Replace with recipient's email
-                    pdf_attachment: base64PDF, // Attach the Base64-encoded PDF
+                    to_email: currentUser?.email,
+                    pdf_attachment: base64PDF,
                 };
 
-                const serviceId = "YOUR_SERVICE_ID"; // Replace with EmailJS service ID
-                const templateId = "YOUR_TEMPLATE_ID"; // Replace with EmailJS template ID
-                const userId = "YOUR_USER_ID"; // Replace with your EmailJS user ID
+                const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!;
+                const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!;
+                const userId = process.env.NEXT_PUBLIC_EMAILJS_USER_ID;
 
                 await emailjs.send(serviceId, templateId, emailParams, userId);
                 alert("Email sent successfully!");
