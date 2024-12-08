@@ -14,7 +14,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import clsx from "clsx";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { ReactNode, useContext, useEffect, useState } from "react";
 import styles from "../../styles.module.scss";
 import { FaEye } from "react-icons/fa";
@@ -77,6 +77,7 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
 
   async function handleEditDriver() {
     setLoading(true);
+    const newWorkshop = [Role.ORGANIZATION, Role.MASTER].includes(currentUser?.role as Role) ? selectedWorkshop : workshop?.id
 
     try {
       let updatedDriver = {
@@ -91,7 +92,7 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
         phone_commercial: phoneCom,
         role: "client",
         register: register,
-        workshops: [Role.ORGANIZATION, Role.MASTER].includes(currentUser?.role as Role) ? selectedWorkshop : workshop?.id,
+        workshops: newWorkshop,
       };
 
       const docRef = doc(db, "clients", id);
@@ -100,6 +101,21 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
         setDrivers((drivers) => drivers.map((driver) => (driver.id === id ? { ...driver, ...updatedDriver } : driver)));
         handleClose();
       });
+
+      if (newWorkshop === selectedWorkshop) {
+        try {
+          const vehiclesFromOwnerCollection = await getDocs(query(collection(db, "vehicles"), where("owner", "==", id)));
+          for (const vehicle of vehiclesFromOwnerCollection.docs) {
+            const maintenancesFromVehicleCollection = await getDocs(query(collection(db, "maintenances"), where("car_id", "==", vehicle.id)));
+            for (const maintenance of maintenancesFromVehicleCollection.docs) {
+              await updateDoc(doc(db, "maintenances", maintenance.id), { workshop: newWorkshop });
+            }
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
     } catch (error) {
       toast.error("Erro ao editar motorista", {
         position: "bottom-right",
