@@ -18,6 +18,8 @@ import { Contract } from "@/interfaces/contract.type";
 import { Reading } from "@/interfaces/readings.type";
 import moment from "moment";
 import { Timestamp } from "firebase-admin/firestore";
+import ButtonExport from "@/components/ButtonExport";
+import ButtonSend from "@/components/ButtonSend";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -46,6 +48,7 @@ interface MaintenanceData {
 export default function Dashboard({ selectedWorkshop, contractId, workshopName }: DashboardProps) {
   const { db } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
+  const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>([]);
   const [contractInfo, setContractInfo] = useState<Contract>();
   const [currentPage, setCurrentPage] = useState(0);
   const [lastVisibleDocs, setLastVisibleDocs] = useState<Map<number, any>>(new Map());
@@ -226,7 +229,104 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
 
         const querySnapshot = await getDocs(q!);
         const maintenanceList: MaintenanceData[] = [];
+        const maintenanceChartList: MaintenanceData[] = [];
 
+        // For the Dashboard
+        const allMaintenancesOfCurrentWorkshop = await getDocs(baseQuery);
+        for (const maint of allMaintenancesOfCurrentWorkshop.docs) {
+          const maintenanceData = maint.data() as Maintenance;
+          maintenanceData.id = maint.id;
+
+          if (!maintenanceData.car_id) {
+            continue;
+          }
+
+          let clientName = "";
+          let clientId = "";
+          let vehicleInfo = "";
+          let vehicleId = "";
+          let vehicleBrand = "";
+          let vehicleModel = "";
+          let vehicleYear = "";
+          let obd2Distance = 0;
+          let gpsDistance = 0;
+          let kmCurrent = 0;
+
+          const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
+          const readingDocRef = query(
+            collection(db, "readings"),
+            where("car_id", "==", maintenanceData.car_id),
+            orderBy("createdAt", "desc"),
+            limit(1)
+          );
+          const [vehicleDoc, readingDoc] = await Promise.all([getDoc(vehicleDocRef), getDocs(readingDocRef)]);
+          if (vehicleDoc.exists()) {
+            const vehicleData = vehicleDoc.data() as Vehicle;
+            const readingData = readingDoc?.docs[0]?.data() as Reading;
+            vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
+            vehicleId = vehicleDoc.id;
+            vehicleBrand = vehicleData.manufacturer || "";
+            vehicleModel = vehicleData.car_model || "";
+            vehicleYear = vehicleData.year || "";
+            obd2Distance = readingData?.obd2_distance || 0;
+            gpsDistance = readingData?.gps_distance || 0;
+            kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+          
+            if (vehicleData.owner) {
+              const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
+              const appUserDoc = await getDoc(appUserDocRef);
+              if (appUserDoc.exists()) {
+                const clientData = appUserDoc.data() as AppUser;
+                clientName = clientData.name || "";
+                clientId = appUserDoc.id;
+              } else {
+                const driverDocRef = doc(db, "clients", vehicleData.owner);
+                const driverDoc = await getDoc(driverDocRef);
+                if (driverDoc.exists()) {
+                  const driverData = driverDoc.data() as Driver;
+                  clientName = driverData.name || "";
+                  clientId = driverDoc.id;
+                }
+              }
+            } else if (selectedWorkshop !== "all") {
+              continue;
+            }
+          }
+
+          
+
+          const status = calculateStatus(maintenanceData, kmCurrent, {
+            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
+            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+          });
+
+          const maintenance = {
+            obd2Distance,
+            gpsDistance,
+            client: clientName,
+            clientId: clientId,
+            vehicle: vehicleInfo,
+            vehicleId: vehicleId,
+            vehicleBrand: vehicleBrand,
+            vehicleModel: vehicleModel,
+            vehicleYear: vehicleYear,
+            maintenance: maintenanceData.service,
+            km_current: kmCurrent,
+            km_threshold: maintenanceData.kmLimit || 0,
+            date_threshold: maintenanceData.dateLimit
+              ? new Date(maintenanceData.dateLimit.seconds * 1000 + maintenanceData.dateLimit.nanoseconds / 1000000).toLocaleDateString(
+                  "pt-BR"
+                )
+              : "",
+            status: status,
+            id: maintenanceData.id,
+          };
+
+          maintenanceChartList.push(maintenance);
+        }
+        setMaintenancesChart(maintenanceChartList);
+
+        // For the Table and other stuff
         for (const docSnap of querySnapshot.docs) {
           const maintenanceData = docSnap.data() as Maintenance;
           maintenanceData.id = docSnap.id;
@@ -482,7 +582,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
 
   useEffect(() => {
     getAllVehicleFilters();
-  }, [maintenances]);
+  }, [maintenances, maintenancesChart]);
 
   const getAllVehicleFilters = async () => {
     type FilterOption = {
@@ -557,7 +657,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
       }
     }
 
-    maintenances.forEach((maintenance) => {
+    maintenancesChart.forEach((maintenance) => {
       const { vehicleId } = maintenance;
       const vehicle = uniqueVehicles.get(vehicleId);
 
@@ -782,9 +882,9 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                     ? countMaintenanceStatuses(
                         filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].maintenances || {}
                       )
-                    : countMaintenanceStatuses(maintenances)
+                    : countMaintenanceStatuses(maintenancesChart)
                 }
-              />
+                />
             </div>
             <span style={{ width: "3em" }} />
             <div className={styles.statisticsBox}>
@@ -796,7 +896,7 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                     <h4 className={styles.statisticsText}>
                       {selectedFilterOption.selected !== "" && filterOptions !== undefined
                         ? filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].maintenances?.length
-                        : maintenances.length}
+                        : maintenancesChart.length}
                     </h4>
                   </div>
                   <p className={styles.statisticsSubtext}>manutenções pendentes</p>
@@ -842,21 +942,27 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                   }))}
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-row justify-between lg:mx-10 xl:mx-10">
                 <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 0}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white disabled:opacity-50"
-                >
-                  Anterior
-                </Button>
-                <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= totalPages - 1}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white disabled:opacity-50"
-                >
-                  Próxima
-                </Button>
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 0}
+                    className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  >
+                    Anterior
+                  </Button>
+
+                  <div className="flex flex-row flex-gap-2">
+                    <ButtonExport workshopName={workshopName} maintenances={maintenancesChart} />
+                    <ButtonSend workshopName={workshopName} maintenances={maintenancesChart} />
+                  </div>
+
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1}
+                    className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  >
+                    Próxima
+                  </Button>
               </div>
             </>
           )}
