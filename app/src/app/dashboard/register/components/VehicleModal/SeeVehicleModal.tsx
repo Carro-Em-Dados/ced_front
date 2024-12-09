@@ -231,9 +231,9 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
   return (
     <>
-      <button color="success" onClick={onOpen}>
-        <FaEye />
-      </button>
+      <Button color="success" className={styles.modalButton} onClick={onOpen} >
+        Configurações
+      </Button>
       <Modal isOpen={isOpen} className={styles.modal} size="2xl" scrollBehavior="outside" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
