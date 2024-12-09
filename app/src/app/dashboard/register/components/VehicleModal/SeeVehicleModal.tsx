@@ -21,13 +21,26 @@ import EditVehicleModal from "./EditVehicleModal";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import EcuLimits from "./EcuLimits";
 import { defaultMaintenance } from "@/constants/defaultMaintenance";
-import { collection, getDocs, addDoc, Timestamp, deleteDoc, doc, updateDoc, query, where, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  Timestamp,
+  deleteDoc,
+  doc,
+  updateDoc,
+  query,
+  where,
+  getDoc,
+} from "firebase/firestore";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { toast, Zoom } from "react-toastify";
 import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Driver } from "@/interfaces/driver.type";
+import { get } from "http";
+import { Contract } from "@/interfaces/contract.type";
 
 interface Props {
   vehicle: Vehicle;
@@ -35,14 +48,18 @@ interface Props {
 }
 
 export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
-  const { db, currentWorkshop, currentUser, isPremium } = useContext(AuthContext);
+  const { db, currentWorkshop, currentUser, isPremium } =
+    useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
-  const [maintenancesDeleting, setMaintenancesDeleting] = useState<Maintenance[]>([]);
+  const [maintenancesDeleting, setMaintenancesDeleting] = useState<
+    Maintenance[]
+  >([]);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [ alarmsLeft, setAlarmsLeft ] = useState<number>(0);
+  const [alarmsLeft, setAlarmsLeft] = useState<number>(0);
 
-  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+  const workshop =
+    currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
 
   const fetchMaintenances = async () => {
     try {
@@ -51,7 +68,8 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
       const queryParams = [where("car_id", "==", vehicle.id)];
 
-      if (currentUser?.role !== Role.MASTER) queryParams.push(where("workshop", "==", workshop?.id));
+      if (currentUser?.role !== Role.MASTER)
+        queryParams.push(where("workshop", "==", workshop?.id));
 
       const q = query(maintenanceCollection, ...queryParams);
       const querySnapshot = await getDocs(q);
@@ -86,8 +104,13 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   }, []);
 
   useEffect(() => {
-    if (workshop?.contract.maxAlarmsPerVehicle !== undefined && maintenances.length <= workshop.contract.maxAlarmsPerVehicle) {
-      setAlarmsLeft(workshop.contract.maxAlarmsPerVehicle! - maintenances.length);
+    if (
+      workshop?.contract.maxAlarmsPerVehicle !== undefined &&
+      maintenances.length <= workshop.contract.maxAlarmsPerVehicle
+    ) {
+      setAlarmsLeft(
+        workshop.contract.maxAlarmsPerVehicle! - maintenances.length
+      );
     } else {
       setAlarmsLeft(0);
     }
@@ -121,9 +144,12 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
       const client = clientSnapshot.data() as Driver;
 
-      console.log("client workshop:", client.workshops);
-      console.log("client:", client);
-      console.log("workshop:", workshop);
+      if (currentUser?.role === Role.MASTER) {
+        const clientWorkshop = client?.workshops!;
+        const workshop = (await getDoc(doc(db, "workshops", clientWorkshop))).data();
+        const contract = (await getDoc(doc(db, "contracts", workshop?.contract))).data() as Contract;
+        if (maintenances.length >= contract.maxAlarmsPerVehicle) return;
+      }
 
       const newMaintenance: Maintenance = {
         service: "",
@@ -134,7 +160,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
         kmLimit: 0,
         dateLimit: new Date(),
       };
-      
+
       setMaintenances([...maintenances, newMaintenance]);
     } catch (error) {
       console.error("Error fetching client:", error);
@@ -152,7 +178,11 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
     }
   };
 
-  const updateMaintenance = (index: number, field: keyof Maintenance, value: any) => {
+  const updateMaintenance = (
+    index: number,
+    field: keyof Maintenance,
+    value: any
+  ) => {
     const updatedMaintenances = [...maintenances];
     updatedMaintenances[index] = {
       ...updatedMaintenances[index],
@@ -163,7 +193,9 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
   const saveMaintenancesOnDb = async () => {
     try {
-      const existingMaintenancesSnapshot = await getDocs(collection(db, "maintenances"));
+      const existingMaintenancesSnapshot = await getDocs(
+        collection(db, "maintenances")
+      );
       const existingMaintenances: Maintenance[] = [];
       existingMaintenancesSnapshot.forEach((doc) => {
         if (doc.data().car_id === vehicle.id) {
@@ -188,7 +220,10 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
         };
 
         if (maintenance.id) {
-          return updateDoc(doc(db, "maintenances", maintenance.id), maintenanceData);
+          return updateDoc(
+            doc(db, "maintenances", maintenance.id),
+            maintenanceData
+          );
         } else {
           return addDoc(collection(db, "maintenances"), maintenanceData);
         }
@@ -231,19 +266,34 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
   return (
     <>
-      <Button color="success" className={styles.modalButton} onClick={onOpen} >
+      <Button color="success" className={styles.modalButton} onClick={onOpen}>
         Configurações
       </Button>
-      <Modal isOpen={isOpen} className={styles.modal} size="2xl" scrollBehavior="outside" onOpenChange={onOpenChange}>
+      <Modal
+        isOpen={isOpen}
+        className={styles.modal}
+        size="2xl"
+        scrollBehavior="outside"
+        onOpenChange={onOpenChange}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className={clsx("flex flex-col gap-1", styles.modalTitle)}>
+              <ModalHeader
+                className={clsx("flex flex-col gap-1", styles.modalTitle)}
+              >
                 {vehicle.car_model} - {vehicle.license_plate}
               </ModalHeader>
               <ModalBody className="text-white">
-                <Tabs aria-label="config-tabs" className={`${styles.tabs} !text-xs !m-0`}>
-                  <Tab className={`${styles.tabButton} !p-0`} key="info" title="Informações">
+                <Tabs
+                  aria-label="config-tabs"
+                  className={`${styles.tabs} !text-xs !m-0`}
+                >
+                  <Tab
+                    className={`${styles.tabButton} !p-0`}
+                    key="info"
+                    title="Informações"
+                  >
                     <div className="flex flex-col gap-2 text-sm">
                       <p>
                         Placa: <span>{vehicle.license_plate}</span>
@@ -261,15 +311,30 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                         Odômetro: <span>{vehicle.initial_km}</span>
                       </p>
                       <div className="flex gap-2 mt-5">
-                        <EraseModal id={vehicle.id} type={DeleteModalTypes.vehicle} name={vehicle.car_model} state={setVehicles} />
-                        <EditVehicleModal vehicle={vehicle} setVehicles={setVehicles} />
+                        <EraseModal
+                          id={vehicle.id}
+                          type={DeleteModalTypes.vehicle}
+                          name={vehicle.car_model}
+                          state={setVehicles}
+                        />
+                        <EditVehicleModal
+                          vehicle={vehicle}
+                          setVehicles={setVehicles}
+                        />
                       </div>
                     </div>
                   </Tab>
-                  <Tab className={`${styles.tabButton} !p-0`} key="alarms" title="Manutenções">
+                  <Tab
+                    className={`${styles.tabButton} !p-0`}
+                    key="alarms"
+                    title="Manutenções"
+                  >
                     <div className="flex flex-col gap-5 justify-between w-full">
                       {maintenances?.map((maintenance, index) => (
-                        <div className="grid grid-cols-12 gap-2 items-center" key={`${maintenance.id} ${index}`}>
+                        <div
+                          className="grid grid-cols-12 gap-2 items-center"
+                          key={`${maintenance.id} ${index}`}
+                        >
                           {/* <Select
                             variant="bordered"
                             className="dark text-white col-span-5"
@@ -303,7 +368,10 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             defaultSelectedKey={maintenance.service}
                           >
                             {(item) => (
-                              <AutocompleteItem key={item.value} value={item.value}>
+                              <AutocompleteItem
+                                key={item.value}
+                                value={item.value}
+                              >
                                 {item.label}
                               </AutocompleteItem>
                             )}
@@ -313,22 +381,41 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             min={0}
                             label="KM Limite"
                             value={maintenance.kmLimit.toString()}
-                            onChange={(e) => updateMaintenance(index, "kmLimit", Number(e.target.value))}
+                            onChange={(e) =>
+                              updateMaintenance(
+                                index,
+                                "kmLimit",
+                                Number(e.target.value)
+                              )
+                            }
                             variant="bordered"
                             className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
+                              inputWrapper: [
+                                "border border-2 !border-white focus:border-white",
+                              ],
                             }}
                           />
                           <Input
                             type="date"
                             min={0}
                             label="Data Limite"
-                            value={maintenance?.dateLimit instanceof Date ? maintenance.dateLimit.toISOString().split("T")[0] : ""}
+                            value={
+                              maintenance?.dateLimit instanceof Date
+                                ? maintenance.dateLimit
+                                    .toISOString()
+                                    .split("T")[0]
+                                : ""
+                            }
                             onChange={(e) => {
                               const value = e.target.value;
-                              if (!value) return updateMaintenance(index, "dateLimit", null);
+                              if (!value)
+                                return updateMaintenance(
+                                  index,
+                                  "dateLimit",
+                                  null
+                                );
                               const date = new Date(value + "T00:00:00");
                               if (date.toString() === "Invalid Date") return;
                               updateMaintenance(index, "dateLimit", date);
@@ -337,7 +424,9 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-#373131 focus:border-white"],
+                              inputWrapper: [
+                                "border border-2 !border-#373131 focus:border-white",
+                              ],
                             }}
                           />
                           <Input
@@ -345,16 +434,26 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                             min={0}
                             label="Valor"
                             value={maintenance.price.toString()}
-                            onChange={(e) => updateMaintenance(index, "price", Number(e.target.value))}
+                            onChange={(e) =>
+                              updateMaintenance(
+                                index,
+                                "price",
+                                Number(e.target.value)
+                              )
+                            }
                             variant="bordered"
                             className="dark col-span-2"
                             classNames={{
                               input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
+                              inputWrapper: [
+                                "border border-2 !border-white focus:border-white",
+                              ],
                             }}
                             startContent={
                               <div className="pointer-events-none flex items-center">
-                                <span className="text-default-400 text-small">R$</span>
+                                <span className="text-default-400 text-small">
+                                  R$
+                                </span>
                               </div>
                             }
                           />
@@ -366,22 +465,32 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                           </button>
                         </div>
                       ))}
-                      <Button type="button" className={clsx(styles.addVehicleBtn, "w-fit")} onClick={addMaintenance}>
+                      <Button
+                        type="button"
+                        className={clsx(styles.addVehicleBtn, "w-fit")}
+                        onClick={addMaintenance}
+                      >
                         <FaRegEdit /> Adicionar manutenção
                       </Button>
                       <div className="flex flex-row justify-between items-center">
                         <p className="text-sm">
-                          {currentUser?.role === Role.MASTER
-                            ? "Número de alarmes ilimitado"
-                            : `${alarmsLeft} alarmes restantes`}
+                          {alarmsLeft} alarmes restantes
                         </p>
-                        <Button type="button" className={styles.addVehicleBtn} onClick={saveMaintenancesOnDb}>
+                        <Button
+                          type="button"
+                          className={styles.addVehicleBtn}
+                          onClick={saveMaintenancesOnDb}
+                        >
                           Salvar
                         </Button>
                       </div>
                     </div>
                   </Tab>
-                  <Tab className={`${styles.tabButton} !p-0`} key="ecu" title="Limites ECU">
+                  <Tab
+                    className={`${styles.tabButton} !p-0`}
+                    key="ecu"
+                    title="Limites ECU"
+                  >
                     <EcuLimits id={vehicle.id} />
                   </Tab>
                 </Tabs>
