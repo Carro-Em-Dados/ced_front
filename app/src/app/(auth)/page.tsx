@@ -7,10 +7,9 @@ import { MdOutlineMailOutline, MdLockOutline } from "react-icons/md";
 import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth.context";
-import { BsGoogle } from "react-icons/bs";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
-import { sendPasswordResetEmail } from "firebase/auth";
 import ForgotPasswordModal from "./components/ForgotPasswordModal";
+import { toast, Zoom } from "react-toastify";
 
 const Login = () => {
   const { login, loginWithFacebook, loginWithGoogle } = useContext(AuthContext);
@@ -69,6 +68,17 @@ const Login = () => {
         setEmailValid(false);
         setPasswordValid(false);
         setLoginError("Email ou senha inválidos");
+        toast.error("Email ou senha inválidos", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
       }
     }
   }
