@@ -20,6 +20,7 @@ const Login = () => {
 	const [passwordValid, setPasswordValid] = useState<boolean>(true);
 	const [loginError, setLoginError] = useState<string | null>(null);
 	const [isButtonPressed, setIsButtonPressed] = useState<boolean>(false);
+	const [isLoginHappening, setIsLoginHappening] = useState<boolean>(false);
 	const router = useRouter();
 
 	const HR = () => {
@@ -63,9 +64,11 @@ const Login = () => {
 	async function handleLogin() {
 		if (validateFields()) {
 			try {
+				setIsLoginHappening(true);
 				await login(email, password);
 				router.replace("/dashboard");
 			} catch (err) {
+				setIsLoginHappening(false);
 				setEmailValid(false);
 				setPasswordValid(false);
 				setLoginError("Email ou senha inválidos");
@@ -157,7 +160,7 @@ const Login = () => {
 						}`}
 						onClick={handleLogin}
 					>
-						ENTRAR
+						{isLoginHappening ? "ENTRANDO..." : "ENTRAR"}
 					</Button>
 					<p className="text-white text-sm mt-5">
 						Esqueceu sua senha? <ForgotPasswordModal />
