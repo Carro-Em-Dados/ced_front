@@ -264,7 +264,7 @@ export default function EditBasicContract() {
             </Select>
           </div>
         </fieldset>
-        <h2 className={styles.modalLabel}>Fator de disparo de notificação ao usuário</h2>
+        <h2 className={styles.modalLabel}>Fator de disparo de notificação ao motorista</h2>
         <fieldset className="text-white flex gap-2">
           <div className="flex flex-col gap-2 w-full">
             <label htmlFor="userKmLimitNotificationFactor">KM Limite</label>
