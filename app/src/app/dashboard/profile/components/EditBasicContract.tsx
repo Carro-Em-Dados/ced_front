@@ -89,6 +89,17 @@ export default function EditBasicContract() {
       });
     } finally {
       setLoading(false);
+      toast.success("Contrato atualizado com sucesso", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
     }
   };
 
