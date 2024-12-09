@@ -212,7 +212,7 @@ function CustomTable(props: CustomTableProps) {
                       <>
                         <p className="font-bold mb-1">Dados do usuário</p>
                         <p>Total KM: {userVehicleInfo.totalKm}</p>
-                        <p>Manutenções Críticas: {userVehicleInfo.okCount}</p>
+                        <p>Manutenções Okay: {userVehicleInfo.okCount}</p>
                         <p>Manutenções Próximas: {userVehicleInfo.closeCount}</p>
                         <p>Manutenções Vencidas: {userVehicleInfo.expiredCount}</p>
                       </>
@@ -235,7 +235,7 @@ function CustomTable(props: CustomTableProps) {
                       <>
                         <p className="font-bold mb-1">Dados do veículo</p>
                         <p>KM Rodados: {vehicleInfo.vehicleKm}</p>
-                        <p>Manutenções Críticas: {vehicleInfo.okCount}</p>
+                        <p>Manutenções Okay: {vehicleInfo.okCount}</p>
                         <p>Manutenções Próximas: {vehicleInfo.closeCount}</p>
                         <p>Manutenções Vencidas: {vehicleInfo.expiredCount}</p>
                       </>
@@ -254,7 +254,7 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>
               <span
                 className={`rounded-lg px-2 py-1 ${
-                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Crítica" ? "!bg-[#2D2F2D]" : "!bg-[#B73F25]"
+                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Vencida" ? "!bg-[#B73F25]" : "!bg-[#06b606] text-white"
                 }`}
               >
                 {row.status}
