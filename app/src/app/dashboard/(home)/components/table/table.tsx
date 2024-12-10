@@ -7,9 +7,7 @@ import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "
 import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
-import { Vehicle } from "@/interfaces/vehicle.type";
 import { Reading } from "@/interfaces/readings.type";
-import { Timestamp } from "firebase-admin/firestore";
 
 interface CustomTableProps {
   data: any[];
@@ -254,7 +252,7 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>
               <span
                 className={`rounded-lg px-2 py-1 ${
-                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Vencida" ? "!bg-[#B73F25]" : "!bg-[#06b606] text-white"
+                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Vencida" ? "!bg-[#B73F25] text-white" : "!bg-[#06b606] text-white"
                 }`}
               >
                 {row.status}
