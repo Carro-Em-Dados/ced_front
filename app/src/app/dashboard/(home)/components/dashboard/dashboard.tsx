@@ -1,6 +1,17 @@
 "use client";
 
-import { collection, doc, getDoc, getDocs, query, where, limit, startAfter, getCountFromServer, orderBy } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  limit,
+  startAfter,
+  getCountFromServer,
+  orderBy,
+} from "firebase/firestore";
 import { useState, useEffect, useContext } from "react";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { AppUser } from "@/interfaces/appUser.type";
@@ -13,10 +24,18 @@ import styles from "../../tabs/welcome.module.scss";
 import clsx from "clsx";
 import { TbClockExclamation } from "react-icons/tb";
 import { MdDirectionsCar, MdOutlineSpeed } from "react-icons/md";
-import { Autocomplete, AutocompleteItem, Button, Radio, RadioGroup, Select, SelectItem, Spinner } from "@nextui-org/react";
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Radio,
+  RadioGroup,
+  Select,
+  SelectItem,
+  Spinner,
+} from "@nextui-org/react";
 import { Contract } from "@/interfaces/contract.type";
 import { Reading } from "@/interfaces/readings.type";
-import moment from "moment";
 import { Timestamp } from "firebase-admin/firestore";
 import ButtonExport from "@/components/ButtonExport";
 import ButtonSend from "@/components/ButtonSend";
@@ -45,13 +64,21 @@ interface MaintenanceData {
   id?: string;
 }
 
-export default function Dashboard({ selectedWorkshop, contractId, workshopName }: DashboardProps) {
+export default function Dashboard({
+  selectedWorkshop,
+  contractId,
+  workshopName,
+}: DashboardProps) {
   const { db } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
-  const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>([]);
+  const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>(
+    []
+  );
   const [contractInfo, setContractInfo] = useState<Contract>();
   const [currentPage, setCurrentPage] = useState(0);
-  const [lastVisibleDocs, setLastVisibleDocs] = useState<Map<number, any>>(new Map());
+  const [lastVisibleDocs, setLastVisibleDocs] = useState<Map<number, any>>(
+    new Map()
+  );
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalKM, setTotalKM] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -104,7 +131,8 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
       let baseQuery;
       const queryParams = [];
 
-      if (selectedWorkshop !== "all") queryParams.push(where("workshop", "==", selectedWorkshop));
+      if (selectedWorkshop !== "all")
+        queryParams.push(where("workshop", "==", selectedWorkshop));
 
       baseQuery = query(collection(db, "maintenances"), ...queryParams);
 
@@ -142,7 +170,11 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             orderBy("createdAt", "desc"),
             limit(1)
           );
-          const [vehicleDoc, readingDoc] = await Promise.all([getDoc(vehicleDocRef), getDocs(readingDocRef)]);
+          const [vehicleDoc, readingDoc] = await Promise.all([
+            getDoc(vehicleDocRef),
+            getDocs(readingDocRef),
+          ]);
+
 
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
@@ -152,8 +184,8 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || 0;
-            gpsDistance = readingData?.gps_distance || 0;
+            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
+            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 
             if (vehicleData.owner) {
@@ -196,7 +228,9 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             km_current: kmCurrent,
             km_threshold: maintenanceData.kmLimit || 0,
             date_threshold: maintenanceData?.dateLimit?.seconds
-              ? (maintenanceData.dateLimit as Timestamp).toDate().toLocaleDateString("pt-BR")
+              ? (maintenanceData.dateLimit as Timestamp)
+                  .toDate()
+                  .toLocaleDateString("pt-BR")
               : "",
             status: status,
             id: maintenanceData.id,
@@ -215,8 +249,11 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
         }
 
         setMaintenances(maintenanceList);
-        const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setLastVisibleDocs((prevMap) => prevMap.set(_currentPage, lastVisibleDoc));
+        const lastVisibleDoc =
+          querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastVisibleDocs((prevMap) =>
+          prevMap.set(_currentPage, lastVisibleDoc)
+        );
       } else {
         let q = query(baseQuery, orderBy("date"));
         if (!_currentPage) {
@@ -224,14 +261,20 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
         } else {
           const lastVisible = lastVisibleDocs.get(_currentPage - 1);
           console.log("lastVisible:", lastVisible);
-          if (lastVisible) q = query(baseQuery, orderBy("date"), limit(itemsPerPage), startAfter(lastVisible));
+          if (lastVisible)
+            q = query(
+              baseQuery,
+              orderBy("date"),
+              limit(itemsPerPage),
+              startAfter(lastVisible)
+            );
         }
 
         const querySnapshot = await getDocs(q!);
         const maintenanceList: MaintenanceData[] = [];
         const maintenanceChartList: MaintenanceData[] = [];
 
-        // For the Dashboard
+        // For the Chart
         const allMaintenancesOfCurrentWorkshop = await getDocs(baseQuery);
         for (const maint of allMaintenancesOfCurrentWorkshop.docs) {
           const maintenanceData = maint.data() as Maintenance;
@@ -259,19 +302,27 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             orderBy("createdAt", "desc"),
             limit(1)
           );
-          const [vehicleDoc, readingDoc] = await Promise.all([getDoc(vehicleDocRef), getDocs(readingDocRef)]);
+          const [vehicleDoc, readingDoc] = await Promise.all([
+            getDoc(vehicleDocRef),
+            getDocs(readingDocRef),
+          ]);
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
+
+            if (vehicleDoc.id == "UyZgKPSSM9rMT1MWtHDL") {
+              console.log(readingData?.gps_distance, readingData?.obd2_distance);
+            }
+
             vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
             vehicleId = vehicleDoc.id;
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || 0;
-            gpsDistance = readingData?.gps_distance || 0;
+            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
+            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
-          
+
             if (vehicleData.owner) {
               const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
               const appUserDoc = await getDoc(appUserDocRef);
@@ -293,8 +344,6 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             }
           }
 
-          
-
           const status = calculateStatus(maintenanceData, kmCurrent, {
             workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
             workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
@@ -314,9 +363,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             km_current: kmCurrent,
             km_threshold: maintenanceData.kmLimit || 0,
             date_threshold: maintenanceData.dateLimit
-              ? new Date(maintenanceData.dateLimit.seconds * 1000 + maintenanceData.dateLimit.nanoseconds / 1000000).toLocaleDateString(
-                  "pt-BR"
-                )
+              ? new Date(
+                  maintenanceData.dateLimit.seconds * 1000 +
+                    maintenanceData.dateLimit.nanoseconds / 1000000
+                ).toLocaleDateString("pt-BR")
               : "",
             status: status,
             id: maintenanceData.id,
@@ -353,7 +403,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             orderBy("createdAt", "desc"),
             limit(1)
           );
-          const [vehicleDoc, readingDoc] = await Promise.all([getDoc(vehicleDocRef), getDocs(readingDocRef)]);
+          const [vehicleDoc, readingDoc] = await Promise.all([
+            getDoc(vehicleDocRef),
+            getDocs(readingDocRef),
+          ]);
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
@@ -362,8 +415,8 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || 0;
-            gpsDistance = readingData?.gps_distance || 0;
+            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
+            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
 
             if (vehicleData.owner) {
@@ -404,9 +457,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
             km_current: kmCurrent,
             km_threshold: maintenanceData.kmLimit || 0,
             date_threshold: maintenanceData.dateLimit
-              ? new Date(maintenanceData.dateLimit.seconds * 1000 + maintenanceData.dateLimit.nanoseconds / 1000000).toLocaleDateString(
-                  "pt-BR"
-                )
+              ? new Date(
+                  maintenanceData.dateLimit.seconds * 1000 +
+                    maintenanceData.dateLimit.nanoseconds / 1000000
+                ).toLocaleDateString("pt-BR")
               : "",
             status: status,
             obd2Distance,
@@ -427,8 +481,11 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
         }
 
         setMaintenances(maintenanceList);
-        const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setLastVisibleDocs((prevMap) => prevMap.set(_currentPage, lastVisibleDoc));
+        const lastVisibleDoc =
+          querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastVisibleDocs((prevMap) =>
+          prevMap.set(_currentPage, lastVisibleDoc)
+        );
       }
     } catch (error) {
       console.error("Error fetching maintenances: ", error);
@@ -448,7 +505,9 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
       if (selectedWorkshop === "all") {
         vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
       } else {
-        vehiclesSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "!=", null)));
+        vehiclesSnapshot = await getDocs(
+          query(collection(db, "vehicles"), where("owner", "!=", null))
+        );
       }
 
       let monitoredVehicles = 0;
@@ -515,13 +574,29 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number }
   ) => {
     const now = new Date();
-    const dateLimit = maintenance.dateLimit ? maintenance.dateLimit.toDate() : null;
+    const dateLimit = maintenance.dateLimit
+      ? maintenance.dateLimit.toDate()
+      : null;
     const maintenanceKm = maintenance.kmLimit;
 
     const kmBeforeLimit = limits.workshopKmLimitAlarm;
     const dateBeforeLimit = limits.workshopDateLimitAlarm;
 
-    if (dateLimit && dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >= now.getTime()) {
+    // console.log("maintenance", maintenance.id, maintenance.car_id, maintenance.service);
+    // if (maintenance.id == "4Zu079LL5B5YNKCGrB8p") {
+    //   console.log("kmCurrent", kmCurrent);
+    //   console.log("maintenanceKm", maintenanceKm);
+    //   console.log("kmBeforeLimit", kmBeforeLimit);
+    //   console.log("dateLimit", dateLimit);
+    //   console.log("dateBeforeLimit", dateBeforeLimit);
+    //   console.log("now", now);
+    // }
+
+    if (
+      dateLimit &&
+      dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >=
+        now.getTime()
+    ) {
       return "Próxima";
     } else if (dateLimit && dateLimit.getTime() <= now.getTime()) {
       return "Vencida";
@@ -606,16 +681,29 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     };
 
     const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
-    const vehicles = vehiclesSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Vehicle));
+    const vehicles = vehiclesSnapshot.docs.map(
+      (doc) => ({ ...doc.data(), id: doc.id } as Vehicle)
+    );
 
-    const uniqueVehicles = new Map<string, { brand: string; model: string; year: string; km_current: number }>();
+    const uniqueVehicles = new Map<
+      string,
+      { brand: string; model: string; year: string; km_current: number }
+    >();
 
     // Processar cada veículo da DB
     for (const vehicle of vehicles) {
-      const readingDocRef = query(collection(db, "readings"), where("car_id", "==", vehicle.id), orderBy("createdAt", "desc"), limit(1));
-      const readingData = (await getDocs(readingDocRef))?.docs[0]?.data() as Reading;
+      const readingDocRef = query(
+        collection(db, "readings"),
+        where("car_id", "==", vehicle.id),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
+      const readingData = (
+        await getDocs(readingDocRef)
+      )?.docs[0]?.data() as Reading;
       const { manufacturer, car_model, year, id } = vehicle;
-      const km_current = (readingData?.obd2_distance || 0) + (readingData?.gps_distance || 0);
+      const km_current =
+        (readingData?.obd2_distance || 0) + (readingData?.gps_distance || 0);
 
       if (!filters.brand.options[manufacturer]) {
         filters.brand.options[manufacturer] = {
@@ -701,7 +789,9 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
     let sum = 0;
     const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
     vehiclesSnapshot.docs.forEach((vehicle: any) => {
-      counter === "gps" ? (sum += vehicle.data().gps_distance || 0) : (sum += vehicle.data().obd2_distance || 0);
+      counter === "gps"
+        ? (sum += vehicle.data().gps_distance || 0)
+        : (sum += vehicle.data().obd2_distance || 0);
     });
     setFilterSum(sum);
   };
@@ -712,7 +802,12 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
         <Spinner color="white" />
       ) : (
         <>
-          <div className={clsx(styles.dashboardTitleContainer, "text-white flex flex-col gap-2")}>
+          <div
+            className={clsx(
+              styles.dashboardTitleContainer,
+              "text-white flex flex-col gap-2"
+            )}
+          >
             <div className="w-6 h-2 bg-[#27A338]" />
             <div className="flex flex-col">
               {selectedWorkshop === "all" ? (
@@ -739,7 +834,10 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
               ) : (
                 <>
                   <h2 className="text-xl">{workshopName}</h2>
-                  <p className="text-sm text-[#C7C7C7]">Confira as informações referentes à sua oficina nas seções a seguir.</p>
+                  <p className="text-sm text-[#C7C7C7]">
+                    Confira as informações referentes à sua oficina nas seções a
+                    seguir.
+                  </p>
                 </>
               )}
               {counterType === "partial" && (
@@ -771,20 +869,27 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                         className="dark"
                         defaultItems={[
                           { value: "none", label: "Nenhum" },
-                          ...Object.keys(filterOptions.brand.options).map((brand) => ({
-                            value: brand.toString(),
-                            label: brand,
-                          })),
+                          ...Object.keys(filterOptions.brand.options).map(
+                            (brand) => ({
+                              value: brand.toString(),
+                              label: brand,
+                            })
+                          ),
                         ]}
                         onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
                           const keyString = key ? key.toString() : "none";
                           setSelectedFilterOption({
-                            selected: keyString === "none" ? "" : keyString || "",
+                            selected:
+                              keyString === "none" ? "" : keyString || "",
                             type: keyString === "none" ? "" : "brand",
                           });
                         }}
-                        selectedKey={selectedFilterOption.type === "brand" ? selectedFilterOption.selected : "none"}
+                        selectedKey={
+                          selectedFilterOption.type === "brand"
+                            ? selectedFilterOption.selected
+                            : "none"
+                        }
                       >
                         {(item) => (
                           <AutocompleteItem key={item.value} value={item.value}>
@@ -798,20 +903,27 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                         className="dark"
                         defaultItems={[
                           { value: "none", label: "Nenhum" },
-                          ...Object.keys(filterOptions.model.options).map((model) => ({
-                            value: model.toString(),
-                            label: model,
-                          })),
+                          ...Object.keys(filterOptions.model.options).map(
+                            (model) => ({
+                              value: model.toString(),
+                              label: model,
+                            })
+                          ),
                         ]}
                         onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
                           const keyString = key ? key.toString() : "none";
                           setSelectedFilterOption({
-                            selected: keyString === "none" ? "" : keyString || "",
+                            selected:
+                              keyString === "none" ? "" : keyString || "",
                             type: keyString === "none" ? "" : "model",
                           });
                         }}
-                        selectedKey={selectedFilterOption.type === "model" ? selectedFilterOption.selected : "none"}
+                        selectedKey={
+                          selectedFilterOption.type === "model"
+                            ? selectedFilterOption.selected
+                            : "none"
+                        }
                       >
                         {(item) => (
                           <AutocompleteItem key={item.value} value={item.value}>
@@ -825,20 +937,27 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                         className="dark"
                         defaultItems={[
                           { value: "none", label: "Nenhum" },
-                          ...Object.keys(filterOptions.year.options).map((year) => ({
-                            value: year.toString(),
-                            label: year,
-                          })),
+                          ...Object.keys(filterOptions.year.options).map(
+                            (year) => ({
+                              value: year.toString(),
+                              label: year,
+                            })
+                          ),
                         ]}
                         onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
                           const keyString = key ? key.toString() : "none";
                           setSelectedFilterOption({
-                            selected: keyString === "none" ? "" : keyString || "",
+                            selected:
+                              keyString === "none" ? "" : keyString || "",
                             type: keyString === "none" ? "" : "year",
                           });
                         }}
-                        selectedKey={selectedFilterOption.type === "year" ? selectedFilterOption.selected : "none"}
+                        selectedKey={
+                          selectedFilterOption.type === "year"
+                            ? selectedFilterOption.selected
+                            : "none"
+                        }
                       >
                         {(item) => (
                           <AutocompleteItem key={item.value} value={item.value}>
@@ -878,36 +997,52 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
               <h4 className={styles.boxText}>Porcentagem de manutenções</h4>
               <CustomChart
                 chartData={
-                  selectedFilterOption.selected !== "" && filterOptions !== undefined
+                  selectedFilterOption.selected !== "" &&
+                  filterOptions !== undefined
                     ? countMaintenanceStatuses(
-                        filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].maintenances || {}
+                        filterOptions[selectedFilterOption.type]?.options[
+                          selectedFilterOption.selected
+                        ].maintenances || {}
                       )
                     : countMaintenanceStatuses(maintenancesChart)
                 }
-                />
+              />
             </div>
             <span style={{ width: "3em" }} />
             <div className={styles.statisticsBox}>
               <h4 className={styles.boxText}>Outros dados</h4>
               {counterType === "total" && (
-                <div className={clsx(styles.statisticsCard, styles.maintenanceCard)}>
+                <div
+                  className={clsx(
+                    styles.statisticsCard,
+                    styles.maintenanceCard
+                  )}
+                >
                   <div className={styles.statWrap}>
                     <TbClockExclamation className={styles.statisticsIcon} />
                     <h4 className={styles.statisticsText}>
-                      {selectedFilterOption.selected !== "" && filterOptions !== undefined
-                        ? filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].maintenances?.length
+                      {selectedFilterOption.selected !== "" &&
+                      filterOptions !== undefined
+                        ? filterOptions[selectedFilterOption.type]?.options[
+                            selectedFilterOption.selected
+                          ].maintenances?.length
                         : maintenancesChart.length}
                     </h4>
                   </div>
-                  <p className={styles.statisticsSubtext}>manutenções pendentes</p>
+                  <p className={styles.statisticsSubtext}>
+                    manutenções pendentes
+                  </p>
                 </div>
               )}
               <div className={clsx(styles.statisticsCard, styles.vehiclesCard)}>
                 <div className={styles.statWrap}>
                   <MdDirectionsCar className={styles.statisticsIcon} />
                   <h4 className={styles.statisticsText}>
-                    {selectedFilterOption.selected !== "" && filterOptions !== undefined
-                      ? filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].vehiclesCount
+                    {selectedFilterOption.selected !== "" &&
+                    filterOptions !== undefined
+                      ? filterOptions[selectedFilterOption.type]?.options[
+                          selectedFilterOption.selected
+                        ].vehiclesCount
                       : totalVehicles}
                   </h4>
                 </div>
@@ -917,8 +1052,11 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
                 <div className={styles.statWrap}>
                   <MdOutlineSpeed className={styles.statisticsIcon} />
                   <h4 className={styles.statisticsText}>
-                    {selectedFilterOption.selected !== "" && filterOptions !== undefined
-                      ? filterOptions[selectedFilterOption.type]?.options[selectedFilterOption.selected].totalKm
+                    {selectedFilterOption.selected !== "" &&
+                    filterOptions !== undefined
+                      ? filterOptions[selectedFilterOption.type]?.options[
+                          selectedFilterOption.selected
+                        ].totalKm
                       : counter !== ""
                       ? filterSum
                       : totalKM}
@@ -944,25 +1082,31 @@ export default function Dashboard({ selectedWorkshop, contractId, workshopName }
               </div>
               <div className="flex flex-row justify-between lg:mx-10 xl:mx-10">
                 <Button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 0}
-                    className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-                  >
-                    Anterior
-                  </Button>
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                >
+                  Anterior
+                </Button>
 
-                  <div className="flex flex-row flex-gap-2">
-                    <ButtonExport workshopName={workshopName} maintenances={maintenancesChart} />
-                    <ButtonSend workshopName={workshopName} maintenances={maintenancesChart} />
-                  </div>
+                <div className="flex flex-row flex-gap-2">
+                  <ButtonExport
+                    workshopName={workshopName}
+                    maintenances={maintenancesChart}
+                  />
+                  <ButtonSend
+                    workshopName={workshopName}
+                    maintenances={maintenancesChart}
+                  />
+                </div>
 
-                  <Button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages - 1}
-                    className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
-                  >
-                    Próxima
-                  </Button>
+                <Button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                >
+                  Próxima
+                </Button>
               </div>
             </>
           )}
