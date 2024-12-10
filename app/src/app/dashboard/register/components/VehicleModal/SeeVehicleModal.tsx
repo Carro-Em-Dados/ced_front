@@ -104,7 +104,19 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   }, []);
 
   useEffect(() => {
-    if (
+    if (currentUser?.role === Role.MASTER) {
+      const clientRef = doc(db, "clients", vehicle.owner);
+      getDoc(clientRef).then((client) => {
+        const clientData = client.data() as Driver;
+        const clientWorkshop = clientData?.workshops!;
+        getDoc(doc(db, "workshops", clientWorkshop)).then((workshop) => {
+          const contractId = workshop.data()?.contract;
+          getDoc(doc(db, "contracts", contractId)).then((contract) => {
+            setAlarmsLeft(contract.data()?.maxAlarmsPerVehicle! - maintenances.length);
+          });
+        });
+      });
+    } else if (
       workshop?.contract.maxAlarmsPerVehicle !== undefined &&
       maintenances.length <= workshop.contract.maxAlarmsPerVehicle
     ) {
