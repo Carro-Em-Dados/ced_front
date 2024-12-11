@@ -180,6 +180,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
+      if (!userCredential.user) {
+        throw new Error("Registration failed.");
+      }
+
       const user = {
         email: userCredential.user.email!,
         name: name,
