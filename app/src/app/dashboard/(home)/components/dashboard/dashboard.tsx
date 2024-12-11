@@ -39,6 +39,7 @@ import { Reading } from "@/interfaces/readings.type";
 import { Timestamp } from "firebase-admin/firestore";
 import ButtonExport from "@/components/ButtonExport";
 import ButtonSend from "@/components/ButtonSend";
+import { Workshop } from "@/interfaces/workshop.type";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -209,9 +210,16 @@ export default function Dashboard({
             }
           }
 
+          const workshopDoc = await getDoc(doc(db, "workshops", maintenanceData.workshop));
+          const workshop = workshopDoc.data() as Workshop;
+          const contractId = workshop.contract;
+          const contract = await getDoc(doc(db, "contracts", contractId as string));
+          const contractData = contract.data() as Contract;
+
+
           const status = calculateStatus(maintenanceData, kmCurrent, {
-            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+            workshopKmLimitAlarm: contractData?.workshopKmLimitAlarm ?? 0,
+            workshopDateLimitAlarm: contractData?.workshopDateLimitAlarm ?? 0,
           });
 
           const maintenance = {
@@ -227,7 +235,7 @@ export default function Dashboard({
             maintenance: maintenanceData.service,
             km_current: kmCurrent,
             km_threshold: maintenanceData.kmLimit || 0,
-            date_threshold: maintenanceData?.dateLimit?.seconds
+            date_threshold: maintenanceData?.dateLimit
               ? (maintenanceData.dateLimit as Timestamp)
                   .toDate()
                   .toLocaleDateString("pt-BR")
@@ -236,19 +244,10 @@ export default function Dashboard({
             id: maintenanceData.id,
           };
 
-          // const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
-          // const isWithinDateAlarmThreshold = maintenance.date_threshold
-          //   ? moment().isSameOrAfter(
-          //       moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
-          //     )
-          //   : false;
-
-          // if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
-
           maintenanceList.push(maintenance);
         }
 
-        setMaintenances(maintenanceList);
+        setMaintenancesChart(maintenanceList);
         const lastVisibleDoc =
           querySnapshot.docs[querySnapshot.docs.length - 1];
         setLastVisibleDocs((prevMap) =>
@@ -260,7 +259,6 @@ export default function Dashboard({
           q = query(baseQuery, orderBy("date"), limit(itemsPerPage));
         } else {
           const lastVisible = lastVisibleDocs.get(_currentPage - 1);
-          console.log("lastVisible:", lastVisible);
           if (lastVisible)
             q = query(
               baseQuery,
@@ -309,10 +307,6 @@ export default function Dashboard({
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
-
-            if (vehicleDoc.id == "UyZgKPSSM9rMT1MWtHDL") {
-              console.log(readingData?.gps_distance, readingData?.obd2_distance);
-            }
 
             vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
             vehicleId = vehicleDoc.id;
@@ -468,15 +462,6 @@ export default function Dashboard({
             id: maintenanceData.id,
           };
 
-          // const isWithinKmAlarmThreshold = maintenance.km_threshold - (contractInfo?.workshopKmLimitAlarm ?? 0) <= maintenance.km_current;
-          // const isWithinDateAlarmThreshold = maintenance.date_threshold
-          //   ? moment().isSameOrAfter(
-          //       moment(maintenance.date_threshold, "DD/MM/YYYY").subtract(contractInfo?.workshopDateLimitAlarm ?? 0, "days")
-          //     )
-          //   : false;
-
-          // if (isWithinKmAlarmThreshold || isWithinDateAlarmThreshold) maintenanceList.push(maintenance);
-
           maintenanceList.push(maintenance);
         }
 
@@ -590,10 +575,8 @@ export default function Dashboard({
 
       if (dateLimit.getTime() < now.getTime()) {
         result = "Vencida";
-        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Vencida");
       } else if (dateThreshold <= now.getTime()) {
         result = "Próxima";
-        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Próxima");
       }
     }
 
@@ -602,11 +585,8 @@ export default function Dashboard({
 
       if (maintenanceKm <= kmCurrent) {
         result = "Vencida";
-        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Vencida");
       } else if (kmThreshold <= kmCurrent) {
         result = result === "Vencida" ? "Vencida" : "Próxima";
-        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log(result);
-        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log(kmThreshold, kmCurrent);
       }
     }
 
