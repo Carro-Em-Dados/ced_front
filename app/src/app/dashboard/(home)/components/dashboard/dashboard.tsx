@@ -582,30 +582,35 @@ export default function Dashboard({
     const kmBeforeLimit = limits.workshopKmLimitAlarm;
     const dateBeforeLimit = limits.workshopDateLimitAlarm;
 
-    // console.log("maintenance", maintenance.id, maintenance.car_id, maintenance.service);
-    // if (maintenance.id == "4Zu079LL5B5YNKCGrB8p") {
-    //   console.log("kmCurrent", kmCurrent);
-    //   console.log("maintenanceKm", maintenanceKm);
-    //   console.log("kmBeforeLimit", kmBeforeLimit);
-    //   console.log("dateLimit", dateLimit);
-    //   console.log("dateBeforeLimit", dateBeforeLimit);
-    //   console.log("now", now);
-    // }
+    let result = "Ok";
 
-    if (
-      dateLimit &&
-      dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >=
-        now.getTime()
-    ) {
-      return "Próxima";
-    } else if (dateLimit && dateLimit.getTime() <= now.getTime()) {
-      return "Vencida";
-    } else if (maintenanceKm && maintenanceKm - kmBeforeLimit <= kmCurrent) {
-      return "Próxima";
-    } else if (maintenanceKm && maintenanceKm <= kmCurrent) {
-      return "Vencida";
+    if (dateLimit) {
+      const MS_PER_DAY = 1000 * 60 * 60 * 24;
+      const dateThreshold = dateLimit.getTime() - dateBeforeLimit * MS_PER_DAY;
+
+      if (dateLimit.getTime() < now.getTime()) {
+        result = "Vencida";
+        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Vencida");
+      } else if (dateThreshold <= now.getTime()) {
+        result = "Próxima";
+        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Próxima");
+      }
     }
-    return "Ok";
+
+    if (maintenanceKm) {
+      const kmThreshold = maintenanceKm - kmBeforeLimit;
+
+      if (maintenanceKm <= kmCurrent) {
+        result = "Vencida";
+        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log("Vencida");
+      } else if (kmThreshold <= kmCurrent) {
+        result = result === "Vencida" ? "Vencida" : "Próxima";
+        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log(result);
+        if (maintenance.car_id == "5StIiSpc1QTbISKMppZu") console.log(kmThreshold, kmCurrent);
+      }
+    }
+
+    return result;
   };
 
   const handlePageChange = (page: number) => {
