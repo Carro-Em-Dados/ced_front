@@ -10,4 +10,5 @@ export interface Reading {
   tank_level: number;
   obd2_distance: number;
   createdAt: string;
+  dtc_readings: string[];
 }

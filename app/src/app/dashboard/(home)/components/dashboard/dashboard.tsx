@@ -171,12 +171,13 @@ export default function Dashboard({
             orderBy("createdAt", "desc"),
             limit(1)
           );
+
           const [vehicleDoc, readingDoc] = await Promise.all([
             getDoc(vehicleDocRef),
             getDocs(readingDocRef),
           ]);
 
-
+          let isCritical = false;
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
@@ -188,6 +189,15 @@ export default function Dashboard({
             obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
             gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+
+            if (readingData) {
+              for (const dtc of readingData.dtc_readings) {
+                if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                  isCritical = true;
+                  break;
+                }
+              }
+            }
 
             if (vehicleData.owner) {
               const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -219,8 +229,10 @@ export default function Dashboard({
 
           const status = calculateStatus(maintenanceData, kmCurrent, {
             workshopKmLimitAlarm: contractData?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractData?.workshopDateLimitAlarm ?? 0,
-          });
+            workshopDateLimitAlarm: contractData?.workshopDateLimitAlarm ?? 0
+          },
+            isCritical
+          );
 
           const maintenance = {
             obd2Distance,
@@ -304,6 +316,8 @@ export default function Dashboard({
             getDoc(vehicleDocRef),
             getDocs(readingDocRef),
           ]);
+
+          let isCritical = false;
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
@@ -316,6 +330,15 @@ export default function Dashboard({
             obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
             gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+
+            if (readingData) {
+              for (const dtc of readingData.dtc_readings) {
+                if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                  isCritical = true;
+                  break;
+                }
+              }
+            }
 
             if (vehicleData.owner) {
               const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -340,8 +363,9 @@ export default function Dashboard({
 
           const status = calculateStatus(maintenanceData, kmCurrent, {
             workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
-          });
+            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0
+          },
+          isCritical);
 
           const maintenance = {
             obd2Distance,
@@ -401,6 +425,8 @@ export default function Dashboard({
             getDoc(vehicleDocRef),
             getDocs(readingDocRef),
           ]);
+
+          let isCritical = false;
           if (vehicleDoc.exists()) {
             const vehicleData = vehicleDoc.data() as Vehicle;
             const readingData = readingDoc?.docs[0]?.data() as Reading;
@@ -412,6 +438,15 @@ export default function Dashboard({
             obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
             gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
             kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+
+            if (readingData) {
+              for (const dtc of readingData.dtc_readings) {
+                if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                  isCritical = true;
+                  break;
+                }
+              }
+            }
 
             if (vehicleData.owner) {
               const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
@@ -437,7 +472,9 @@ export default function Dashboard({
           const status = calculateStatus(maintenanceData, kmCurrent, {
             workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
             workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
-          });
+          },
+            isCritical
+          );
 
           const maintenance = {
             client: clientName,
@@ -556,7 +593,8 @@ export default function Dashboard({
   const calculateStatus = (
     maintenance: Maintenance,
     kmCurrent: number,
-    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number }
+    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number },
+    isCritical: boolean
   ) => {
     const now = new Date();
     const dateLimit = maintenance.dateLimit
@@ -568,6 +606,11 @@ export default function Dashboard({
     const dateBeforeLimit = limits.workshopDateLimitAlarm;
 
     let result = "Ok";
+
+    if (isCritical) {
+      result = "Crítica";
+      return result;
+    }
 
     if (dateLimit) {
       const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -603,6 +646,7 @@ export default function Dashboard({
     let okCount = 0;
     let upcomingCount = 0;
     let overdueCount = 0;
+    let criticalCount = 0;
 
     maintenances.forEach((maintenance) => {
       switch (maintenance.status) {
@@ -615,6 +659,9 @@ export default function Dashboard({
         case "Vencida":
           overdueCount++;
           break;
+        case "Crítica":
+          criticalCount++;
+          break;
         default:
           break;
       }
@@ -624,6 +671,7 @@ export default function Dashboard({
       ok: okCount,
       upcoming: upcomingCount,
       overdue: overdueCount,
+      critical: criticalCount,
     };
   };
 

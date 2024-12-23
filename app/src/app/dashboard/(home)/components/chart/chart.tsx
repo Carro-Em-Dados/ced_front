@@ -6,12 +6,14 @@ import { Doughnut } from "react-chartjs-2";
 const PENDING_COLOR = "#D3C544";
 const OVERDUE_COLOR = "#B73F25";
 const OK_COLOR = "#06b606";
+const CRITICAL_COLOR = "#2D2F2D";
 
 interface CustomChartProps {
   chartData: {
     ok: number;
     upcoming: number;
     overdue: number;
+    critical: number;
   };
 }
 
@@ -21,12 +23,12 @@ function CustomChart({ chartData }: CustomChartProps) {
   ChartJS.register(ArcElement, Tooltip, Legend);
 
   const data = {
-    labels: ["Próximas", "Vencidas", "Ok"],
+    labels: ["Próximas", "Vencidas", "Ok", "Críticas"],
     datasets: [
       {
-        data: [chartData.upcoming, chartData.overdue, chartData.ok],
-        backgroundColor: [PENDING_COLOR, OVERDUE_COLOR, OK_COLOR],
-        borderColor: ["transparent", "transparent", "transparent"],
+        data: [chartData.upcoming, chartData.overdue, chartData.ok, chartData.critical],
+        backgroundColor: [PENDING_COLOR, OVERDUE_COLOR, OK_COLOR, CRITICAL_COLOR],
+        borderColor: ["transparent", "transparent", "transparent", "transparent"],
       },
     ],
   };
