@@ -90,8 +90,7 @@ export async function createGoogleEvent(
         },
       },
     });
-
-    return data.data.id;
+    return data;
   } catch (error) {
     console.log("error:", error);
     throw new Error("Event not created");

@@ -220,16 +220,38 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
 
       if (workshop.google_calendar_id) {
         const driverEmail = drivers.find((d) => d.id === selectedDriver)?.email ?? "";
-        newEvent.google_event_id =
-          (await createGoogleEvent(workshop.google_calendar_id, {
-            attendees: driverEmail ? [{ email: driverEmail }] : undefined,
-            end: newEventEnd.toISOString(),
-            start: newEventStart.toISOString(),
-            summary: `[${workshop.fantasy_name}] ${driverName}`,
-            description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
-            location: `${workshop?.address ?? ""} - ${workshop?.city_code ?? ""}, ${workshop?.state_code ?? ""}`,
-          })) ?? undefined;
+        const event = {
+          summary: `[${workshop.fantasy_name}] ${driverName}`,
+          description: `Manutenção: ${driverName}.\nObservações: ${note}.`,
+          start: newEventStart.toISOString(),
+          end: newEventEnd.toISOString(),
+          attendees: driverEmail ? [{ email: driverEmail }] : undefined,
+          location: `${workshop?.address ?? ""} - ${workshop?.city_code ?? ""}, ${workshop?.state_code ?? ""}`
+        }
+
+        try {
+          const response = await fetch("/api/createGoogleEvent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              calendarId: workshop.google_calendar_id,
+              event,
+            }),
+          });
+      
+          if (!response.ok) {
+            console.error(response);
+            throw new Error("Failed to create Google event");
+          }
+
+          const googleEvent = await response.json();
+          console.log("googleEvent:", googleEvent);
+          newEvent.google_event_id = googleEvent?.data.id ?? undefined;
+        } catch (error) {
+          console.error(error);
+        }
       }
+
 
       const eventRef = await addDoc(collection(db, "schedules"), {
         ...newEvent,
@@ -250,6 +272,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
         theme: "dark",
         transition: Zoom,
       });
+      console.error(error);
     } finally {
       setLoading(false);
     }
