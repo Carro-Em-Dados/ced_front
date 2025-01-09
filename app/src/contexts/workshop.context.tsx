@@ -88,7 +88,21 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
             throw new Error("Workshop does not exist");
           }
         } else {
-          throw new Error("workshopId from query parameters is null");
+          const workshopQuery = query(collection(db, "workshops"), where("owner", "==", currentUser.id));
+          const workshopsSnapshot = await getDocs(workshopQuery);
+
+          const workshopsPromises = workshopsSnapshot!.docs.map(async (doc) => {
+            const workshop = doc.data() as Workshop;
+    
+            let contract = await getContract((workshop.contract ?? "basic") as string);
+            if (!contract) await getContract("basic");
+    
+            return { ...workshop, contract, id: doc.id } as Workshop & { contract: Contract };
+          });
+          const workshops = await Promise.all(workshopsPromises);
+    
+          setWorkshopOptions(workshops);
+          setWorkshopInView(workshops[0]);
         }
       }
       
