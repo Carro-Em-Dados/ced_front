@@ -143,10 +143,11 @@ function CustomTable(props: CustomTableProps) {
               )
             );
             const readingData = readingDocRef?.docs[0]?.data() as Reading;
-            const vehicleKm =
+            let vehicleKm =
               (readingData?.obd2_distance > readingData?.gps_distance
                 ? readingData?.obd2_distance
                 : readingData?.gps_distance) || 0;
+            if (vehicleKm === 0) vehicleKm = vehicleDoc.data()?.initial_km;
             totalKm += vehicleKm;
 
             let isCritical = false;
@@ -223,16 +224,17 @@ function CustomTable(props: CustomTableProps) {
         const vehicleDocRef = doc(db, "vehicles", vehicleId);
         const vehicleDoc = await getDoc(vehicleDocRef);
 
-        if (vehicleDoc.exists()) {
-          const vehicleData = vehicleDoc.data() as Vehicle;
-          manufacturer = vehicleData.manufacturer;
-        }
-
         const readingData = readingDoc?.docs[0]?.data() as Reading;
-        const vehicleKm =
+        let vehicleKm =
           readingData?.obd2_distance > readingData?.gps_distance
             ? readingData?.obd2_distance
             : readingData?.gps_distance || 0;
+        
+        if (vehicleDoc.exists()) {
+          const vehicleData = vehicleDoc.data() as Vehicle;
+          manufacturer = vehicleData.manufacturer;
+          if (vehicleKm === 0) vehicleKm = vehicleData.initial_km;
+        }
 
         const maintenancesQuery = query(
           collection(db, "maintenances"),
