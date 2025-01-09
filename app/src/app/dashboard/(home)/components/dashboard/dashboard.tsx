@@ -592,7 +592,9 @@ export default function Dashboard({
           monitoredVehicles++;
           const obd2Distance = readingData?.obd2_distance || 0;
           const gpsDistance = readingData?.gps_distance || 0;
-          totalKM += obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+          let kmAddition =
+            obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+          totalKM += kmAddition === 0 ? vehicleData.initial_km : kmAddition;
         }
       }
 
@@ -835,9 +837,10 @@ export default function Dashboard({
     let sum = 0;
     const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
     vehiclesSnapshot.docs.forEach((vehicle: any) => {
+      const vehicleData = vehicle.data() as Vehicle;
       counter === "gps"
-        ? (sum += vehicle.data().gps_distance || 0)
-        : (sum += vehicle.data().obd2_distance || 0);
+        ? (sum += vehicleData.gps_distance || 0)
+        : (sum += vehicleData.obd2_distance || 0);
     });
     setFilterSum(sum);
   };
@@ -1107,6 +1110,7 @@ export default function Dashboard({
                       ? filterSum
                       : totalKM}
                   </h4>
+                  {/* <h4>{filterSum}{totalKM}{counter}</h4> */}
                 </div>
                 <p className={styles.statisticsSubtext}>km monitorados</p>
               </div>
