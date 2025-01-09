@@ -220,17 +220,23 @@ export default function Dashboard({
             }
           }
 
-          const workshopDoc = await getDoc(doc(db, "workshops", maintenanceData.workshop));
+          const workshopDoc = await getDoc(
+            doc(db, "workshops", maintenanceData.workshop)
+          );
           const workshop = workshopDoc.data() as Workshop;
           const contractId = workshop.contract;
-          const contract = await getDoc(doc(db, "contracts", contractId as string));
+          const contract = await getDoc(
+            doc(db, "contracts", contractId as string)
+          );
           const contractData = contract.data() as Contract;
 
-
-          const status = calculateStatus(maintenanceData, kmCurrent, {
-            workshopKmLimitAlarm: contractData?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractData?.workshopDateLimitAlarm ?? 0
-          },
+          const status = calculateStatus(
+            maintenanceData,
+            kmCurrent,
+            {
+              workshopKmLimitAlarm: contractData?.workshopKmLimitAlarm ?? 0,
+              workshopDateLimitAlarm: contractData?.workshopDateLimitAlarm ?? 0,
+            },
             isCritical
           );
 
@@ -361,11 +367,15 @@ export default function Dashboard({
             }
           }
 
-          const status = calculateStatus(maintenanceData, kmCurrent, {
-            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0
-          },
-          isCritical);
+          const status = calculateStatus(
+            maintenanceData,
+            kmCurrent,
+            {
+              workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
+              workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+            },
+            isCritical
+          );
 
           const maintenance = {
             obd2Distance,
@@ -469,10 +479,13 @@ export default function Dashboard({
             }
           }
 
-          const status = calculateStatus(maintenanceData, kmCurrent, {
-            workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
-            workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
-          },
+          const status = calculateStatus(
+            maintenanceData,
+            kmCurrent,
+            {
+              workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
+              workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
+            },
             isCritical
           );
 
@@ -1122,7 +1135,7 @@ export default function Dashboard({
                   Anterior
                 </Button>
 
-                <div className="flex flex-row flex-gap-2">
+                <div className="flex flex-row gap-2">
                   <ButtonExport
                     workshopName={workshopName}
                     maintenances={maintenancesChart}

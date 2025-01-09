@@ -1,14 +1,33 @@
 "use client";
 import React, { useContext, useState } from "react";
 import styles from "./table.module.scss";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip, Spinner } from "@nextui-org/react";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Tooltip,
+  Spinner,
+} from "@nextui-org/react";
 import { Maintenance } from "@/interfaces/maintenances.type";
-import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { Reading } from "@/interfaces/readings.type";
 import { toast } from "react-toastify";
+import { Vehicle } from "@/interfaces/vehicle.type";
 
 interface CustomTableProps {
   data: any[];
@@ -24,40 +43,48 @@ function CustomTable(props: CustomTableProps) {
   const [vehicleOpen, setVehicleOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userVehicleInfo, setUserVehicleInfo] = useState({
+    clientName: "",
     totalKm: 0,
     okCount: 0,
     closeCount: 0,
     expiredCount: 0,
+    criticalCount: 0,
   });
   const [vehicleInfo, setVehicleInfo] = useState({
+    manufacturer: "",
     vehicleKm: 0,
     okCount: 0,
     closeCount: 0,
     expiredCount: 0,
+    criticalCount: 0,
   });
 
-  const fetchWorkshopFromRow = async (row: any): Promise<string | undefined> => {
-      try {
-        const maintenanceDocRef = doc(db, "maintenances", row.id);
-        const maintenanceDoc = await getDoc(maintenanceDocRef);
-        if (!maintenanceDoc.exists()) {
-          toast.error("Erro ao buscar informações da manutenção");
-          return;
-        }
-  
-        const maintenanceData = maintenanceDoc.data() as Maintenance;
-        const fetchedWorkshopId = maintenanceData.workshop;
-  
-        const url = `/dashboard/calendar?${row.vehicleId ? `v=${encodeURIComponent(row.vehicleId)}` : ""}`
-          + `${row.clientId ? `&d=${encodeURIComponent(row.clientId)}` : ""}`
-          + `${row.maintenance ? `&m=${encodeURIComponent(row.id)}` : ""}`
-          + `&w=${encodeURIComponent(fetchedWorkshopId)}`;
-        return url;
-      } catch (error) {
-        console.error("Erro ao buscar informações da manutenção:", error);
+  const fetchWorkshopFromRow = async (
+    row: any
+  ): Promise<string | undefined> => {
+    try {
+      const maintenanceDocRef = doc(db, "maintenances", row.id);
+      const maintenanceDoc = await getDoc(maintenanceDocRef);
+      if (!maintenanceDoc.exists()) {
+        toast.error("Erro ao buscar informações da manutenção");
+        return;
       }
+
+      const maintenanceData = maintenanceDoc.data() as Maintenance;
+      const fetchedWorkshopId = maintenanceData.workshop;
+
+      const url =
+        `/dashboard/calendar?${
+          row.vehicleId ? `v=${encodeURIComponent(row.vehicleId)}` : ""
+        }` +
+        `${row.clientId ? `&d=${encodeURIComponent(row.clientId)}` : ""}` +
+        `${row.maintenance ? `&m=${encodeURIComponent(row.id)}` : ""}` +
+        `&w=${encodeURIComponent(fetchedWorkshopId)}`;
+      return url;
+    } catch (error) {
+      console.error("Erro ao buscar informações da manutenção:", error);
+    }
   };
-  
 
   const handleOpenUser = async (clientId: string) => {
     if (!clientId) {
@@ -78,57 +105,93 @@ function CustomTable(props: CustomTableProps) {
           return;
         }
 
+        let clientName = "";
+
         let userData: Driver | AppUser | null = null;
         if (driverDoc.exists()) {
           userData = driverDoc.data() as Driver;
+          clientName = userData!.name;
         } else {
           const appUserDocRef = doc(db, "appUsers", clientId);
           const appUserDoc = await getDoc(appUserDocRef);
           if (appUserDoc.exists()) {
             userData = appUserDoc.data() as AppUser;
+            clientName = userData!.name;
           }
         }
 
         if (userData) {
-          const vehiclesQuery = query(collection(db, "vehicles"), where("owner", "==", clientId));
+          const vehiclesQuery = query(
+            collection(db, "vehicles"),
+            where("owner", "==", clientId)
+          );
           const vehiclesSnapshot = await getDocs(vehiclesQuery);
 
           let totalKm = 0;
           let okCount = 0;
           let closeCount = 0;
           let expiredCount = 0;
+          let criticalCount = 0;
 
           for (const vehicleDoc of vehiclesSnapshot.docs) {
             const readingDocRef = await getDocs(
-              query(collection(db, "readings"), where("car_id", "==", vehicleDoc.id), orderBy("createdAt", "desc"), limit(1))
+              query(
+                collection(db, "readings"),
+                where("car_id", "==", vehicleDoc.id),
+                orderBy("createdAt", "desc"),
+                limit(1)
+              )
             );
             const readingData = readingDocRef?.docs[0]?.data() as Reading;
             const vehicleKm =
-              (readingData?.obd2_distance > readingData?.gps_distance ? readingData?.obd2_distance : readingData?.gps_distance) || 0;
+              (readingData?.obd2_distance > readingData?.gps_distance
+                ? readingData?.obd2_distance
+                : readingData?.gps_distance) || 0;
             totalKm += vehicleKm;
 
+            let isCritical = false;
+
+            for (const dtc of readingData.dtc_readings) {
+              if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                isCritical = true;
+                break;
+              }
+            }
+
             if (vehicleDoc.id) {
-              const maintenancesQuery = query(collection(db, "maintenances"), where("car_id", "==", vehicleDoc.id));
+              const maintenancesQuery = query(
+                collection(db, "maintenances"),
+                where("car_id", "==", vehicleDoc.id)
+              );
               const maintenancesSnapshot = await getDocs(maintenancesQuery);
 
               for (const maintenanceDoc of maintenancesSnapshot.docs) {
                 const maintenanceData = maintenanceDoc.data() as Maintenance;
-                const status = calculateStatus(maintenanceData, vehicleKm, {
-                  workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
-                  workshopDateLimitAlarm: props.contractLimits.dateLimitBefore,
-                });
+                const status = calculateStatus(
+                  maintenanceData,
+                  vehicleKm,
+                  {
+                    workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
+                    workshopDateLimitAlarm:
+                      props.contractLimits.dateLimitBefore,
+                  },
+                  isCritical
+                );
                 if (status === "Vencida") expiredCount++;
                 else if (status === "Ok") okCount++;
+                else if (status === "Crítica") criticalCount++;
                 else closeCount++;
               }
             }
           }
 
           setUserVehicleInfo({
+            clientName,
             totalKm,
             okCount,
             closeCount,
             expiredCount,
+            criticalCount,
           });
         }
       } catch (error) {
@@ -146,35 +209,72 @@ function CustomTable(props: CustomTableProps) {
       setLoading(true);
 
       try {
-        const readingDocRef = query(collection(db, "readings"), where("car_id", "==", vehicleId), orderBy("createdAt", "desc"), limit(1));
+        const readingDocRef = query(
+          collection(db, "readings"),
+          where("car_id", "==", vehicleId),
+          orderBy("createdAt", "desc"),
+          limit(1)
+        );
         const readingDoc = await getDocs(readingDocRef);
+
+        let manufacturer = "";
+        const vehicleDocRef = doc(db, "vehicles", vehicleId);
+        const vehicleDoc = await getDoc(vehicleDocRef);
+
+        if (vehicleDoc.exists()) {
+          const vehicleData = vehicleDoc.data() as Vehicle;
+          manufacturer = vehicleData.manufacturer;
+        }
 
         const readingData = readingDoc?.docs[0]?.data() as Reading;
         const vehicleKm =
-          readingData?.obd2_distance > readingData?.gps_distance ? readingData?.obd2_distance : readingData?.gps_distance || 0;
+          readingData?.obd2_distance > readingData?.gps_distance
+            ? readingData?.obd2_distance
+            : readingData?.gps_distance || 0;
 
-        const maintenancesQuery = query(collection(db, "maintenances"), where("car_id", "==", vehicleId));
+        const maintenancesQuery = query(
+          collection(db, "maintenances"),
+          where("car_id", "==", vehicleId)
+        );
         const maintenancesSnapshot = await getDocs(maintenancesQuery);
         let okCount = 0;
         let closeCount = 0;
         let expiredCount = 0;
+        let criticalCount = 0;
+
+        let isCritical = false;
+
+        for (const dtc of readingData.dtc_readings) {
+          if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+            isCritical = true;
+            break;
+          }
+        }
 
         for (const maintenanceDoc of maintenancesSnapshot.docs) {
           const maintenanceData = maintenanceDoc.data() as Maintenance;
-          const status = calculateStatus(maintenanceData, vehicleKm, {
-            workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
-            workshopDateLimitAlarm: props.contractLimits.dateLimitBefore,
-          });
+          const status = calculateStatus(
+            maintenanceData,
+            vehicleKm,
+            {
+              workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
+              workshopDateLimitAlarm: props.contractLimits.dateLimitBefore,
+            },
+            isCritical
+          );
           if (status === "Vencida") expiredCount++;
           else if (status === "Ok") okCount++;
+          else if (status === "Crítica") criticalCount++;
           else closeCount++;
         }
 
         setVehicleInfo({
+          manufacturer,
           vehicleKm,
           okCount,
           closeCount,
           expiredCount,
+          criticalCount,
         });
       } catch (error) {
         console.error("Erro ao buscar informações do veículo:", error);
@@ -187,25 +287,47 @@ function CustomTable(props: CustomTableProps) {
   const calculateStatus = (
     maintenance: Maintenance,
     kmCurrent: number,
-    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number }
+    limits: { workshopKmLimitAlarm: number; workshopDateLimitAlarm: number },
+    isCritical: boolean
   ) => {
     const now = new Date();
-    const dateLimit = maintenance.dateLimit ? maintenance.dateLimit.toDate() : null;
+    const dateLimit = maintenance.dateLimit
+      ? maintenance.dateLimit.toDate()
+      : null;
     const maintenanceKm = maintenance.kmLimit;
 
     const kmBeforeLimit = limits.workshopKmLimitAlarm;
     const dateBeforeLimit = limits.workshopDateLimitAlarm;
 
-    if (dateLimit && dateLimit.getTime() - dateBeforeLimit * 24 * 60 * 60 * 1000 >= now.getTime()) {
-      return "Próxima";
-    } else if (dateLimit && dateLimit.getTime() <= now.getTime()) {
-      return "Vencida";
-    } else if (maintenanceKm && maintenanceKm - kmBeforeLimit <= kmCurrent) {
-      return "Próxima";
-    } else if (maintenanceKm && maintenanceKm <= kmCurrent) {
-      return "Vencida";
+    let result = "Ok";
+
+    if (isCritical) {
+      result = "Crítica";
+      return result;
     }
-    return "Ok";
+
+    if (dateLimit) {
+      const MS_PER_DAY = 1000 * 60 * 60 * 24;
+      const dateThreshold = dateLimit.getTime() - dateBeforeLimit * MS_PER_DAY;
+
+      if (dateLimit.getTime() < now.getTime()) {
+        result = "Vencida";
+      } else if (dateThreshold <= now.getTime()) {
+        result = "Próxima";
+      }
+    }
+
+    if (maintenanceKm) {
+      const kmThreshold = maintenanceKm - kmBeforeLimit;
+
+      if (maintenanceKm <= kmCurrent) {
+        result = "Vencida";
+      } else if (kmThreshold <= kmCurrent) {
+        result = result === "Vencida" ? "Vencida" : "Próxima";
+      }
+    }
+
+    return result;
   };
 
   return (
@@ -232,11 +354,20 @@ function CustomTable(props: CustomTableProps) {
                       <Spinner color="white" size="sm" />
                     ) : (
                       <>
-                        <p className="font-bold mb-1">Dados do usuário</p>
+                        <p className="font-bold mb-1">
+                          Dados do usuário {userVehicleInfo.clientName}
+                        </p>
                         <p>Total KM: {userVehicleInfo.totalKm}</p>
                         <p>Manutenções Okay: {userVehicleInfo.okCount}</p>
-                        <p>Manutenções Próximas: {userVehicleInfo.closeCount}</p>
-                        <p>Manutenções Vencidas: {userVehicleInfo.expiredCount}</p>
+                        <p>
+                          Manutenções Próximas: {userVehicleInfo.closeCount}
+                        </p>
+                        <p>
+                          Manutenções Vencidas: {userVehicleInfo.expiredCount}
+                        </p>
+                        <p>
+                          Manutenções Críticas: {userVehicleInfo.criticalCount}
+                        </p>
                       </>
                     )}
                   </div>
@@ -255,11 +386,14 @@ function CustomTable(props: CustomTableProps) {
                       <Spinner color="white" size="sm" />
                     ) : (
                       <>
-                        <p className="font-bold mb-1">Dados do veículo</p>
+                        <p className="font-bold mb-1">
+                          Dados do veículo {vehicleInfo.manufacturer}
+                        </p>
                         <p>KM Rodados: {vehicleInfo.vehicleKm}</p>
                         <p>Manutenções Okay: {vehicleInfo.okCount}</p>
                         <p>Manutenções Próximas: {vehicleInfo.closeCount}</p>
                         <p>Manutenções Vencidas: {vehicleInfo.expiredCount}</p>
+                        <p>Manutenções Críticas: {vehicleInfo.criticalCount}</p>
                       </>
                     )}
                   </div>
@@ -276,7 +410,13 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>
               <span
                 className={`rounded-lg px-2 py-1 ${
-                  row.status === "Próxima" ? "!bg-[#D3C544] text-black" : row.status === "Vencida" ? "!bg-[#B73F25] text-white" : "!bg-[#06b606] text-white"
+                  row.status === "Próxima"
+                    ? "!bg-[#D3C544] text-black"
+                    : row.status === "Vencida"
+                    ? "!bg-[#B73F25] text-white"
+                    : row.status === "Crítica"
+                    ? "!bg-[#2D2F2D] text-white"
+                    : "!bg-[#06b606] text-white"
                 }`}
               >
                 {row.status}
@@ -285,9 +425,15 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>
               <a
                 className="text-sky-500 underline"
-                href={`/dashboard/calendar?${row.vehicleId ? `v=${row.vehicleId}` : ""}${row.clientId ? `&d=${row.clientId}` : ""}${
+                href={`/dashboard/calendar?${
+                  row.vehicleId ? `v=${row.vehicleId}` : ""
+                }${row.clientId ? `&d=${row.clientId}` : ""}${
                   row.maintenance ? `&m=${row.id}` : ""
-                }${row.workshopId ? `&w=${row.workshopId}` : fetchWorkshopFromRow(row)}`}
+                }${
+                  row.workshopId
+                    ? `&w=${row.workshopId}`
+                    : fetchWorkshopFromRow(row)
+                }`}
               >
                 Agendar
               </a>
