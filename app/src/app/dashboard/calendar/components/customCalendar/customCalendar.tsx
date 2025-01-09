@@ -133,9 +133,9 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
   };
 
   const fetchAllWorkshops = async () => {
-    const _worshops = await getAllWorkshops();
-    if (!_worshops || !_worshops?.length) return;
-    setAllWorkshops(_worshops);
+    const _workshops = await getAllWorkshops();
+    if (!_workshops || !_workshops?.length) return;
+    setAllWorkshops(_workshops);
     setLoading((prevLoading) => ({ ...prevLoading, workshops: false }));
   };
 

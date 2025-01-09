@@ -5,6 +5,7 @@ import { AuthContext } from "./auth.context";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Contract } from "@/interfaces/contract.type";
+import { Role } from "@/types/enums/role.enum";
 
 interface WorkshopContextData {
   workshopInView: (Workshop & { contract: Contract }) | undefined;
@@ -34,6 +35,8 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
   const [workshopOptions, setWorkshopOptions] = useState<(Workshop & { contract: Contract })[]>([]);
   const [basicContract, setBasicContract] = useState<Contract | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const workshopIdFromQueryParams = searchParams.get("w");
 
   const getContract = async (id: string) => {
     if (id === "basic" && basicContract) return basicContract;
@@ -51,21 +54,45 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
     try {
       if (!currentUser?.id) return;
       setIsLoading(true);
-      const workshopQuery = query(collection(db, "workshops"), where("owner", "==", currentUser.id));
-      const workshopsSnapshot = await getDocs(workshopQuery);
-      const workshopsPromises = workshopsSnapshot.docs.map(async (doc) => {
-        const workshop = doc.data() as Workshop;
 
-        let contract = await getContract((workshop.contract ?? "basic") as string);
-        if (!contract) await getContract("basic");
+      if (currentUser.role !== Role.MASTER) {
+        const workshopQuery = query(collection(db, "workshops"), where("owner", "==", currentUser.id));
+        const workshopsSnapshot = await getDocs(workshopQuery);
 
-        return { ...workshop, contract, id: doc.id } as Workshop & { contract: Contract };
-      });
+        const workshopsPromises = workshopsSnapshot!.docs.map(async (doc) => {
+          const workshop = doc.data() as Workshop;
+  
+          let contract = await getContract((workshop.contract ?? "basic") as string);
+          if (!contract) await getContract("basic");
+  
+          return { ...workshop, contract, id: doc.id } as Workshop & { contract: Contract };
+        });
+        const workshops = await Promise.all(workshopsPromises);
+  
+        setWorkshopOptions(workshops);
+        setWorkshopInView(workshops[0]);
+      } else {
+        if (workshopIdFromQueryParams) {
+          const workshopDocRef = doc(db, "workshops", workshopIdFromQueryParams);
+          const workshopsSnapshot = await getDoc(workshopDocRef);
 
-      const workshops = await Promise.all(workshopsPromises);
+          if (workshopsSnapshot.exists()) {
+            const workshop = workshopsSnapshot.data() as Workshop;
+            let contract = await getContract((workshop.contract ?? "basic") as string);
+            if (!contract) await getContract("basic");
+            const data = { ...workshop, contract, id: workshopDocRef.id } as Workshop & { contract: Contract };
 
-      setWorkshopOptions(workshops);
-      setWorkshopInView(workshops[0]);
+            setWorkshopInView(data);
+            setWorkshopOptions([data]);
+          } else {
+            throw new Error("Workshop does not exist");
+          }
+        } else {
+          throw new Error("workshopId from query parameters is null");
+        }
+      }
+      
+
     } catch (error) {
       console.log(error);
     } finally {

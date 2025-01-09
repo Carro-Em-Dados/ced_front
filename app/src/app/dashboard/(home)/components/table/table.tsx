@@ -8,6 +8,7 @@ import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { Reading } from "@/interfaces/readings.type";
+import { toast } from "react-toastify";
 
 interface CustomTableProps {
   data: any[];
@@ -34,6 +35,29 @@ function CustomTable(props: CustomTableProps) {
     closeCount: 0,
     expiredCount: 0,
   });
+
+  const fetchWorkshopFromRow = async (row: any): Promise<string | undefined> => {
+      try {
+        const maintenanceDocRef = doc(db, "maintenances", row.id);
+        const maintenanceDoc = await getDoc(maintenanceDocRef);
+        if (!maintenanceDoc.exists()) {
+          toast.error("Erro ao buscar informações da manutenção");
+          return;
+        }
+  
+        const maintenanceData = maintenanceDoc.data() as Maintenance;
+        const fetchedWorkshopId = maintenanceData.workshop;
+  
+        const url = `/dashboard/calendar?${row.vehicleId ? `v=${encodeURIComponent(row.vehicleId)}` : ""}`
+          + `${row.clientId ? `&d=${encodeURIComponent(row.clientId)}` : ""}`
+          + `${row.maintenance ? `&m=${encodeURIComponent(row.id)}` : ""}`
+          + `&w=${encodeURIComponent(fetchedWorkshopId)}`;
+        return url;
+      } catch (error) {
+        console.error("Erro ao buscar informações da manutenção:", error);
+      }
+  };
+  
 
   const handleOpenUser = async (clientId: string) => {
     if (!clientId) {
@@ -263,7 +287,7 @@ function CustomTable(props: CustomTableProps) {
                 className="text-sky-500 underline"
                 href={`/dashboard/calendar?${row.vehicleId ? `v=${row.vehicleId}` : ""}${row.clientId ? `&d=${row.clientId}` : ""}${
                   row.maintenance ? `&m=${row.id}` : ""
-                }${row.workshopId ? `&w=${row.workshopId}` : ""}`}
+                }${row.workshopId ? `&w=${row.workshopId}` : fetchWorkshopFromRow(row)}`}
               >
                 Agendar
               </a>
