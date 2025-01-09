@@ -81,14 +81,14 @@ export default function ButtonExport({ workshopName, maintenances }: ButtonProps
               valign: "middle",
           },
           bodyStyles: {
-              fillColor: [191, 191, 191],
+              fillColor: [241, 241, 241],
               textColor: 0,
               fontSize: 10,
               lineColor: 0,
               lineWidth: 0.1,
           },
           alternateRowStyles: {
-              fillColor: 131,
+              fillColor: 221,
               lineColor: 0,
               lineWidth: 0.1,
           },
