@@ -151,10 +151,12 @@ function CustomTable(props: CustomTableProps) {
 
             let isCritical = false;
 
-            for (const dtc of readingData.dtc_readings) {
-              if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
-                isCritical = true;
-                break;
+            if (readingData) {
+              for (const dtc of readingData.dtc_readings) {
+                if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                  isCritical = true;
+                  break;
+                }
               }
             }
 
@@ -244,10 +246,12 @@ function CustomTable(props: CustomTableProps) {
 
         let isCritical = false;
 
-        for (const dtc of readingData.dtc_readings) {
-          if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
-            isCritical = true;
-            break;
+        if (readingData) {
+          for (const dtc of readingData.dtc_readings) {
+            if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+              isCritical = true;
+              break;
+            }
           }
         }
 
