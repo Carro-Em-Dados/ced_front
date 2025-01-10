@@ -19,6 +19,7 @@ import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 import { isPremium as _isPremium } from "@/services/firebase-admin";
 import { Role } from "@/types/enums/role.enum";
+import { FirebaseStorage, getStorage } from "firebase/storage";
 
 interface AuthContextData {
   login: (email: string, password: string) => Promise<void>;
@@ -29,6 +30,7 @@ interface AuthContextData {
   currentUser: User | undefined;
   currentWorkshop: (Workshop & { contract?: Contract | null }) | undefined;
   db: Firestore;
+  storage: FirebaseStorage;
   loading: boolean;
   auth: Auth;
   isPremium: boolean | null;
@@ -54,6 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
+  const storage = getStorage(app);
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [currentWorkshop, setCurrentWorkshop] = useState<(Workshop & { contract?: Contract | null }) | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
@@ -94,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshUser();
 
     return () => unsubscribe();
-  }, [auth, db]);
+  }, [auth, db, storage]);
 
   useEffect(() => {
     if (currentUser) {
@@ -302,6 +305,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         currentUser,
         currentWorkshop,
         db,
+        storage,
         loading,
         auth,
         isPremium,
