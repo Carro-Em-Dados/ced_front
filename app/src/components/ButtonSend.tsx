@@ -150,7 +150,7 @@ export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
             className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
         >
             <FaPaperPlane size={20} />
-            <p>Send</p>
+            <p>Enviar por email</p>
         </Button>
     );
 }
