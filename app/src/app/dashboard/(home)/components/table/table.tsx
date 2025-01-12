@@ -26,7 +26,7 @@ import { Driver } from "@/interfaces/driver.type";
 import { AppUser } from "@/interfaces/appUser.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { Reading } from "@/interfaces/readings.type";
-import { toast } from "react-toastify";
+import { toast, Zoom } from "react-toastify";
 import { Vehicle } from "@/interfaces/vehicle.type";
 
 interface CustomTableProps {
@@ -66,7 +66,17 @@ function CustomTable(props: CustomTableProps) {
       const maintenanceDocRef = doc(db, "maintenances", row.id);
       const maintenanceDoc = await getDoc(maintenanceDocRef);
       if (!maintenanceDoc.exists()) {
-        toast.error("Erro ao buscar informações da manutenção");
+        toast.error("Erro ao buscar informações da manutenção",  {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
         return;
       }
 
