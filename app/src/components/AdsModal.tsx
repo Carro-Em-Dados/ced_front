@@ -1,39 +1,69 @@
-import { Button } from "@nextui-org/react";
-import { IoClose } from "react-icons/io5";
-import { FaPaperPlane } from "react-icons/fa";
-import { BiImageAdd } from "react-icons/bi";
-import { Input, Textarea } from "@nextui-org/react";
-import { useState } from "react";
+import {
+  Button,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Textarea,
+  useDisclosure,
+} from "@nextui-org/react";
+import { useContext, useState, useEffect } from "react";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AuthContext } from "@/contexts/auth.context";
-import { useContext } from "react";
+import { toast, Zoom } from "react-toastify";
+import { BiImageAdd } from "react-icons/bi";
+import { FaPaperPlane } from "react-icons/fa";
+import { Ad } from "@/interfaces/adUserType";
 
-interface ModalProps {
+interface AdsModalProps {
+  isOpen: boolean;
   onClose: () => void;
+  workshopId: string;
 }
 
-export default function AdsModal({ onClose }: ModalProps) {
+export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps) {
+  const { db, storage } = useContext(AuthContext);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [validity, setValidity] = useState<Timestamp | null>(null);
+  const [start, setStart] = useState<Timestamp | null>(null);
+  const [end, setEnd] = useState<Timestamp | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const { db, storage } = useContext(AuthContext);
+  const [canSend, setCanSend] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (title && description && start && end && image) setCanSend(true);
+    else setCanSend(false);
+  }, [title, description, start, end, image]);
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length <= 280) {
-      setDescription(e.target.value);
-    }
+    if (e.target.value.length <= 280) setDescription(e.target.value);
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDateChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
     const date = new Date(e.target.value);
-    setValidity(Timestamp.fromDate(date));
+    if (type === "start") setStart(Timestamp.fromDate(date));
+    else setEnd(Timestamp.fromDate(date));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    processImage(file);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    processImage(file);
+  };
+
+  const processImage = (file: File | undefined) => {
     if (file) {
       setImage(file);
       const reader = new FileReader();
@@ -45,7 +75,7 @@ export default function AdsModal({ onClose }: ModalProps) {
   };
 
   const saveAd = async () => {
-    if (!title || !description || !validity || !image) {
+    if (!title || !description || !start || !end || !image) {
       alert("Please fill out all fields and select an image.");
       return;
     }
@@ -54,108 +84,139 @@ export default function AdsModal({ onClose }: ModalProps) {
       const storageRef = ref(storage, `images/${image.name}`);
       await uploadBytes(storageRef, image);
       const imageUrl = await getDownloadURL(storageRef);
-
-      await addDoc(collection(db, "ads"), {
+      const ad = {
+        workshop: workshopId,
         title,
         description,
-        validity,
-        imageUrl,
-      });
+        start,
+        end,
+        image_url: imageUrl,
+        createdAt: Timestamp.now(),
+        clicks: 0,
+        closes: 0,
+        users_reacted: [],
+      } as Ad;
 
-      alert("Promotion saved successfully!");
+      await addDoc(collection(db, "ads"), ad);
+
+      toast.success("Promoção enviada com sucesso", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
       onClose();
     } catch (error) {
       console.error("Error saving promotion: ", error);
-      alert("Failed to save the promotion.");
+      toast.error("Erro ao criar promoção", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
     }
   };
 
   return (
-    <div className="fixed bottom-10 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="w-4/5 h-4/5 bg-black border-2 border-stone-300 px-4 rounded-2xl">
-        <div className="flex flex-col h-full w-full gap-5 grid-cols-8">
-          <div className="flex flex-row justify-end col-span-1">
-            <Button onClick={onClose} className="bg-black text-white text-4xl">
-              <IoClose />
-            </Button>
-          </div>
-          <div className="flex flex-row items-center h-auto gap-5 col-span-4">
-            <div className="flex flex-col items-center gap-2 h-[90%] max-h-[90%]">
-              <div className="flex flex-col items-center border-4 w-[70%] max-w-[70%] h-[70%] border-stone-300 border-dashed rounded-2xl overflow-hidden max-h-[70%]">
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Promotional"
-                    className="w-auto h-auto max-w-full max-h-full object-contain rounded-2xl"
-                  />
-                ) : (
-                  <p className="text-stone-400 w-[80%] text-lg text-center font-extrabold">
-                    Adicionar Imagem Promocional
-                  </p>
-                )}
-              </div>
-
-              <Button className="text-base rounded-full bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row">
-                <BiImageAdd size={30} />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  Selecionar Imagem Promocional
-                </label>
-                <input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="4xl"
+      scrollBehavior="outside"
+    >
+      <ModalContent className="bg-black border-2 border-slate-300 text-white">
+        <ModalHeader>
+          <div className="flex flex-col gap-1">Criar Promoção</div>
+        </ModalHeader>
+        <ModalBody className="flex flex-row justify-end gap-14 w-full">
+          <div className="flex flex-col items-center h-full gap-3">
+            <div
+              className="flex flex-col justify-center items-center w-[400px] max-w-full h-[300px] max-h-[300px] border-4 border-dashed border-stone-300 rounded-2xl text-center cursor-pointer"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Promotional"
+                  className="w-full h-full object-contain"
                 />
-              </Button>
+              ) : (
+                <p className="text-stone-400 w-[70%] text-xl">
+                  Arraste e solte a imagem aqui ou clique abaixo para selecionar
+                  uma imagem promocional.
+                </p>
+              )}
             </div>
-            <div className="flex flex-col gap-3 w-full h-full">
-              <p className="text-white text-xl font-bold">
-                Informações da Promoção
-              </p>
-              <Input
-                type="text"
-                label="Título"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                variant="bordered"
-                className="dark"
+            <Button
+              className="flex items-center w-fit px-6 gap-2 rounded-full bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+              onClick={() => document.getElementById("image-upload")?.click()}
+            >
+              <BiImageAdd size={40} />
+              Selecionar Imagem Promocional
+            </Button>
+            <input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </div>
+
+          <div className="flex flex-col justify-between w-full">
+            <p className="text-white text-xl font-bold">
+              Informações da Promoção
+            </p>
+            <Input
+              type="text"
+              label="Título"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              variant="bordered"
+              className="dark w-96"
+            />
+            <div className="flex flex-col">
+              <Textarea
+                label="Descrição (até 280 caracteres)"
+                value={description}
+                onChange={handleDescriptionChange}
+                maxRows={6}
+                className="dark w-96"
                 classNames={{
                   input: ["bg-transparent text-white"],
                   inputWrapper: [
-                    "border border-2 !border-white focus:border-white",
+                    "border border-2 !border-white focus:border-white relative bg-transparent",
                   ],
                 }}
               />
-              <div className="flex flex-col">
-                <Textarea
-                  label="Descrição (até 280 caracteres)"
-                  value={description}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleDescriptionChange(e)
-                  }
-                  maxRows={6}
-                  className="dark"
-                  classNames={{
-                    input: ["bg-transparent text-white"],
-                    inputWrapper: [
-                      "border border-2 !border-white focus:border-white",
-                    ],
-                  }}
-                />
-                <p className="text-white text-sm">{description.length}/280</p>
-              </div>
+              <p className="text-white text-sm ml-2">
+                {description.length}/280
+              </p>
+            </div>
+
+            <div className="flex flex-row gap-2">
               <Input
                 type="date"
-                label="Validade"
+                label="Data de início"
                 value={
-                  validity
-                    ? new Date(validity.toDate()).toISOString().slice(0, 10)
+                  start
+                    ? new Date(start.toDate()).toISOString().slice(0, 10)
                     : ""
                 }
-                onChange={handleDateChange}
+                onChange={(e) => handleDateChange(e, "start")}
                 variant="bordered"
-                className="dark"
+                className="dark w-48"
                 classNames={{
                   input: ["bg-transparent text-white"],
                   inputWrapper: [
@@ -163,7 +224,30 @@ export default function AdsModal({ onClose }: ModalProps) {
                   ],
                   label: [
                     "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
-                    validity || validity === ""
+                    start || start === ""
+                      ? "translate-y-0 scale-100"
+                      : "scale-75 -translate-y-3",
+                  ],
+                }}
+              />
+
+              <Input
+                type="date"
+                label="Data de encerramento"
+                value={
+                  end ? new Date(end.toDate()).toISOString().slice(0, 10) : ""
+                }
+                onChange={(e) => handleDateChange(e, "end")}
+                variant="bordered"
+                className="dark w-48"
+                classNames={{
+                  input: ["bg-transparent text-white"],
+                  inputWrapper: [
+                    "border border-2 !border-white focus:border-white relative",
+                  ],
+                  label: [
+                    "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
+                    end || end === ""
                       ? "translate-y-0 scale-100"
                       : "scale-75 -translate-y-3",
                   ],
@@ -171,14 +255,23 @@ export default function AdsModal({ onClose }: ModalProps) {
               />
             </div>
           </div>
-          <div className="w-full flex flex-row justify-center items-center col-span-3 grow">
-            <Button className="flex flex-row py-7 px-14 text-white text-xl bg-gradient-to-b from-[#209730] to-[#056011]">
-              <FaPaperPlane size={20} />
-              <p>Enviar Promoção</p>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+        </ModalBody>
+        <ModalFooter className="flex justify-center mt-4">
+          <Button
+            className={`flex flex-row py-4 px-14 text-xl transition duration-300 rounded-xl
+                ${
+                  canSend
+                    ? "text-white bg-gradient-to-b from-[#209730] to-[#056011] cursor-pointer"
+                    : "cursor-not-allowed opacity-70 bg-gradient-to-b from-slate-500 to-slate-600 text-black"
+                } 
+              `}
+            onClick={saveAd}
+          >
+            <FaPaperPlane size={20} />
+            <p>Enviar Promoção</p>
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

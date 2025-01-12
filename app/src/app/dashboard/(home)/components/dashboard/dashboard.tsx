@@ -40,6 +40,8 @@ import { Timestamp } from "firebase-admin/firestore";
 import ButtonExport from "@/components/ButtonExport";
 import ButtonSend from "@/components/ButtonSend";
 import { Workshop } from "@/interfaces/workshop.type";
+import AdsModal from "@/components/AdsModal";
+import { BsFillMegaphoneFill } from "react-icons/bs";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -70,7 +72,7 @@ export default function Dashboard({
   contractId,
   workshopName,
 }: DashboardProps) {
-  const { db } = useContext(AuthContext);
+  const { db, isPremium, currentUser } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
   const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>(
     []
@@ -93,6 +95,7 @@ export default function Dashboard({
   const [filterType, setFilterType] = useState("");
   const [counter, setCounter] = useState("");
   const [filterSum, setFilterSum] = useState(0);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const itemsPerPage = 10;
 
@@ -1148,6 +1151,15 @@ export default function Dashboard({
                     workshopName={workshopName}
                     maintenances={maintenancesChart}
                   />
+                  {(isPremium) && (
+                    <Button
+                      onClick={() => setIsOpen(true)}
+                      className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
+                    >
+                      <BsFillMegaphoneFill />
+                      <p>Criar Promoção</p>
+                    </Button>
+                  )}
                 </div>
 
                 <Button
@@ -1157,6 +1169,9 @@ export default function Dashboard({
                 >
                   Próxima
                 </Button>
+                {isOpen && (
+                  <AdsModal onClose={() => setIsOpen(false)} isOpen={isOpen} workshopId={selectedWorkshop} />
+                )}
               </div>
             </>
           )}
