@@ -1156,35 +1156,41 @@ export default function Dashboard({
                 <Button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 0}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  className={`bg-gradient-to-b from-[#209730] to-[#056011] text-white ${
+                    currentPage === 0 ? "cursor-not-allowed" : ""
+                  }`}
                 >
                   Anterior
                 </Button>
 
                 <div className="flex flex-row gap-2">
-                  <ButtonExport
-                    workshopName={workshopName}
-                    maintenances={maintenancesChart}
-                  />
-                  <ButtonSend
-                    workshopName={workshopName}
-                    maintenances={maintenancesChart}
-                  />
                   {isPremium && (
-                    <Button
-                      onClick={() => setIsOpen(true)}
-                      className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
-                    >
-                      <BsFillMegaphoneFill />
-                      <p>Criar Promoção</p>
-                    </Button>
+                    <>
+                      <ButtonExport
+                        workshopName={workshopName}
+                        maintenances={maintenancesChart}
+                      />
+                      <ButtonSend
+                        workshopName={workshopName}
+                        maintenances={maintenancesChart}
+                      />
+                      <Button
+                        onClick={() => setIsOpen(true)}
+                        className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
+                      >
+                        <BsFillMegaphoneFill />
+                        <p>Criar Promoção</p>
+                      </Button>
+                    </>
                   )}
                 </div>
 
                 <Button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages - 1}
-                  className="bg-gradient-to-b from-[#209730] to-[#056011] text-white"
+                  className={`bg-gradient-to-b from-[#209730] to-[#056011] text-white ${
+                    currentPage >= totalPages - 1 ? "cursor-not-allowed" : ""
+                  }`}
                 >
                   Próxima
                 </Button>
