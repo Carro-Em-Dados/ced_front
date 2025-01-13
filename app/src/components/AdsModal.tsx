@@ -53,8 +53,48 @@ export default function AdsModal({
     type: string
   ) => {
     const date = new Date(e.target.value);
-    if (type === "start") setStart(Timestamp.fromDate(date));
-    else setEnd(Timestamp.fromDate(date));
+
+    if (type === "start") {
+      if (end && date > end.toDate()) {
+        toast.error(
+          "A data de início não pode ser posterior à data de encerramento.",
+          {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Zoom,
+          }
+        );
+        setStart(null);
+      } else {
+        setStart(Timestamp.fromDate(date));
+      }
+    } else if (type === "end") {
+      if (start && date < start.toDate()) {
+        toast.error(
+          "A data de encerramento não pode ser anterior à data de início.",
+          {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Zoom,
+          }
+        );
+        setEnd(null);
+      } else {
+        setEnd(Timestamp.fromDate(date));
+      }
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +196,7 @@ export default function AdsModal({
         <ModalHeader>
           <div className="flex flex-col gap-1">Criar Promoção</div>
         </ModalHeader>
-        <ModalBody className="flex flex-row justify-end gap-14 border-2 w-full">
+        <ModalBody className="flex flex-row justify-end gap-14 w-full">
           <div className="flex flex-col items-center py-4 gap-3">
             <div
               className="flex flex-col justify-center items-center w-[400px] max-w-full h-[300px] max-h-[300px] border-4 border-dashed border-stone-300 rounded-2xl text-center cursor-pointer"
