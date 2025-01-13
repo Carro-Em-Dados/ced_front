@@ -553,6 +553,7 @@ export default function Dashboard({
 
       for (const vehicleDoc of vehiclesSnapshot.docs) {
         const vehicleData = vehicleDoc.data() as Vehicle;
+        vehicleData.car_id = vehicleDoc.id;
         const readingDocRef = query(
           collection(db, "readings"),
           where("car_id", "==", vehicleDoc.id),
@@ -641,7 +642,7 @@ export default function Dashboard({
       }
     }
 
-    if (maintenanceKm) {
+    if (maintenanceKm >= 0) {
       const kmThreshold = maintenanceKm - kmBeforeLimit;
 
       if (maintenanceKm <= kmCurrent) {
