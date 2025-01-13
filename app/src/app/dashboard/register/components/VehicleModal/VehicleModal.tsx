@@ -176,13 +176,16 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
       const response = await fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos/${modelCode}/anos`);
       const data = await response.json();
 
-      const processedData = data
+      let processedData = data
         .map((item: any) => ({
           ...item,
           nome: item.nome.split(" ")[0],
         }))
         .filter((item: any, index: any, self: any) => index === self.findIndex((t: any) => t.nome === item.nome));
 
+      const currentYear = new Date().getFullYear();
+      processedData = processedData.filter((item: any) => Number(item.nome) <= currentYear);
+      
       setVehicleYears(processedData);
     } catch (error) {
       setFailed({ ...failed, year: true });
