@@ -823,6 +823,34 @@ export default function Dashboard({
     });
   };
 
+  const sumSelectedKmCounter = async () => {
+    let sum = 0;
+    const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
+    for (const vehicle of vehiclesSnapshot.docs) {
+      let vehicleData = vehicle.data() as Vehicle;
+      vehicleData.id = vehicle.id;
+
+      const readingDocRef = query(
+        collection(db, "readings"),
+        where("car_id", "==", vehicleData.id),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
+
+      const readingDoc = await getDocs(readingDocRef);
+      if (!readingDoc.empty) {
+        const readingData = readingDoc.docs[0].data() as Reading;
+
+        if (counter === "gps") {
+          sum += readingData.gps_distance;
+        } else {
+          sum += readingData.obd2_distance;
+        }
+      }
+    }
+    setFilterSum(sum);
+  };
+
   useEffect(() => {
     setSelectedFilterOption({
       selected: "",
@@ -838,18 +866,6 @@ export default function Dashboard({
   useEffect(() => {
     sumSelectedKmCounter();
   }, [counter]);
-
-  const sumSelectedKmCounter = async () => {
-    let sum = 0;
-    const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
-    vehiclesSnapshot.docs.forEach((vehicle: any) => {
-      const vehicleData = vehicle.data() as Vehicle;
-      counter === "gps"
-        ? (sum += vehicleData.gps_distance || 0)
-        : (sum += vehicleData.obd2_distance || 0);
-    });
-    setFilterSum(sum);
-  };
 
   return (
     <div className={clsx(styles.dashboardContainer, "mb-10")}>
@@ -1154,7 +1170,7 @@ export default function Dashboard({
                     workshopName={workshopName}
                     maintenances={maintenancesChart}
                   />
-                  {(isPremium) && (
+                  {isPremium && (
                     <Button
                       onClick={() => setIsOpen(true)}
                       className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
@@ -1173,7 +1189,11 @@ export default function Dashboard({
                   Próxima
                 </Button>
                 {isOpen && (
-                  <AdsModal onClose={() => setIsOpen(false)} isOpen={isOpen} workshopId={selectedWorkshop} />
+                  <AdsModal
+                    onClose={() => setIsOpen(false)}
+                    isOpen={isOpen}
+                    workshopId={selectedWorkshop}
+                  />
                 )}
               </div>
             </>
