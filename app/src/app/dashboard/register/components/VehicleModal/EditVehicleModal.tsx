@@ -79,12 +79,15 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
       const response = await fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${manufacturerCode}/modelos/${modelCode}/anos`);
       const data = await response.json();
 
-      const processedData = data
+      let processedData = data
         .map((item: any) => ({
           ...item,
           nome: item.nome.split(" ")[0],
         }))
         .filter((item: any, index: any, self: any) => index === self.findIndex((t: any) => t.nome === item.nome));
+
+      const currentYear = new Date().getFullYear();
+      processedData = processedData.filter((item: any) => Number(item.nome) <= currentYear);
 
       setVehicleYears(processedData);
     } catch (error) {
@@ -160,6 +163,13 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
   }, [selectedBrand]);
 
   useEffect(() => {
+    if (manufacturer === "" || !manufacturer) {
+      setCarModel("");
+      setVehiclesModels([]);
+    }
+  }, [manufacturer]);
+
+  useEffect(() => {
     if (carModel) {
       const selectedModelCode = vehiclesModels.find((model) => model.nome === carModel)?.codigo;
       setSelectedModel(selectedModelCode || "");
@@ -225,8 +235,9 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
                         className="dark"
                         onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
-                          setSelectedBrand(vehiclesBrands.find((brand) => brand.nome == key.toString())?.codigo || "");
-                          setManufacturer(key.toString() || "");
+                          const keyString = key ? key.toString() : "";
+                          setSelectedBrand(vehiclesBrands.find((brand) => brand.nome == keyString)?.codigo || "");
+                          setManufacturer(keyString || "");
                         }}
                         selectedKey={manufacturer}
                       >
@@ -257,8 +268,9 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
                         className="dark"
                         onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
-                          setSelectedModel(vehiclesModels.find((model) => model.nome == key.toString())?.codigo || "");
-                          setCarModel(key.toString() || "");
+                          const keyString = key ? key.toString() : "";
+                          setSelectedModel(vehiclesModels.find((model) => model.nome == keyString)?.codigo || "");
+                          setCarModel(keyString || "");
                         }}
                         disabled={!manufacturer}
                         selectedKey={carModel}
@@ -272,20 +284,24 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
                     )}
                   </div>
                   <div className="flex gap-5">
-                    <Input
-                      type="number"
-                      min={1900}
-                      max={new Date().getFullYear()}
-                      label="Ano"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      variant="bordered"
-                      className="dark"
-                      classNames={{
-                        input: ["bg-transparent text-white"],
-                        inputWrapper: ["border border-2 !border-white focus:border-white"],
-                      }}
-                    />
+                  <Autocomplete
+                        label="Ano"
+                        variant="bordered"
+                        className="dark"
+                        onKeyDown={(e: any) => e.continuePropagation()}
+                        onSelectionChange={(key) => {
+                          const keyString = key ? key.toString() : "";
+                          setYear(keyString || "");
+                        }}
+                        disabled={!manufacturer || loadingFetch}
+                        selectedKey={year}
+                      >
+                        {vehicleYears.map((years) => (
+                          <AutocompleteItem value={years.nome} key={years.nome}>
+                            {years.nome}
+                          </AutocompleteItem>
+                        ))}
+                      </Autocomplete>
                     <Input
                       type="text"
                       label="Chassi"
