@@ -62,6 +62,21 @@ const Login = () => {
       try {
         setIsLoginHappening(true);
         await login(email, password);
+
+        toast.success("Login efetuado com sucesso", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setIsLoginHappening(false);
         router.replace("/dashboard");
       } catch (err) {
         setIsLoginHappening(false);
@@ -142,7 +157,7 @@ const Login = () => {
             <h2 className={styles.infoLabel}>Email</h2>
             <Input
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => (setEmail(e.target.value), setEmailValid(true))}
               type="email"
               placeholder="Digite seu email"
               variant="bordered"
@@ -155,7 +170,7 @@ const Login = () => {
             <h2 className={styles.infoLabel}>Senha</h2>
             <Input
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => (setPassword(e.target.value), setPasswordValid(true))}
               type="password"
               placeholder="Digite sua senha"
               variant="bordered"
