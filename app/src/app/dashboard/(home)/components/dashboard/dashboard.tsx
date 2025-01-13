@@ -42,6 +42,7 @@ import ButtonSend from "@/components/ButtonSend";
 import { Workshop } from "@/interfaces/workshop.type";
 import AdsModal from "@/components/AdsModal";
 import { BsFillMegaphoneFill } from "react-icons/bs";
+import { Role } from "@/types/enums/role.enum";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -72,7 +73,7 @@ export default function Dashboard({
   contractId,
   workshopName,
 }: DashboardProps) {
-  const { db, isPremium, currentUser } = useContext(AuthContext);
+  const { db, currentUser } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
   const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>(
     []
@@ -96,6 +97,7 @@ export default function Dashboard({
   const [counter, setCounter] = useState("");
   const [filterSum, setFilterSum] = useState(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [canSeeButton, setcanSeeButton] = useState<boolean>(false);
 
   const itemsPerPage = 10;
 
@@ -694,12 +696,40 @@ export default function Dashboard({
     };
   };
 
+  const checkPremium = async (currWorkshopId: string) => {
+
+    if (currentUser?.role === Role.MASTER) {
+      setcanSeeButton(true);
+      return;
+    }
+
+    const currWorkshop = await getDoc(doc(db, "workshops", currWorkshopId));
+
+    if (currWorkshop.exists()) {
+      const workshopData = currWorkshop.data() as Workshop;
+      const contract = workshopData.contract;
+
+      if (workshopData.contract) {
+        if (contract !== "basic") {
+          console.log("is premium");
+          setcanSeeButton(true);
+          return;
+        } else {
+          console.log("is not premium");
+          setcanSeeButton(false);
+          return;
+        }
+      }      
+    }
+  };
+
   useEffect(() => {
     setMaintenances([]);
     setCurrentPage(0);
     setLastVisibleDocs(new Map());
     fetchContract();
     setCounterType("total");
+    checkPremium(selectedWorkshop);
   }, [selectedWorkshop]);
 
   useEffect(() => {
@@ -1164,7 +1194,7 @@ export default function Dashboard({
                 </Button>
 
                 <div className="flex flex-row gap-2">
-                  {isPremium && (
+                  {canSeeButton && (
                     <>
                       <ButtonExport
                         workshopName={workshopName}
