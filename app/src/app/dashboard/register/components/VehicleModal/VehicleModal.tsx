@@ -35,7 +35,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [vehiclesBrands, setVehiclesBrands] = useState<any[]>([]);
   const [vehiclesModels, setVehiclesModels] = useState<any[]>([]);
-  // const [vehicleYears, setVehicleYears] = useState<any[]>([]);
+  const [vehicleYears, setVehicleYears] = useState<any[]>([]);
   const [loadingFetch, setLoadingFetch] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string>();
   const [selectedModel, setSelectedModel] = useState<string>();
@@ -183,9 +183,11 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
         }))
         .filter((item: any, index: any, self: any) => index === self.findIndex((t: any) => t.nome === item.nome));
 
-      // setVehicleYears(processedData);
+      setVehicleYears(processedData);
     } catch (error) {
       setFailed({ ...failed, year: true });
+      setVehicleYears([]);
+      setYear("");
     } finally {
       setLoadingFetch(false);
     }
@@ -237,6 +239,9 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     setSelectedBrand(undefined);
     setSelectedModel(undefined);
     setSelectedYear(undefined);
+    setManufacturer(undefined);
+    setVehicleYears([]);
+    setVehiclesModels([]);
     onClose();
   };
 
@@ -254,6 +259,9 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   useEffect(() => {
     if (selectedBrand) {
       fetchVehiclesModelsApi(selectedBrand);
+    } else {
+      setVehiclesModels([]);
+      setCarModel("");
     }
   }, [selectedBrand]);
 
@@ -264,17 +272,21 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     }
   }, [carModel, vehiclesModels]);
 
-  // useEffect(() => {
-  //   if (selectedModel) {
-  //     fetchVehicleYears(selectedBrand || "", selectedModel);
-  //   }
-  // }, [selectedModel, selectedBrand]);
+  useEffect(() => {
+    if (selectedModel) {
+      fetchVehicleYears(selectedBrand || "", selectedModel);
+    }
+    // } else {
+    //   setVehicleYears([]);
+    //   setYear("");
+    // }
+  }, [selectedModel, selectedBrand]);
 
-  // useEffect(() => {
-  //   if (year) {
-  //     setSelectedYear(vehicleYears.find((yr) => yr.nome === year)?.nome || "");
-  //   }
-  // }, [year, vehicleYears]);
+  useEffect(() => {
+    if (year) {
+      setSelectedYear(vehicleYears.find((yr) => yr.nome === year)?.nome || "");
+    }
+  }, [year, vehicleYears]);
 
   return (
     <>
@@ -374,22 +386,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                     )}
                   </div>
                   <div className="flex gap-5">
-                    {/* {failed.year ? ( */}
-                    <Input
-                      type="number"
-                      min={1900}
-                      max={new Date().getFullYear()}
-                      label="Ano"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      variant="bordered"
-                      className="dark"
-                      classNames={{
-                        input: ["bg-transparent text-white"],
-                        inputWrapper: ["border border-2 !border-white focus:border-white"],
-                      }}
-                    />
-                    {/* ) : (
                       <Autocomplete
                         label="Ano"
                         variant="bordered"
@@ -408,7 +404,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                           </AutocompleteItem>
                         ))}
                       </Autocomplete>
-                    )} */}
                     <Input
                       type="text"
                       label="Chassi"
