@@ -10,6 +10,8 @@ import {
   TableCell,
   Tooltip,
   Spinner,
+  RadioGroup,
+  Radio,
 } from "@nextui-org/react";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import {
@@ -58,6 +60,7 @@ function CustomTable(props: CustomTableProps) {
     expiredCount: 0,
     criticalCount: 0,
   });
+  const [includeOk, setIncludeOk] = useState("No Ok");
 
   const fetchWorkshopFromRow = async (
     row: any
@@ -66,7 +69,7 @@ function CustomTable(props: CustomTableProps) {
       const maintenanceDocRef = doc(db, "maintenances", row.id);
       const maintenanceDoc = await getDoc(maintenanceDocRef);
       if (!maintenanceDoc.exists()) {
-        toast.error("Erro ao buscar informações da manutenção",  {
+        toast.error("Erro ao buscar informações da manutenção", {
           position: "bottom-right",
           autoClose: 5000,
           hideProgressBar: true,
@@ -239,7 +242,7 @@ function CustomTable(props: CustomTableProps) {
           readingData?.obd2_distance > readingData?.gps_distance
             ? readingData?.obd2_distance
             : readingData?.gps_distance || 0;
-        
+
         if (vehicleDoc.exists()) {
           const vehicleData = vehicleDoc.data() as Vehicle;
           manufacturer = vehicleData.manufacturer;
@@ -347,117 +350,151 @@ function CustomTable(props: CustomTableProps) {
   };
 
   return (
-    <Table aria-label="Maintenance info table" className={styles.table}>
-      <TableHeader className={styles.header}>
-        <TableColumn>Cliente</TableColumn>
-        <TableColumn>Veículo</TableColumn>
-        <TableColumn>Manutenção</TableColumn>
-        <TableColumn>Km atual</TableColumn>
-        <TableColumn>Km limite</TableColumn>
-        <TableColumn>Data limite</TableColumn>
-        <TableColumn>Status</TableColumn>
-        <TableColumn>Agendamento</TableColumn>
-      </TableHeader>
-      <TableBody>
-        {props.data.map((row, key) => (
-          <TableRow key={key}>
-            <TableCell className={styles.cell}>
-              <Tooltip
-                className="dark"
-                content={
-                  <div className="flex flex-col text-white p-2">
-                    {loading ? (
-                      <Spinner color="white" size="sm" />
-                    ) : (
-                      <>
-                        <p className="font-bold mb-1">
-                          Dados do usuário {userVehicleInfo.clientName}
-                        </p>
-                        <p>Total KM: {userVehicleInfo.totalKm}</p>
-                        <p>Manutenções Okay: {userVehicleInfo.okCount}</p>
-                        <p>
-                          Manutenções Próximas: {userVehicleInfo.closeCount}
-                        </p>
-                        <p>
-                          Manutenções Vencidas: {userVehicleInfo.expiredCount}
-                        </p>
-                        <p>
-                          Manutenções Críticas: {userVehicleInfo.criticalCount}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                }
-                onOpenChange={() => handleOpenUser(row.clientId)}
-              >
-                <p>{row.client}</p>
-              </Tooltip>
-            </TableCell>
-            <TableCell className={styles.cell}>
-              <Tooltip
-                className="dark"
-                content={
-                  <div className="flex flex-col text-white p-2">
-                    {loading ? (
-                      <Spinner color="white" size="sm" />
-                    ) : (
-                      <>
-                        <p className="font-bold mb-1">
-                          Dados do veículo {vehicleInfo.manufacturer}
-                        </p>
-                        <p>KM Rodados: {vehicleInfo.vehicleKm}</p>
-                        <p>Manutenções Okay: {vehicleInfo.okCount}</p>
-                        <p>Manutenções Próximas: {vehicleInfo.closeCount}</p>
-                        <p>Manutenções Vencidas: {vehicleInfo.expiredCount}</p>
-                        <p>Manutenções Críticas: {vehicleInfo.criticalCount}</p>
-                      </>
-                    )}
-                  </div>
-                }
-                onOpenChange={() => handleOpenVehicle(row.vehicleId)}
-              >
-                <p>{row.vehicle}</p>
-              </Tooltip>
-            </TableCell>
-            <TableCell className={styles.cell}>{row.maintenance}</TableCell>
-            <TableCell className={styles.cell}>{row.km_current}</TableCell>
-            <TableCell className={styles.cell}>{row.km_threshold}</TableCell>
-            <TableCell className={styles.cell}>{row.date_threshold}</TableCell>
-            <TableCell className={`${styles.cell} flex flex-row justify-center`}>
-              <span
-                className={`rounded-lg px-2 py-1 text-center ${
-                  row.status === "Próxima"
-                    ? "!bg-[#D3C544] text-black font-semibold"
-                    : row.status === "Vencida"
-                    ? "!bg-[#B73F25] text-white font-semibold"
-                    : row.status === "Crítica"
-                    ? "!bg-[#2D2F2D] text-white font-semibold"
-                    : "!bg-[#06b606] text-black font-semibold"
-                }`}
-              >
-                {row.status}
-              </span>
-            </TableCell>
-            <TableCell className={styles.cell}>
-              <a
-                className="text-sky-500 underline"
-                href={`/dashboard/calendar?${
-                  row.vehicleId ? `v=${row.vehicleId}` : ""
-                }${row.clientId ? `&d=${row.clientId}` : ""}${
-                  row.maintenance ? `&m=${row.id}` : ""
-                }${
-                  row.workshopId
-                    ? `&w=${row.workshopId}`
-                    : fetchWorkshopFromRow(row)
-                }`}
-              >
-                Agendar
-              </a>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="flex flex-col items-center bg-black p-2 rounded-2xl border-[1px] border-[#2d2f2d] w-full">
+        <div className="p-2 rounded-lg border-2 border-[#2d2f2d] bg-gradient-to-t from-black to-slate-950">
+          <RadioGroup
+            className="text-white"
+            orientation="horizontal"
+            color="success"
+            value={includeOk}
+            onChange={(e) => setIncludeOk(e.target.value)}
+          >
+            <Radio value={"Ok"}>
+              <p className="text-white">Incluir OK</p>
+            </Radio>
+            <Radio value={"No Ok"}>
+              <p className="text-white">Excluir OK</p>
+            </Radio>
+          </RadioGroup>
+      </div>
+      <Table aria-label="Maintenance info table" className={styles.table}>
+        <TableHeader className={styles.header}>
+          <TableColumn>Cliente</TableColumn>
+          <TableColumn>Veículo</TableColumn>
+          <TableColumn>Manutenção</TableColumn>
+          <TableColumn>Km atual</TableColumn>
+          <TableColumn>Km limite</TableColumn>
+          <TableColumn>Data limite</TableColumn>
+          <TableColumn>Status</TableColumn>
+          <TableColumn>Agendamento</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {props.data
+            .filter((row) => includeOk === "Ok" || row.status !== "Ok")
+            .map((row, key) => (
+              <TableRow key={key}>
+                <TableCell className={styles.cell}>
+                  <Tooltip
+                    className="dark"
+                    content={
+                      <div className="flex flex-col text-white p-2">
+                        {loading ? (
+                          <Spinner color="white" size="sm" />
+                        ) : (
+                          <>
+                            <p className="font-bold mb-1">
+                              Dados do usuário {userVehicleInfo.clientName}
+                            </p>
+                            <p>Total KM: {userVehicleInfo.totalKm}</p>
+                            <p>Manutenções Okay: {userVehicleInfo.okCount}</p>
+                            <p>
+                              Manutenções Próximas: {userVehicleInfo.closeCount}
+                            </p>
+                            <p>
+                              Manutenções Vencidas:{" "}
+                              {userVehicleInfo.expiredCount}
+                            </p>
+                            <p>
+                              Manutenções Críticas:{" "}
+                              {userVehicleInfo.criticalCount}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    }
+                    onOpenChange={() => handleOpenUser(row.clientId)}
+                  >
+                    <p>{row.client}</p>
+                  </Tooltip>
+                </TableCell>
+                <TableCell className={styles.cell}>
+                  <Tooltip
+                    className="dark"
+                    content={
+                      <div className="flex flex-col text-white p-2">
+                        {loading ? (
+                          <Spinner color="white" size="sm" />
+                        ) : (
+                          <>
+                            <p className="font-bold mb-1">
+                              Dados do veículo {vehicleInfo.manufacturer}
+                            </p>
+                            <p>KM Rodados: {vehicleInfo.vehicleKm}</p>
+                            <p>Manutenções Okay: {vehicleInfo.okCount}</p>
+                            <p>
+                              Manutenções Próximas: {vehicleInfo.closeCount}
+                            </p>
+                            <p>
+                              Manutenções Vencidas: {vehicleInfo.expiredCount}
+                            </p>
+                            <p>
+                              Manutenções Críticas: {vehicleInfo.criticalCount}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    }
+                    onOpenChange={() => handleOpenVehicle(row.vehicleId)}
+                  >
+                    <p>{row.vehicle}</p>
+                  </Tooltip>
+                </TableCell>
+                <TableCell className={styles.cell}>{row.maintenance}</TableCell>
+                <TableCell className={styles.cell}>{row.km_current}</TableCell>
+                <TableCell className={styles.cell}>
+                  {row.km_threshold}
+                </TableCell>
+                <TableCell className={styles.cell}>
+                  {row.date_threshold}
+                </TableCell>
+                <TableCell
+                  className={`${styles.cell} flex flex-row justify-center`}
+                >
+                  <span
+                    className={`rounded-lg px-2 py-1 text-center ${
+                      row.status === "Próxima"
+                        ? "!bg-[#D3C544] text-black font-semibold"
+                        : row.status === "Vencida"
+                        ? "!bg-[#B73F25] text-white font-semibold"
+                        : row.status === "Crítica"
+                        ? "!bg-[#2D2F2D] text-white font-semibold"
+                        : "!bg-[#06b606] text-black font-semibold"
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </TableCell>
+                <TableCell className={styles.cell}>
+                  <a
+                    className="text-sky-500 underline"
+                    href={`/dashboard/calendar?${
+                      row.vehicleId ? `v=${row.vehicleId}` : ""
+                    }${row.clientId ? `&d=${row.clientId}` : ""}${
+                      row.maintenance ? `&m=${row.id}` : ""
+                    }${
+                      row.workshopId
+                        ? `&w=${row.workshopId}`
+                        : fetchWorkshopFromRow(row)
+                    }`}
+                  >
+                    Agendar
+                  </a>
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
