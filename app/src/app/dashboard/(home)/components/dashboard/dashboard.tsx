@@ -754,8 +754,10 @@ export default function Dashboard({
         await getDocs(readingDocRef)
       )?.docs[0]?.data() as Reading;
       const { manufacturer, car_model, year, id } = vehicle;
-      const km_current =
-        (readingData?.obd2_distance || 0) + (readingData?.gps_distance || 0);
+      const obd2Distance = readingData?.obd2_distance || 0;
+      const gpsDistance = readingData?.gps_distance || 0;
+      let kmAddition = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+      const km_current = kmAddition === 0 ? vehicle.initial_km : kmAddition;
 
       if (!filters.brand.options[manufacturer]) {
         filters.brand.options[manufacturer] = {
