@@ -7,10 +7,9 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-  useDisclosure,
 } from "@nextui-org/react";
 import { useContext, useState, useEffect } from "react";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
@@ -24,7 +23,11 @@ interface AdsModalProps {
   workshopId: string;
 }
 
-export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps) {
+export default function AdsModal({
+  isOpen,
+  onClose,
+  workshopId,
+}: AdsModalProps) {
   const { db, storage } = useContext(AuthContext);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -33,11 +36,13 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [canSend, setCanSend] = useState<boolean>(false);
+  const [externalLink, setExternalLink] = useState<string>("");
 
   useEffect(() => {
-    if (title && description && start && end && image) setCanSend(true);
+    if (title && description && start && end && image && externalLink)
+      setCanSend(true);
     else setCanSend(false);
-  }, [title, description, start, end, image]);
+  }, [title, description, start, end, image, externalLink]);
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length <= 280) setDescription(e.target.value);
@@ -76,7 +81,17 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
 
   const saveAd = async () => {
     if (!title || !description || !start || !end || !image) {
-      alert("Please fill out all fields and select an image.");
+      toast.error("Por favor, reencha todos os campos", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
       return;
     }
 
@@ -95,9 +110,12 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
         clicks: 0,
         closes: 0,
         users_reacted: [],
+        external_link: externalLink,
       } as Ad;
 
-      await addDoc(collection(db, "ads"), ad);
+      const docRef = await addDoc(collection(db, "ads"), ad);
+
+      await updateDoc(docRef, { id: docRef.id });
 
       toast.success("Promoção enviada com sucesso", {
         position: "bottom-right",
@@ -138,8 +156,8 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
         <ModalHeader>
           <div className="flex flex-col gap-1">Criar Promoção</div>
         </ModalHeader>
-        <ModalBody className="flex flex-row justify-end gap-14 w-full">
-          <div className="flex flex-col items-center h-full gap-3">
+        <ModalBody className="flex flex-row justify-end gap-14 border-2 w-full">
+          <div className="flex flex-col items-center py-4 gap-3">
             <div
               className="flex flex-col justify-center items-center w-[400px] max-w-full h-[300px] max-h-[300px] border-4 border-dashed border-stone-300 rounded-2xl text-center cursor-pointer"
               onDragOver={(e) => e.preventDefault()}
@@ -153,7 +171,7 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
                 />
               ) : (
                 <p className="text-stone-400 w-[70%] text-xl">
-                  Arraste e solte a imagem aqui ou clique abaixo para selecionar
+                  Arraste e solte a imagem aqui ou clique abaixo para adicionar
                   uma imagem promocional.
                 </p>
               )}
@@ -192,18 +210,26 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
                 value={description}
                 onChange={handleDescriptionChange}
                 maxRows={6}
+                variant="bordered"
                 className="dark w-96"
                 classNames={{
                   input: ["bg-transparent text-white"],
-                  inputWrapper: [
-                    "border border-2 !border-white focus:border-white relative bg-transparent",
-                  ],
+                  inputWrapper: ["focus:border-white relative bg-transparent"],
                 }}
               />
               <p className="text-white text-sm ml-2">
                 {description.length}/280
               </p>
             </div>
+
+            <Input
+              type="text"
+              label="Link Externo"
+              value={externalLink}
+              onChange={(e) => setExternalLink(e.target.value)}
+              variant="bordered"
+              className="dark w-96"
+            />
 
             <div className="flex flex-row gap-2">
               <Input
@@ -219,9 +245,7 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
                 className="dark w-48"
                 classNames={{
                   input: ["bg-transparent text-white"],
-                  inputWrapper: [
-                    "border border-2 !border-white focus:border-white relative",
-                  ],
+                  inputWrapper: ["focus:border-white relative"],
                   label: [
                     "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
                     start || start === ""
@@ -242,9 +266,7 @@ export default function AdsModal({ isOpen, onClose, workshopId }: AdsModalProps)
                 className="dark w-48"
                 classNames={{
                   input: ["bg-transparent text-white"],
-                  inputWrapper: [
-                    "border border-2 !border-white focus:border-white relative",
-                  ],
+                  inputWrapper: ["focus:border-white relative"],
                   label: [
                     "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
                     end || end === ""
