@@ -423,16 +423,16 @@ function CustomTable(props: CustomTableProps) {
             <TableCell className={styles.cell}>{row.km_current}</TableCell>
             <TableCell className={styles.cell}>{row.km_threshold}</TableCell>
             <TableCell className={styles.cell}>{row.date_threshold}</TableCell>
-            <TableCell className={styles.cell}>
+            <TableCell className={`${styles.cell} flex flex-row justify-center`}>
               <span
-                className={`rounded-lg px-2 py-1 ${
+                className={`rounded-lg px-2 py-1 text-center ${
                   row.status === "Próxima"
-                    ? "!bg-[#D3C544] text-black"
+                    ? "!bg-[#D3C544] text-black font-semibold"
                     : row.status === "Vencida"
-                    ? "!bg-[#B73F25] text-white"
+                    ? "!bg-[#B73F25] text-white font-semibold"
                     : row.status === "Crítica"
-                    ? "!bg-[#2D2F2D] text-white"
-                    : "!bg-[#06b606] text-white"
+                    ? "!bg-[#2D2F2D] text-white font-semibold"
+                    : "!bg-[#06b606] text-black font-semibold"
                 }`}
               >
                 {row.status}
