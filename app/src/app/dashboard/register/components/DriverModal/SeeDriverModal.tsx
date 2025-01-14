@@ -214,38 +214,34 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
                   </div>
                   <div className="flex flex-row gap-5">
                     <InputMask mask="(99) 99999-9999" value={phoneRes} onChange={(e) => setPhoneRes(e.target.value)} maskChar={null}>
-                      {
-                        ((inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            type="text"
-                            label="Celular"
-                            variant="bordered"
-                            className="dark"
-                            classNames={{
-                              input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
-                            }}
-                          />
-                        )) as unknown as ReactNode
-                      }
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          type="text"
+                          label="Celular"
+                          variant="bordered"
+                          className="dark"
+                          classNames={{
+                            input: ["bg-transparent text-white"],
+                            inputWrapper: ["border border-2 !border-white focus:border-white"],
+                          }}
+                        />
+                      )}
                     </InputMask>
                     <InputMask mask="9999-9999" value={phoneCom} onChange={(e) => setPhoneCom(e.target.value)} maskChar={null}>
-                      {
-                        ((inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            type="text"
-                            label="Telefone"
-                            variant="bordered"
-                            className="dark"
-                            classNames={{
-                              input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
-                            }}
-                          />
-                        )) as unknown as ReactNode
-                      }
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          type="text"
+                          label="Telefone"
+                          variant="bordered"
+                          className="dark"
+                          classNames={{
+                            input: ["bg-transparent text-white"],
+                            inputWrapper: ["border border-2 !border-white focus:border-white"],
+                          }}
+                        />
+                      )}
                     </InputMask>
                   </div>
                   <div>
@@ -278,21 +274,19 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
                   </div>
                   <div>
                     <InputMask mask="999999999" value={cnh} onChange={(e) => setCNH(e.target.value)} maskChar={null}>
-                      {
-                        ((inputProps: any) => (
-                          <Input
-                            {...inputProps}
-                            type="text"
-                            label="CNH"
-                            variant="bordered"
-                            className="dark"
-                            classNames={{
-                              input: ["bg-transparent text-white"],
-                              inputWrapper: ["border border-2 !border-white focus:border-white"],
-                            }}
-                          />
-                        )) as unknown as ReactNode
-                      }
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          type="text"
+                          label="CNH"
+                          variant="bordered"
+                          className="dark"
+                          classNames={{
+                            input: ["bg-transparent text-white"],
+                            inputWrapper: ["border border-2 !border-white focus:border-white"],
+                          }}
+                        />
+                      )}
                     </InputMask>
                   </div>
                   {[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && (

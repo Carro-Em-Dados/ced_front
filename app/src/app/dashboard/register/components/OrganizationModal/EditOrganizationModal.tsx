@@ -152,7 +152,7 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
                             }}
                           />
-                        )) as unknown as ReactNode
+                        ))
                       }
                     </InputMask>
                   </div>
@@ -210,7 +210,7 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
                             }}
                           />
-                        )) as unknown as ReactNode
+                        ))
                       }
                     </InputMask>
                     <InputMask mask="(99) 99999-9999" value={contact} onChange={(e) => setContact(e.target.value)} maskChar={null}>
@@ -227,7 +227,7 @@ export default function EditOrganization({ workshop, setWorkshops }: Props) {
                               inputWrapper: ["border border-2 !border-white focus:border-white"],
                             }}
                           />
-                        )) as unknown as ReactNode
+                        ))
                       }
                     </InputMask>
                   </div>

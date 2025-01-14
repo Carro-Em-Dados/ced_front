@@ -108,21 +108,19 @@ export default function EditAppUser({ id, setAppUser }: Props) {
                     }}
                   />
                   <InputMask mask="(99) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} maskChar={null}>
-                    {
-                      ((inputProps: any) => (
-                        <Input
-                          type="tel"
-                          label="Telefone*"
-                          variant="bordered"
-                          className="dark"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: ["border border-2 !border-white focus:border-white"],
-                          }}
-                          {...inputProps}
-                        />
-                      )) as unknown as ReactNode
-                    }
+                    {(inputProps: any) => (
+                      <Input
+                        type="tel"
+                        label="Telefone*"
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: ["border border-2 !border-white focus:border-white"],
+                        }}
+                        {...inputProps}
+                      />
+                    )}
                   </InputMask>
                 </div>
               </ModalBody>
