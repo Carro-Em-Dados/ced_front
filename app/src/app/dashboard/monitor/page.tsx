@@ -8,7 +8,15 @@ import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { Input, Spinner } from "@nextui-org/react";
 import { FaOilCan, FaSearch } from "react-icons/fa";
 import { AuthContext } from "@/contexts/auth.context";
-import { collection, getDocs, query, where, or, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  or,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { Reading } from "@/interfaces/readings.type";
 import { MdDateRange } from "react-icons/md";
 import { IoCloseCircle, IoSpeedometer } from "react-icons/io5";
@@ -52,12 +60,23 @@ export default function Monitor() {
       let fetchedVehicleIds: string[] = [];
       let fetchedVehicleDetails: Vehicle[] = [];
 
-      if (verification === "email" || verification === "name" || verification === "phone_residential") {
-        const userSnapshot = await getDocs(query(collection(db, "appUsers"), where(verification, "==", searchValue)));
+      if (
+        verification === "email" ||
+        verification === "name" ||
+        verification === "phone_residential"
+      ) {
+        const userSnapshot = await getDocs(
+          query(
+            collection(db, "appUsers"),
+            where(verification, "==", searchValue)
+          )
+        );
 
         if (!userSnapshot.empty) {
           for (const doc of userSnapshot.docs) {
-            const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
+            const vehicleSnapshot = await getDocs(
+              query(collection(db, "vehicles"), where("owner", "==", doc.id))
+            );
             vehicleSnapshot.forEach((vehicleDoc) => {
               fetchedVehicleIds.push(vehicleDoc.id);
               fetchedVehicleDetails.push({
@@ -68,10 +87,17 @@ export default function Monitor() {
           }
         }
 
-        const driverSnapshot = await getDocs(query(collection(db, "clients"), where(verification, "==", searchValue)));
+        const driverSnapshot = await getDocs(
+          query(
+            collection(db, "clients"),
+            where(verification, "==", searchValue)
+          )
+        );
         if (!driverSnapshot.empty) {
           for (const doc of driverSnapshot.docs) {
-            const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where("owner", "==", doc.id)));
+            const vehicleSnapshot = await getDocs(
+              query(collection(db, "vehicles"), where("owner", "==", doc.id))
+            );
             vehicleSnapshot.forEach((vehicleDoc) => {
               fetchedVehicleIds.push(vehicleDoc.id);
               fetchedVehicleDetails.push({
@@ -84,11 +110,19 @@ export default function Monitor() {
       }
 
       if (verification === "license_plate" || verification === "vin") {
-        const vehicleSnapshot = await getDocs(query(collection(db, "vehicles"), where(verification, "==", searchValue)));
+        const vehicleSnapshot = await getDocs(
+          query(
+            collection(db, "vehicles"),
+            where(verification, "==", searchValue)
+          )
+        );
 
         if (!vehicleSnapshot.empty) {
           setSelectedVehicle(vehicleSnapshot.docs[0].data() as Vehicle);
-          await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleSnapshot.docs[0].data() as Vehicle);
+          await fetchVehicleStats(
+            vehicleSnapshot.docs[0].id,
+            vehicleSnapshot.docs[0].data() as Vehicle
+          );
         }
         return;
       }
@@ -137,7 +171,12 @@ export default function Monitor() {
     try {
       const readings: Reading[] = [];
       const readingsSnapshot = await getDocs(
-        query(collection(db, "readings"), where("car_id", "==", vehicleId), orderBy("createdAt", "desc"), limit(1))
+        query(
+          collection(db, "readings"),
+          where("car_id", "==", vehicleId),
+          orderBy("createdAt", "desc"),
+          limit(1)
+        )
       );
       readingsSnapshot.forEach((doc) => {
         readings.push({ id: doc.id, ...doc.data() } as Reading);
@@ -172,12 +211,20 @@ export default function Monitor() {
         <div className={styles.textContainer}>
           <div className={styles.titleContainer}>
             <div className={styles.rectangleContainer}>
-              <Image src="/rectangle.png" alt="Retângulo título" fill style={{ objectFit: "cover" }} />
+              <Image
+                src="/rectangle.png"
+                alt="Retângulo título"
+                fill
+                style={{ objectFit: "cover" }}
+              />
             </div>
             <h1 className={styles.mainTitle}>Monitoramento</h1>
           </div>
           <div className="flex flex-col gap-5 w-full">
-            <p className={styles.subtext}>Para verificar as condições do veículo, selecione alguma das formas de verificação abaixo</p>
+            <p className={styles.subtext}>
+              Para verificar as condições do veículo, selecione alguma das
+              formas de verificação abaixo
+            </p>
             <div>
               <DropdownComponent
                 options={verificationOptions}
@@ -190,46 +237,63 @@ export default function Monitor() {
               {verification &&
                 (verification === "phone_residential" ? (
                   <InputMask
-                    mask={verification === "phone_residential" ? "(99) 99999-9999" : ""}
+                    mask={
+                      verification === "phone_residential"
+                        ? "(99) 99999-9999"
+                        : ""
+                    }
                     value={searchValue}
                     onChange={(e) => {
                       setSearchValue(e.target.value);
                     }}
                     maskChar={null}
                   >
-                    {
-                      ((inputProps: any) => (
-                        <Input
-                          {...inputProps}
-                          type="text"
-                          label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
-                          variant="bordered"
-                          className="dark"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: ["border border-2 !border-white focus:border-white"],
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSearch();
-                          }}
-                          endContent={
-                            <button onClick={handleSearch} className="self-center">
-                              <FaSearch className="text-white text-lg" />
-                            </button>
-                          }
-                        />
-                      )) as unknown as ReactNode
-                    }
+                    {(inputProps: any) => (
+                      <Input
+                        {...inputProps}
+                        type="text"
+                        label={`Pesquise por ${
+                          verificationOptions.find(
+                            (option) => option.key === verification
+                          )?.label
+                        }`}
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: [
+                            "border border-2 !border-white focus:border-white",
+                          ],
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSearch();
+                        }}
+                        endContent={
+                          <button
+                            onClick={handleSearch}
+                            className="self-center"
+                          >
+                            <FaSearch className="text-white text-lg" />
+                          </button>
+                        }
+                      />
+                    )}
                   </InputMask>
                 ) : (
                   <Input
                     type="text"
-                    label={`Pesquise por ${verificationOptions.find((option) => option.key === verification)?.label}`}
+                    label={`Pesquise por ${
+                      verificationOptions.find(
+                        (option) => option.key === verification
+                      )?.label
+                    }`}
                     variant="bordered"
                     className="dark"
                     classNames={{
                       input: ["bg-transparent text-white"],
-                      inputWrapper: ["border border-2 !border-white focus:border-white"],
+                      inputWrapper: [
+                        "border border-2 !border-white focus:border-white",
+                      ],
                     }}
                     onChange={(e) => {
                       setSearchValue(e.target.value);
@@ -264,13 +328,16 @@ export default function Monitor() {
                     onClick={() => handleVehicleSelect(vehicle)}
                     className="cursor-pointer bg-[#1E1E1E] hover:bg-[#209730] p-2 rounded-md"
                   >
-                    {vehicle.manufacturer} {vehicle.car_model} - {vehicle.license_plate}
+                    {vehicle.manufacturer} {vehicle.car_model} -{" "}
+                    {vehicle.license_plate}
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          {showMonitor && selectedVehicle && <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />}
+          {showMonitor && selectedVehicle && (
+            <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />
+          )}
         </div>
       </div>
       <Footer />
@@ -280,7 +347,13 @@ export default function Monitor() {
 
 const isExceedingLimit = (reading: number, limit: number) => reading >= limit;
 
-const VehicleStats = ({ readings, vehicle }: { readings: Reading[]; vehicle: Vehicle }) => {
+const VehicleStats = ({
+  readings,
+  vehicle,
+}: {
+  readings: Reading[];
+  vehicle: Vehicle;
+}) => {
   return (
     <div className={styles.monitorContainer}>
       <span className={styles.greenRectangle} />
@@ -290,12 +363,27 @@ const VehicleStats = ({ readings, vehicle }: { readings: Reading[]; vehicle: Veh
           readings.map((reading) => (
             <div
               key={reading.id}
-              className={clsx(styles.cardWrapper, "grid grid-cols-4 items-center justify-center justify-items-center gap-4 w-full")}
+              className={clsx(
+                styles.cardWrapper,
+                "grid grid-cols-4 items-center justify-center justify-items-center gap-4 w-full"
+              )}
             >
-              <KmCard km={reading.obd2_distance} limit={vehicle.obd2_distance} />
-              <TempCard temperature={reading.engine_temp} limit={vehicle.engine_temp} />
-              <TensionCard tension={reading.battery_tension} limit={vehicle.battery_tension} />
-              <OilCard oilLevel={reading.oil_pressure} limit={vehicle.oil_pressure} />
+              <KmCard
+                km={reading.obd2_distance}
+                limit={vehicle.obd2_distance}
+              />
+              <TempCard
+                temperature={reading.engine_temp}
+                limit={vehicle.engine_temp}
+              />
+              <TensionCard
+                tension={reading.battery_tension}
+                limit={vehicle.battery_tension}
+              />
+              <OilCard
+                oilLevel={reading.oil_pressure}
+                limit={vehicle.oil_pressure}
+              />
               <RpmCard rpm={reading.rpm} limit={vehicle.rpm} />
               <SpeedCard speed={reading.speed} limit={vehicle.speed} />
               <FailCard fails={0} />
@@ -311,7 +399,9 @@ const VehicleStats = ({ readings, vehicle }: { readings: Reading[]; vehicle: Veh
             </div>
           ))
         ) : (
-          <p className="text-sm text-white">Não foi encontrado nenhuma leitura.</p>
+          <p className="text-sm text-white">
+            Não foi encontrado nenhuma leitura.
+          </p>
         )}
       </div>
     </div>
@@ -333,7 +423,13 @@ const KmCard = ({ km, limit }: { km: number; limit: number }) => (
   </div>
 );
 
-const TempCard = ({ temperature, limit }: { temperature: number; limit: number }) => (
+const TempCard = ({
+  temperature,
+  limit,
+}: {
+  temperature: number;
+  limit: number;
+}) => (
   <div
     className={clsx(styles.card, {
       [styles.cardExceeded]: isExceedingLimit(temperature, limit),
@@ -342,13 +438,22 @@ const TempCard = ({ temperature, limit }: { temperature: number; limit: number }
     <span className={styles.rectangle} />
     <h4 className={styles.cardTitle}>TEMPERATURA MOTOR</h4>
     <div className={styles.cardIconContainer}>
-      <BsThermometerHalf className={styles.cardIcon} style={{ fontSize: "3.6em" }} />
+      <BsThermometerHalf
+        className={styles.cardIcon}
+        style={{ fontSize: "3.6em" }}
+      />
     </div>
     <h1 className={styles.cardValue}>{temperature}°</h1>
   </div>
 );
 
-const TensionCard = ({ tension, limit }: { tension: number; limit: number }) => (
+const TensionCard = ({
+  tension,
+  limit,
+}: {
+  tension: number;
+  limit: number;
+}) => (
   <div
     className={clsx(styles.card, {
       [styles.cardExceeded]: isExceedingLimit(tension, limit),
