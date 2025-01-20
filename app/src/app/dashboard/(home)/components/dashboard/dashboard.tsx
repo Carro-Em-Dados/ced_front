@@ -1184,7 +1184,7 @@ export default function Dashboard({
               </div>
               <div className="flex flex-row justify-between lg:mx-10 xl:mx-10">
                 <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
+                  onPress={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 0}
                   className={`bg-gradient-to-b from-[#209730] to-[#056011] text-white ${
                     currentPage === 0 ? "cursor-not-allowed" : ""
@@ -1205,7 +1205,7 @@ export default function Dashboard({
                         maintenances={maintenancesChart}
                       />
                       <Button
-                        onClick={() => setIsOpen(true)}
+                        onPress={() => setIsOpen(true)}
                         className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
                       >
                         <BsFillMegaphoneFill />
@@ -1216,7 +1216,7 @@ export default function Dashboard({
                 </div>
 
                 <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
+                  onPress={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages - 1}
                   className={`bg-gradient-to-b from-[#209730] to-[#056011] text-white ${
                     currentPage >= totalPages - 1 ? "cursor-not-allowed" : ""

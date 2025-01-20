@@ -14,8 +14,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { BiImageAdd } from "react-icons/bi";
-import { FaPaperPlane } from "react-icons/fa";
+import { FaPaperclip, FaPaperPlane } from "react-icons/fa";
 import { Ad } from "@/interfaces/adUserType";
+import { MdMailOutline } from "react-icons/md";
+import { FaPencil } from "react-icons/fa6";
 
 interface AdsModalProps {
   isOpen: boolean;
@@ -147,9 +149,6 @@ export default function AdsModal({
         end,
         image_url: imageUrl,
         createdAt: Timestamp.now(),
-        clicks: 0,
-        closes: 0,
-        users_reacted: [],
         external_link: externalLink,
       } as Ad;
 
@@ -243,6 +242,7 @@ export default function AdsModal({
               onChange={(e) => setTitle(e.target.value)}
               variant="bordered"
               className="dark w-96"
+              startContent={<MdMailOutline size={20} />}
             />
             <div className="flex flex-col">
               <Textarea
@@ -256,6 +256,7 @@ export default function AdsModal({
                   input: ["bg-transparent text-white"],
                   inputWrapper: ["focus:border-white relative bg-transparent"],
                 }}
+                startContent={<FaPencil size={15} />}
               />
               <p className="text-white text-sm ml-2">
                 {description.length}/280
@@ -269,6 +270,7 @@ export default function AdsModal({
               onChange={(e) => setExternalLink(e.target.value)}
               variant="bordered"
               className="dark w-96"
+              startContent={<FaPaperclip size={15} />}
             />
 
             <div className="flex flex-row gap-2">
