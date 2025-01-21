@@ -1,5 +1,3 @@
-"use client";
-
 import {
   collection,
   doc,
@@ -49,6 +47,9 @@ interface DashboardProps {
   selectedWorkshop: string;
   workshopName: string;
   contractId?: string;
+  isPremium: boolean;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 interface MaintenanceData {
@@ -73,8 +74,11 @@ export default function Dashboard({
   selectedWorkshop,
   contractId,
   workshopName,
+  isPremium,
+  isOpen,
+  setIsOpen
 }: DashboardProps) {
-  const { db, currentUser } = useContext(AuthContext);
+  const { db } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
   const [maintenancesChart, setMaintenancesChart] = useState<MaintenanceData[]>(
     []
@@ -97,9 +101,6 @@ export default function Dashboard({
   const [filterType, setFilterType] = useState("");
   const [counter, setCounter] = useState("");
   const [filterSum, setFilterSum] = useState(0);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [canSeeButton, setcanSeeButton] = useState<boolean>(false);
-
   const itemsPerPage = 10;
 
   const fetchContract = async () => {
@@ -687,31 +688,7 @@ export default function Dashboard({
     };
   };
 
-  const checkPremium = async (currWorkshopId: string) => {
-    if (currentUser?.role === Role.MASTER) {
-      setcanSeeButton(true);
-      return;
-    }
-
-    const currWorkshop = await getDoc(doc(db, "workshops", currWorkshopId));
-
-    if (currWorkshop.exists()) {
-      const workshopData = currWorkshop.data() as Workshop;
-      const contract = workshopData.contract;
-
-      if (workshopData.contract) {
-        if (contract !== "basic") {
-          console.log("is premium");
-          setcanSeeButton(true);
-          return;
-        } else {
-          console.log("is not premium");
-          setcanSeeButton(false);
-          return;
-        }
-      }
-    }
-  };
+  
 
   useEffect(() => {
     setMaintenances([]);
@@ -719,7 +696,6 @@ export default function Dashboard({
     setLastVisibleDocs(new Map());
     fetchContract();
     setCounterType("total");
-    checkPremium(selectedWorkshop);
   }, [selectedWorkshop]);
 
   useEffect(() => {
@@ -1181,7 +1157,7 @@ export default function Dashboard({
                 </Button>
 
                 <div className="flex flex-row gap-2">
-                  {canSeeButton && (
+                  {isPremium && (
                     <>
                       <ButtonExport
                         workshopName={workshopName}
@@ -1191,13 +1167,6 @@ export default function Dashboard({
                         workshopName={workshopName}
                         maintenances={maintenancesChart}
                       />
-                      <Button
-                        onPress={() => setIsOpen(true)}
-                        className="bg-gradient-to-b from-[#209730] to-[#056011] text-white w-fit flex flex-row"
-                      >
-                        <BsFillMegaphoneFill />
-                        <p>Criar Promoção</p>
-                      </Button>
                     </>
                   )}
                 </div>
