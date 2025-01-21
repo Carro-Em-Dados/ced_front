@@ -43,6 +43,7 @@ import { Workshop } from "@/interfaces/workshop.type";
 import AdsModal from "@/components/AdsModal";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { Role } from "@/types/enums/role.enum";
+import { getTotalKm } from "@/functions/kmTotal";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -191,9 +192,7 @@ export default function Dashboard({
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
-            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
-            kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+            kmCurrent = getTotalKm(vehicleData, readingData);
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
@@ -338,9 +337,7 @@ export default function Dashboard({
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
-            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
-            kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+            kmCurrent = getTotalKm(vehicleData, readingData);
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
@@ -450,9 +447,7 @@ export default function Dashboard({
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            obd2Distance = readingData?.obd2_distance || vehicleData.initial_km;
-            gpsDistance = readingData?.gps_distance || vehicleData.initial_km;
-            kmCurrent = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
+            kmCurrent = getTotalKm(vehicleData, readingData);
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
@@ -596,11 +591,7 @@ export default function Dashboard({
 
         if (selectedWorkshop === "all" || isDriverOfWorkshop) {
           monitoredVehicles++;
-          const obd2Distance = readingData?.obd2_distance || 0;
-          const gpsDistance = readingData?.gps_distance || 0;
-          let kmAddition =
-            obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
-          totalKM += kmAddition === 0 ? vehicleData.initial_km : kmAddition;
+          totalKM += getTotalKm(vehicleData, readingData);
         }
       }
 
@@ -697,7 +688,6 @@ export default function Dashboard({
   };
 
   const checkPremium = async (currWorkshopId: string) => {
-
     if (currentUser?.role === Role.MASTER) {
       setcanSeeButton(true);
       return;
@@ -719,7 +709,7 @@ export default function Dashboard({
           setcanSeeButton(false);
           return;
         }
-      }      
+      }
     }
   };
 
@@ -784,10 +774,7 @@ export default function Dashboard({
         await getDocs(readingDocRef)
       )?.docs[0]?.data() as Reading;
       const { manufacturer, car_model, year, id } = vehicle;
-      const obd2Distance = readingData?.obd2_distance || 0;
-      const gpsDistance = readingData?.gps_distance || 0;
-      let kmAddition = obd2Distance > gpsDistance ? obd2Distance : gpsDistance;
-      const km_current = kmAddition === 0 ? vehicle.initial_km : kmAddition;
+      const km_current = getTotalKm(vehicle, readingData);
 
       if (!filters.brand.options[manufacturer]) {
         filters.brand.options[manufacturer] = {

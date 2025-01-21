@@ -30,6 +30,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { Reading } from "@/interfaces/readings.type";
 import { toast, Zoom } from "react-toastify";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import { getTotalKm } from "@/functions/kmTotal";
 
 interface CustomTableProps {
   data: any[];
@@ -156,12 +157,7 @@ function CustomTable(props: CustomTableProps) {
               )
             );
             const readingData = readingDocRef?.docs[0]?.data() as Reading;
-            let vehicleKm =
-              (readingData?.obd2_distance > readingData?.gps_distance
-                ? readingData?.obd2_distance
-                : readingData?.gps_distance) || 0;
-            if (vehicleKm === 0) vehicleKm = vehicleDoc.data()?.initial_km;
-            totalKm += vehicleKm;
+            totalKm += getTotalKm(vehicleDoc.data() as Vehicle, readingData);
 
             let isCritical = false;
 
@@ -185,7 +181,7 @@ function CustomTable(props: CustomTableProps) {
                 const maintenanceData = maintenanceDoc.data() as Maintenance;
                 const status = calculateStatus(
                   maintenanceData,
-                  vehicleKm,
+                  getTotalKm(vehicleDoc.data() as Vehicle, readingData),
                   {
                     workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
                     workshopDateLimitAlarm:
@@ -351,21 +347,21 @@ function CustomTable(props: CustomTableProps) {
 
   return (
     <div className="flex flex-col items-center bg-black p-2 rounded-2xl border-[1px] border-[#2d2f2d] w-full">
-        <div className="p-2 rounded-lg border-2 border-[#2d2f2d] bg-gradient-to-t from-black to-slate-950">
-          <RadioGroup
-            className="text-white"
-            orientation="horizontal"
-            color="success"
-            value={includeOk}
-            onChange={(e) => setIncludeOk(e.target.value)}
-          >
-            <Radio value={"Ok"}>
-              <p className="text-white">Incluir OK</p>
-            </Radio>
-            <Radio value={"No Ok"}>
-              <p className="text-white">Excluir OK</p>
-            </Radio>
-          </RadioGroup>
+      <div className="p-2 rounded-lg border-2 border-[#2d2f2d] bg-gradient-to-t from-black to-slate-950">
+        <RadioGroup
+          className="text-white"
+          orientation="horizontal"
+          color="success"
+          value={includeOk}
+          onChange={(e) => setIncludeOk(e.target.value)}
+        >
+          <Radio value={"Ok"}>
+            <p className="text-white">Incluir OK</p>
+          </Radio>
+          <Radio value={"No Ok"}>
+            <p className="text-white">Excluir OK</p>
+          </Radio>
+        </RadioGroup>
       </div>
       <Table aria-label="Maintenance info table" className={styles.table}>
         <TableHeader className={styles.header}>
