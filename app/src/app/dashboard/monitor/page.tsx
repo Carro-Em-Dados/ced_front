@@ -1,5 +1,5 @@
 "use client";
-import React, { ReactNode, useContext, useEffect, useState } from "react";
+import React, { Suspense, useContext, useEffect, useState } from "react";
 import styles from "./styles.module.scss";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "../../../components/footer/Footer";
@@ -208,7 +208,10 @@ export default function Monitor() {
               if (ownerWorkshop) {
                 if (ownerWorkshop.includes(workshop)) {
                   setSelectedVehicle(vehicleData);
-                  await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleData);
+                  await fetchVehicleStats(
+                    vehicleSnapshot.docs[0].id,
+                    vehicleData
+                  );
                 } else {
                   toast.info("Veículo não pertence a esta oficina", {
                     position: "bottom-right",
@@ -231,7 +234,10 @@ export default function Monitor() {
                 if (ownerWorkshop) {
                   if (ownerWorkshop.includes(workshop)) {
                     setSelectedVehicle(vehicleData);
-                    await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleData);
+                    await fetchVehicleStats(
+                      vehicleSnapshot.docs[0].id,
+                      vehicleData
+                    );
                   } else {
                     toast.info("Veículo não pertence a esta oficina", {
                       position: "bottom-right",
@@ -299,149 +305,151 @@ export default function Monitor() {
   };
 
   return (
-    <div className={styles.page}>
-      <Navbar isPremium={isPremium} selectedWorkshop={workshop || ""} />
-      <div className={styles.pageWrap}>
-        <div className={styles.textContainer}>
-          <div className={styles.titleContainer}>
-            <div className={styles.rectangleContainer}>
-              <Image
-                src="/rectangle.png"
-                alt="Retângulo título"
-                fill
-                style={{ objectFit: "cover" }}
-              />
+    <Suspense fallback={<Spinner color="white" />}>
+      <div className={styles.page}>
+        <Navbar isPremium={isPremium} selectedWorkshop={workshop || ""} />
+        <div className={styles.pageWrap}>
+          <div className={styles.textContainer}>
+            <div className={styles.titleContainer}>
+              <div className={styles.rectangleContainer}>
+                <Image
+                  src="/rectangle.png"
+                  alt="Retângulo título"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+              {workshopName !== "" ? (
+                <h1 className={styles.mainTitle}>
+                  Monitoramento da oficina {workshopName}
+                </h1>
+              ) : (
+                <h1 className={styles.mainTitle}>Monitoramento</h1>
+              )}
             </div>
-            {workshopName !== "" ? (
-              <h1 className={styles.mainTitle}>
-                Monitoramento da oficina {workshopName}
-              </h1>
-            ) : (
-              <h1 className={styles.mainTitle}>Monitoramento</h1>
+            <div className="flex flex-col gap-5 w-full">
+              <p className={styles.subtext}>
+                Para verificar as condições do veículo, selecione alguma das
+                formas de verificação abaixo
+              </p>
+              <div>
+                <DropdownComponent
+                  options={verificationOptions}
+                  placeholder="Selecione forma de verificação"
+                  value={verification}
+                  onChange={(key) => setVerification(key.toString())}
+                />
+              </div>
+              <div className={styles.searchbarContainer}>
+                {verification &&
+                  (verification === "phone_residential" ? (
+                    <InputMask
+                      mask={
+                        verification === "phone_residential"
+                          ? "(99) 99999-9999"
+                          : ""
+                      }
+                      value={searchValue}
+                      onChange={(e) => {
+                        setSearchValue(e.target.value);
+                      }}
+                      maskChar={null}
+                    >
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          type="text"
+                          label={`Pesquise por ${
+                            verificationOptions.find(
+                              (option) => option.key === verification
+                            )?.label
+                          }`}
+                          variant="bordered"
+                          className="dark"
+                          classNames={{
+                            input: ["bg-transparent text-white"],
+                            inputWrapper: [
+                              "border border-2 !border-white focus:border-white",
+                            ],
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSearch();
+                          }}
+                          endContent={
+                            <button
+                              onClick={handleSearch}
+                              className="self-center"
+                            >
+                              <FaSearch className="text-white text-lg" />
+                            </button>
+                          }
+                        />
+                      )}
+                    </InputMask>
+                  ) : (
+                    <Input
+                      type="text"
+                      label={`Pesquise por ${
+                        verificationOptions.find(
+                          (option) => option.key === verification
+                        )?.label
+                      }`}
+                      variant="bordered"
+                      className="dark"
+                      classNames={{
+                        input: ["bg-transparent text-white"],
+                        inputWrapper: [
+                          "border border-2 !border-white focus:border-white",
+                        ],
+                      }}
+                      onChange={(e) => {
+                        setSearchValue(e.target.value);
+                      }}
+                      value={searchValue}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSearch();
+                      }}
+                      endContent={
+                        <button onClick={handleSearch} className="self-center">
+                          <FaSearch className="text-white text-lg" />
+                        </button>
+                      }
+                    />
+                  ))}
+              </div>
+            </div>
+
+            {loading && (
+              <div className="flex items-center justify-center w-full h-full my-12">
+                <Spinner color="white" />
+              </div>
+            )}
+
+            {vehicleData.length > 1 && !showMonitor && (
+              <div className="text-white flex flex-col gap-5 my-5">
+                <h2 className="text-xl font-medium">Selecione um veículo</h2>
+                <ul className="text-sm flex flex-col gap-2">
+                  {vehicleData.map((vehicle) => (
+                    <li
+                      key={vehicle.id}
+                      onClick={() => handleVehicleSelect(vehicle)}
+                      className="cursor-pointer bg-[#1E1E1E] hover:bg-[#209730] p-2 rounded-md"
+                    >
+                      {vehicle.manufacturer} {vehicle.car_model} -{" "}
+                      {vehicle.license_plate}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {showMonitor && selectedVehicle && (
+              <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />
             )}
           </div>
-          <div className="flex flex-col gap-5 w-full">
-            <p className={styles.subtext}>
-              Para verificar as condições do veículo, selecione alguma das
-              formas de verificação abaixo
-            </p>
-            <div>
-              <DropdownComponent
-                options={verificationOptions}
-                placeholder="Selecione forma de verificação"
-                value={verification}
-                onChange={(key) => setVerification(key.toString())}
-              />
-            </div>
-            <div className={styles.searchbarContainer}>
-              {verification &&
-                (verification === "phone_residential" ? (
-                  <InputMask
-                    mask={
-                      verification === "phone_residential"
-                        ? "(99) 99999-9999"
-                        : ""
-                    }
-                    value={searchValue}
-                    onChange={(e) => {
-                      setSearchValue(e.target.value);
-                    }}
-                    maskChar={null}
-                  >
-                    {(inputProps: any) => (
-                      <Input
-                        {...inputProps}
-                        type="text"
-                        label={`Pesquise por ${
-                          verificationOptions.find(
-                            (option) => option.key === verification
-                          )?.label
-                        }`}
-                        variant="bordered"
-                        className="dark"
-                        classNames={{
-                          input: ["bg-transparent text-white"],
-                          inputWrapper: [
-                            "border border-2 !border-white focus:border-white",
-                          ],
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSearch();
-                        }}
-                        endContent={
-                          <button
-                            onClick={handleSearch}
-                            className="self-center"
-                          >
-                            <FaSearch className="text-white text-lg" />
-                          </button>
-                        }
-                      />
-                    )}
-                  </InputMask>
-                ) : (
-                  <Input
-                    type="text"
-                    label={`Pesquise por ${
-                      verificationOptions.find(
-                        (option) => option.key === verification
-                      )?.label
-                    }`}
-                    variant="bordered"
-                    className="dark"
-                    classNames={{
-                      input: ["bg-transparent text-white"],
-                      inputWrapper: [
-                        "border border-2 !border-white focus:border-white",
-                      ],
-                    }}
-                    onChange={(e) => {
-                      setSearchValue(e.target.value);
-                    }}
-                    value={searchValue}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSearch();
-                    }}
-                    endContent={
-                      <button onClick={handleSearch} className="self-center">
-                        <FaSearch className="text-white text-lg" />
-                      </button>
-                    }
-                  />
-                ))}
-            </div>
-          </div>
-
-          {loading && (
-            <div className="flex items-center justify-center w-full h-full my-12">
-              <Spinner color="white" />
-            </div>
-          )}
-
-          {vehicleData.length > 1 && !showMonitor && (
-            <div className="text-white flex flex-col gap-5 my-5">
-              <h2 className="text-xl font-medium">Selecione um veículo</h2>
-              <ul className="text-sm flex flex-col gap-2">
-                {vehicleData.map((vehicle) => (
-                  <li
-                    key={vehicle.id}
-                    onClick={() => handleVehicleSelect(vehicle)}
-                    className="cursor-pointer bg-[#1E1E1E] hover:bg-[#209730] p-2 rounded-md"
-                  >
-                    {vehicle.manufacturer} {vehicle.car_model} -{" "}
-                    {vehicle.license_plate}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {showMonitor && selectedVehicle && (
-            <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />
-          )}
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </Suspense>
   );
 }
 
