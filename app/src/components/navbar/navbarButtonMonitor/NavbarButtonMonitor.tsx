@@ -5,11 +5,15 @@ import Button from "@/custom/button/Button";
 import { useRouter } from "next/navigation";
 import { BsSpeedometer } from "react-icons/bs";
 
-function NavbarButtonMonitor() {
+interface NavbarButtonMonitorProps {
+	workshop?: string;
+}
+
+function NavbarButtonMonitor({ workshop }: NavbarButtonMonitorProps) {
 	const router = useRouter();
 
 	function handleClick() {
-		router.push("/dashboard/monitor");
+		router.push(`/dashboard/monitor?workshop=${workshop}`);
 	}
 
 	const icon = () => {

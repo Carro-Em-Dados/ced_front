@@ -4,7 +4,7 @@ import styles from "./styles.module.scss";
 import Image from "next/image";
 import { Tabs, Tab } from "@nextui-org/react";
 import DriverCard from "./components/Cards/DriverCard";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { Workshop } from "../../../interfaces/workshop.type";
 import { AuthContext } from "../../../contexts/auth.context";
 import { User } from "../../../interfaces/user.type";
@@ -23,7 +23,7 @@ import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
 
 const Register = () => {
-  const { db, currentUser, isPremium } = useContext(AuthContext);
+  const { db, currentUser } = useContext(AuthContext);
   const { workshopInView, WorkshopsByOrg } = useContext(WorkshopContext);
   const { currentWorkshop } = useContext(AuthContext);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -32,8 +32,48 @@ const Register = () => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [tab, setTab] = useState("");
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
-  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+  const workshop =
+    currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+
+  const checkPremium = async (currWorkshopId: string) => {
+    if (currentUser?.role === Role.MASTER) {
+      console.log("is premium master");
+      return true;
+    }
+
+    if (currWorkshopId) {
+      console.log(currWorkshopId);
+      const currWorkshop = await getDoc(doc(db, "workshops", currWorkshopId));
+
+      if (currWorkshop.exists()) {
+        const workshopData = currWorkshop.data() as Workshop;
+        const contract = workshopData.contract;
+
+        if (workshopData.contract) {
+          if (contract !== "basic") {
+            console.log("is premium");
+            return true;
+          } else {
+            console.log("is not premium");
+            return false;
+          }
+        }
+      }
+    }
+    console.log("is not premium");
+    return false;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (currentUser) {
+        setIsPremium(await checkPremium(workshop?.id || ""));
+      }
+    };
+    fetchData();
+  }, [currentUser, workshop]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -45,7 +85,12 @@ const Register = () => {
         const vehiclesSnapshotPromise = getDocs(collection(db, "vehicles"));
         const appUsersSnapshotPromise = getDocs(collection(db, "appUsers"));
         const usersSnapshotPromise = getDocs(collection(db, "users"));
-        const [clientsSnapshot, vehiclesSnapshot, appUsersSnapshot, usersSnapshot] = await Promise.all([
+        const [
+          clientsSnapshot,
+          vehiclesSnapshot,
+          appUsersSnapshot,
+          usersSnapshot,
+        ] = await Promise.all([
           clientsSnapshotPromise,
           vehiclesSnapshotPromise,
           appUsersSnapshotPromise,
@@ -73,7 +118,9 @@ const Register = () => {
                   id: doc.id,
                 } as AppUser)
             )
-            .filter((appUser) => appUser.preferred_workshop === currentUser.workshops);
+            .filter(
+              (appUser) => appUser.preferred_workshop === currentUser.workshops
+            );
         } else {
           filteredClientsData = clientsSnapshot.docs.map((doc) => ({
             id: doc.id,
@@ -99,7 +146,12 @@ const Register = () => {
         let workshopsData = (workshop ? [workshop] : []) as Workshop[];
 
         if (currentUser.role === Role.ORGANIZATION) {
-          const workshopsSnapshot = await getDocs(query(collection(db, "workshops"), where("owner", "==", currentUser.id)));
+          const workshopsSnapshot = await getDocs(
+            query(
+              collection(db, "workshops"),
+              where("owner", "==", currentUser.id)
+            )
+          );
           workshopsData = workshopsSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
@@ -142,16 +194,27 @@ const Register = () => {
   };
 
   const getUsersWithoutWorkshop = () => {
-    return users.filter((user) => user.role === Role.USER && (user.workshops === currentWorkshop?.id || !user.workshops));
+    return users.filter(
+      (user) =>
+        user.role === Role.USER &&
+        (user.workshops === currentWorkshop?.id || !user.workshops)
+    );
   };
 
   return (
     <div className={styles.page}>
-      <Navbar />
+      <Navbar isPremium={isPremium} selectedWorkshop={workshop?.id || ""} />
       {tab === "drivers" && isPremium ? (
-        <DriverModal workshops={workshops} workshop={workshop} setDrivers={setDrivers} drivers={drivers} />
+        <DriverModal
+          workshops={workshops}
+          workshop={workshop}
+          setDrivers={setDrivers}
+          drivers={drivers}
+        />
       ) : tab === "workshops" ? (
-        [Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && <WorkshopModal setWorkshops={setWorkshops} />
+        [Role.MASTER, Role.ORGANIZATION].includes(
+          currentUser?.role as Role
+        ) && <WorkshopModal setWorkshops={setWorkshops} />
       ) : (
         currentUser?.role === "master" && <UserModal setUsers={setUsers} />
       )}
@@ -167,14 +230,23 @@ const Register = () => {
           />
         </div>
         <h1 className={styles.mainTitle}>Configurações</h1>
-        <p className={styles.subtext}>Adicione motoristas e associe carros a eles abaixo.</p>
-        <div className="py-2">{currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}</div>
+        <p className={styles.subtext}>
+          Adicione motoristas e associe carros a eles abaixo.
+        </p>
+        <div className="py-2">
+          {currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}
+        </div>
         <Tabs
           aria-label="config-tabs"
           className={styles.tabs}
-          disabledKeys={[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) ? [] : ["workshops"]}
+          disabledKeys={
+            [Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role)
+              ? []
+              : ["workshops"]
+          }
           classNames={{
-            tabContent: "group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
+            tabContent:
+              "group-data-[selected=true]:text-white group-data-[disabled=true]:hidden",
           }}
           onSelectionChange={(key) => {
             setTab(key as string);
@@ -226,7 +298,9 @@ const Register = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-white text-sm">Você não tem nenhuma oficina cadastrada.</p>
+              <p className="text-white text-sm">
+                Você não tem nenhuma oficina cadastrada.
+              </p>
             )}
           </Tab>
           <Tab key="workshops" title="Oficinas">
@@ -246,9 +320,21 @@ const Register = () => {
           <Tab className={styles.tabButton} key="users" title="Usuários">
             <div className={styles.driverTab}>
               {currentUser?.role === Role.MASTER
-                ? users.map((driver, key) => <UserCard key={key} user={driver} setUsers={setUsers} workshops={workshops} />)
+                ? users.map((driver, key) => (
+                    <UserCard
+                      key={key}
+                      user={driver}
+                      setUsers={setUsers}
+                      workshops={workshops}
+                    />
+                  ))
                 : getUsersWithoutWorkshop().map((driver, key) => (
-                    <UserCard key={key} user={driver} setUsers={setUsers} workshops={workshops} />
+                    <UserCard
+                      key={key}
+                      user={driver}
+                      setUsers={setUsers}
+                      workshops={workshops}
+                    />
                   ))}
             </div>
           </Tab>

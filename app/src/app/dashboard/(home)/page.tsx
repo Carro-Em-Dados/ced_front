@@ -50,7 +50,7 @@ const Home = () => {
 
   return (
     <div className={styles.page}>
-      <Navbar isPremium={isPremium} setIsOpen={setIsOpen} />
+      <Navbar isPremium={isPremium} setIsOpen={setIsOpen} selectedWorkshop={selectedWorkshop || ""} />
       <Welcome
         selectedWorkshop={selectedWorkshop}
         setSelectedWorkshop={setSelectedWorkshop}

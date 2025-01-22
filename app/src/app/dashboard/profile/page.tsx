@@ -15,7 +15,7 @@ import { Role } from "@/types/enums/role.enum";
 import { Workshop } from "@/interfaces/workshop.type";
 
 const Profile = () => {
-  const { currentUser: myUser, currentWorkshop } = useContext(AuthContext);
+  const { currentUser: myUser, currentWorkshop, isPremium } = useContext(AuthContext);
   const { WorkshopsByOrg, workshopInView } = useContext(WorkshopContext);
 
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
@@ -48,7 +48,7 @@ const Profile = () => {
 
   return (
     <div className={styles.page}>
-      <Navbar />
+      <Navbar isPremium={isPremium!} />
       <div className={styles.pageWrap}>
         <div className={styles.header}>
           <div className={styles.titleContainer}>

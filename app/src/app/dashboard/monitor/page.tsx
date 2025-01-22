@@ -16,6 +16,8 @@ import {
   or,
   orderBy,
   limit,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 import { Reading } from "@/interfaces/readings.type";
 import { MdDateRange } from "react-icons/md";
@@ -28,7 +30,9 @@ import clsx from "clsx";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { toast, Zoom } from "react-toastify";
 import InputMask from "react-input-mask";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Role } from "@/types/enums/role.enum";
+import { Workshop } from "@/interfaces/workshop.type";
 
 const verificationOptions = [
   { label: "Email", key: "email" },
@@ -39,7 +43,7 @@ const verificationOptions = [
 ];
 
 export default function Monitor() {
-  const { db, isPremium } = useContext(AuthContext);
+  const { db, currentUser } = useContext(AuthContext);
   const [verification, setVerification] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [showMonitor, setShowMonitor] = useState(false);
@@ -49,10 +53,85 @@ export default function Monitor() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const workshop = searchParams ? searchParams.get("workshop") : "";
+  const [workshopName, setWorkshopName] = useState<string>("");
+
+  const checkPremium = async (currWorkshopId: string) => {
+    if (currentUser?.role === Role.MASTER) {
+      console.log("is premium master");
+      return true;
+    }
+
+    if (currWorkshopId) {
+      console.log(currWorkshopId);
+      const currWorkshop = await getDoc(doc(db, "workshops", currWorkshopId));
+
+      if (currWorkshop.exists()) {
+        const workshopData = currWorkshop.data() as Workshop;
+        const contract = workshopData.contract;
+        setWorkshopName(workshopData.company_name);
+
+        if (workshopData.contract) {
+          if (contract !== "basic") {
+            console.log("is premium");
+            return true;
+          } else {
+            console.log("is not premium");
+            return false;
+          }
+        }
+      }
+    }
+    console.log("is not premium");
+    return false;
+  };
 
   useEffect(() => {
-    isPremium !== null && !isPremium && router.push("/");
+    const fetchData = async () => {
+      const premiumStatus = await checkPremium(workshop as string);
+      setIsPremium(premiumStatus);
+
+      if (!premiumStatus) {
+        router.push("/dashboard");
+      }
+    };
+    fetchData();
   }, []);
+
+  const fetchVehicleStats = async (vehicleId: string, vehicle: Vehicle) => {
+    try {
+      const readings: Reading[] = [];
+      console.log(vehicleId);
+      const readingsSnapshot = await getDocs(
+        query(
+          collection(db, "readings"),
+          where("car_id", "==", vehicleId),
+          orderBy("createdAt", "desc"),
+          limit(1)
+        )
+      );
+      readingsSnapshot.forEach((doc) => {
+        readings.push({ id: doc.id, ...doc.data() } as Reading);
+      });
+
+      setVehicleStats(readings);
+      setShowMonitor(true);
+    } catch (error) {
+      toast.error("Erro ao buscar leituras", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    }
+  };
 
   const handleSearch = async () => {
     try {
@@ -67,8 +146,9 @@ export default function Monitor() {
       ) {
         const userSnapshot = await getDocs(
           query(
-            collection(db, "appUsers"),
-            where(verification, "==", searchValue)
+            collection(db, "users"),
+            where(verification, "==", searchValue),
+            where("workshops", "==", workshop)
           )
         );
 
@@ -90,7 +170,8 @@ export default function Monitor() {
         const driverSnapshot = await getDocs(
           query(
             collection(db, "clients"),
-            where(verification, "==", searchValue)
+            where(verification, "==", searchValue),
+            where("workshops", "==", workshop)
           )
         );
         if (!driverSnapshot.empty) {
@@ -118,13 +199,58 @@ export default function Monitor() {
         );
 
         if (!vehicleSnapshot.empty) {
-          setSelectedVehicle(vehicleSnapshot.docs[0].data() as Vehicle);
-          await fetchVehicleStats(
-            vehicleSnapshot.docs[0].id,
-            vehicleSnapshot.docs[0].data() as Vehicle
-          );
+          const vehicleData = vehicleSnapshot.docs[0].data() as Vehicle;
+          if (vehicleData.owner) {
+            const userRef = doc(db, "users", vehicleData.owner);
+            const owner = await getDoc(userRef);
+            if (owner.exists()) {
+              const ownerWorkshop = owner.data()?.workshops;
+              if (ownerWorkshop) {
+                if (ownerWorkshop.includes(workshop)) {
+                  setSelectedVehicle(vehicleData);
+                  await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleData);
+                } else {
+                  toast.info("Veículo não pertence a esta oficina", {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                    transition: Zoom,
+                  });
+                }
+              }
+            } else {
+              const clientRef = doc(db, "clients", vehicleData.owner);
+              const owner = await getDoc(clientRef);
+              if (owner.exists()) {
+                const ownerWorkshop = owner.data()?.workshops;
+                if (ownerWorkshop) {
+                  if (ownerWorkshop.includes(workshop)) {
+                    setSelectedVehicle(vehicleData);
+                    await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleData);
+                  } else {
+                    toast.info("Veículo não pertence a esta oficina", {
+                      position: "bottom-right",
+                      autoClose: 5000,
+                      hideProgressBar: true,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                      theme: "dark",
+                      transition: Zoom,
+                    });
+                  }
+                }
+              }
+            }
+          }
+          return;
         }
-        return;
       }
 
       setVehicleIds(fetchedVehicleIds);
@@ -167,38 +293,6 @@ export default function Monitor() {
     }
   };
 
-  const fetchVehicleStats = async (vehicleId: string, vehicle: Vehicle) => {
-    try {
-      const readings: Reading[] = [];
-      const readingsSnapshot = await getDocs(
-        query(
-          collection(db, "readings"),
-          where("car_id", "==", vehicleId),
-          orderBy("createdAt", "desc"),
-          limit(1)
-        )
-      );
-      readingsSnapshot.forEach((doc) => {
-        readings.push({ id: doc.id, ...doc.data() } as Reading);
-      });
-
-      setVehicleStats(readings);
-      setShowMonitor(true);
-    } catch (error) {
-      toast.error("Erro ao buscar leituras", {
-        position: "bottom-right",
-        autoClose: 5000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-        transition: Zoom,
-      });
-    }
-  };
-
   const handleVehicleSelect = async (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     await fetchVehicleStats(vehicle.id, vehicle);
@@ -206,7 +300,7 @@ export default function Monitor() {
 
   return (
     <div className={styles.page}>
-      <Navbar />
+      <Navbar isPremium={isPremium} selectedWorkshop={workshop || ""} />
       <div className={styles.pageWrap}>
         <div className={styles.textContainer}>
           <div className={styles.titleContainer}>
@@ -218,7 +312,13 @@ export default function Monitor() {
                 style={{ objectFit: "cover" }}
               />
             </div>
-            <h1 className={styles.mainTitle}>Monitoramento</h1>
+            {workshopName !== "" ? (
+              <h1 className={styles.mainTitle}>
+                Monitoramento da oficina {workshopName}
+              </h1>
+            ) : (
+              <h1 className={styles.mainTitle}>Monitoramento</h1>
+            )}
           </div>
           <div className="flex flex-col gap-5 w-full">
             <p className={styles.subtext}>

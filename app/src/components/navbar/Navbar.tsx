@@ -10,10 +10,11 @@ import NavbarButtonAds from "./navbarButtonAds/NavbarButtonAds";
 
 interface NavbarProps {
   isPremium: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen?: (isOpen: boolean) => void;
+  selectedWorkshop?: string;
 }
 
-function Navbar({ isPremium, setIsOpen }: NavbarProps) {
+function Navbar({ isPremium, setIsOpen, selectedWorkshop }: NavbarProps) {
   return (
     <div className={styles.navbar}>
       <div className={styles.logoContainer}>
@@ -26,8 +27,8 @@ function Navbar({ isPremium, setIsOpen }: NavbarProps) {
       </div>
       <div className={styles.buttonsContainer}>
         <NavbarButtonHome />
-        {isPremium && <NavbarButtonAds setIsOpen={setIsOpen} />}
-        {isPremium && <NavbarButtonMonitor />}
+        {isPremium && setIsOpen && <NavbarButtonAds setIsOpen={setIsOpen} />}
+        {isPremium && <NavbarButtonMonitor workshop={selectedWorkshop} />}
         <NavbarButtonRegistration />
         <NavbarButtonCalendar />
         <NavbarButtonProfile />
