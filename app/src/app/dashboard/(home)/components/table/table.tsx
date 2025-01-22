@@ -163,7 +163,7 @@ function CustomTable(props: CustomTableProps) {
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
-                if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+                if (dtc && dtc.length > 0) {
                   isCritical = true;
                   break;
                 }
@@ -259,7 +259,7 @@ function CustomTable(props: CustomTableProps) {
 
         if (readingData) {
           for (const dtc of readingData.dtc_readings) {
-            if (dtc?.startsWith("P") || dtc?.startsWith("p")) {
+            if (dtc && dtc.length > 0) {
               isCritical = true;
               break;
             }
