@@ -42,7 +42,14 @@ const verificationOptions = [
   { label: "Telefone", key: "phone_residential" },
 ];
 
-export default function Monitor() {
+export default function MonitorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      {<Monitor />}
+    </Suspense>
+  )
+}
+const Monitor = () => {
   const { db, currentUser } = useContext(AuthContext);
   const [verification, setVerification] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -54,9 +61,9 @@ export default function Monitor() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [isPremium, setIsPremium] = useState<boolean>(false);
-  const searchParams = useSearchParams();
-  const workshop = searchParams ? searchParams.get("workshop") : "";
+  const [workshopId, setWorkshopId] = useState<string | null>();
   const [workshopName, setWorkshopName] = useState<string>("");
+  const searchParams = useSearchParams();
 
   const checkPremium = async (currWorkshopId: string) => {
     if (currentUser?.role === Role.MASTER) {
@@ -90,20 +97,23 @@ export default function Monitor() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const premiumStatus = await checkPremium(workshop as string);
-      setIsPremium(premiumStatus);
+      if (searchParams) {
+        const workshopParam = searchParams.get("workshop") || "";
+        setWorkshopId(workshopParam);
+        const premiumStatus = await checkPremium(workshopParam);
+        setIsPremium(premiumStatus);
 
-      if (!premiumStatus) {
-        router.push("/dashboard");
+        if (!premiumStatus) {
+          router.push("/dashboard");
+        }
       }
     };
     fetchData();
-  }, []);
+  }, [currentUser, workshopId]);
 
   const fetchVehicleStats = async (vehicleId: string, vehicle: Vehicle) => {
     try {
       const readings: Reading[] = [];
-      console.log(vehicleId);
       const readingsSnapshot = await getDocs(
         query(
           collection(db, "readings"),
@@ -144,13 +154,18 @@ export default function Monitor() {
         verification === "name" ||
         verification === "phone_residential"
       ) {
-        const userSnapshot = await getDocs(
-          query(
-            collection(db, "users"),
-            where(verification, "==", searchValue),
-            where("workshops", "==", workshop)
-          )
-        );
+        const queryUser =
+          currentUser?.role === Role.MASTER
+            ? query(
+                collection(db, "users"),
+                where(verification, "==", searchValue)
+              )
+            : query(
+                collection(db, "users"),
+                where(verification, "==", searchValue),
+                where("workshops", "array-contains", workshopId)
+              );
+        const userSnapshot = await getDocs(queryUser);
 
         if (!userSnapshot.empty) {
           for (const doc of userSnapshot.docs) {
@@ -167,13 +182,18 @@ export default function Monitor() {
           }
         }
 
-        const driverSnapshot = await getDocs(
-          query(
-            collection(db, "clients"),
-            where(verification, "==", searchValue),
-            where("workshops", "==", workshop)
-          )
-        );
+        const queryClient =
+          currentUser?.role === Role.MASTER
+            ? query(
+                collection(db, "clients"),
+                where(verification, "==", searchValue)
+              )
+            : query(
+                collection(db, "clients"),
+                where(verification, "==", searchValue),
+                where("workshops", "==", workshopId)
+              );
+        const driverSnapshot = await getDocs(queryClient);
         if (!driverSnapshot.empty) {
           for (const doc of driverSnapshot.docs) {
             const vehicleSnapshot = await getDocs(
@@ -200,13 +220,13 @@ export default function Monitor() {
 
         if (!vehicleSnapshot.empty) {
           const vehicleData = vehicleSnapshot.docs[0].data() as Vehicle;
-          if (vehicleData.owner) {
+          if (vehicleData.owner && currentUser?.role !== Role.MASTER) {
             const userRef = doc(db, "users", vehicleData.owner);
             const owner = await getDoc(userRef);
             if (owner.exists()) {
               const ownerWorkshop = owner.data()?.workshops;
               if (ownerWorkshop) {
-                if (ownerWorkshop.includes(workshop)) {
+                if (ownerWorkshop.includes(workshopId)) {
                   setSelectedVehicle(vehicleData);
                   await fetchVehicleStats(
                     vehicleSnapshot.docs[0].id,
@@ -232,7 +252,7 @@ export default function Monitor() {
               if (owner.exists()) {
                 const ownerWorkshop = owner.data()?.workshops;
                 if (ownerWorkshop) {
-                  if (ownerWorkshop.includes(workshop)) {
+                  if (ownerWorkshop.includes(workshopId)) {
                     setSelectedVehicle(vehicleData);
                     await fetchVehicleStats(
                       vehicleSnapshot.docs[0].id,
@@ -254,6 +274,9 @@ export default function Monitor() {
                 }
               }
             }
+          } else {
+            setSelectedVehicle(vehicleData);
+            await fetchVehicleStats(vehicleSnapshot.docs[0].id, vehicleData);
           }
           return;
         }
@@ -305,151 +328,149 @@ export default function Monitor() {
   };
 
   return (
-    <Suspense fallback={<Spinner color="white" />}>
-      <div className={styles.page}>
-        <Navbar isPremium={isPremium} selectedWorkshop={workshop || ""} />
-        <div className={styles.pageWrap}>
-          <div className={styles.textContainer}>
-            <div className={styles.titleContainer}>
-              <div className={styles.rectangleContainer}>
-                <Image
-                  src="/rectangle.png"
-                  alt="Retângulo título"
-                  fill
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-              {workshopName !== "" ? (
-                <h1 className={styles.mainTitle}>
-                  Monitoramento da oficina {workshopName}
-                </h1>
-              ) : (
-                <h1 className={styles.mainTitle}>Monitoramento</h1>
-              )}
+    <div className={styles.page}>
+      <Navbar isPremium={isPremium} selectedWorkshop={workshopId || ""} />
+      <div className={styles.pageWrap}>
+        <div className={styles.textContainer}>
+          <div className={styles.titleContainer}>
+            <div className={styles.rectangleContainer}>
+              <Image
+                src="/rectangle.png"
+                alt="Retângulo título"
+                fill
+                style={{ objectFit: "cover" }}
+              />
             </div>
-            <div className="flex flex-col gap-5 w-full">
-              <p className={styles.subtext}>
-                Para verificar as condições do veículo, selecione alguma das
-                formas de verificação abaixo
-              </p>
-              <div>
-                <DropdownComponent
-                  options={verificationOptions}
-                  placeholder="Selecione forma de verificação"
-                  value={verification}
-                  onChange={(key) => setVerification(key.toString())}
-                />
-              </div>
-              <div className={styles.searchbarContainer}>
-                {verification &&
-                  (verification === "phone_residential" ? (
-                    <InputMask
-                      mask={
-                        verification === "phone_residential"
-                          ? "(99) 99999-9999"
-                          : ""
-                      }
-                      value={searchValue}
-                      onChange={(e) => {
-                        setSearchValue(e.target.value);
-                      }}
-                      maskChar={null}
-                    >
-                      {(inputProps: any) => (
-                        <Input
-                          {...inputProps}
-                          type="text"
-                          label={`Pesquise por ${
-                            verificationOptions.find(
-                              (option) => option.key === verification
-                            )?.label
-                          }`}
-                          variant="bordered"
-                          className="dark"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: [
-                              "border border-2 !border-white focus:border-white",
-                            ],
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSearch();
-                          }}
-                          endContent={
-                            <button
-                              onClick={handleSearch}
-                              className="self-center"
-                            >
-                              <FaSearch className="text-white text-lg" />
-                            </button>
-                          }
-                        />
-                      )}
-                    </InputMask>
-                  ) : (
-                    <Input
-                      type="text"
-                      label={`Pesquise por ${
-                        verificationOptions.find(
-                          (option) => option.key === verification
-                        )?.label
-                      }`}
-                      variant="bordered"
-                      className="dark"
-                      classNames={{
-                        input: ["bg-transparent text-white"],
-                        inputWrapper: [
-                          "border border-2 !border-white focus:border-white",
-                        ],
-                      }}
-                      onChange={(e) => {
-                        setSearchValue(e.target.value);
-                      }}
-                      value={searchValue}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSearch();
-                      }}
-                      endContent={
-                        <button onClick={handleSearch} className="self-center">
-                          <FaSearch className="text-white text-lg" />
-                        </button>
-                      }
-                    />
-                  ))}
-              </div>
-            </div>
-
-            {loading && (
-              <div className="flex items-center justify-center w-full h-full my-12">
-                <Spinner color="white" />
-              </div>
-            )}
-
-            {vehicleData.length > 1 && !showMonitor && (
-              <div className="text-white flex flex-col gap-5 my-5">
-                <h2 className="text-xl font-medium">Selecione um veículo</h2>
-                <ul className="text-sm flex flex-col gap-2">
-                  {vehicleData.map((vehicle) => (
-                    <li
-                      key={vehicle.id}
-                      onClick={() => handleVehicleSelect(vehicle)}
-                      className="cursor-pointer bg-[#1E1E1E] hover:bg-[#209730] p-2 rounded-md"
-                    >
-                      {vehicle.manufacturer} {vehicle.car_model} -{" "}
-                      {vehicle.license_plate}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {showMonitor && selectedVehicle && (
-              <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />
+            {workshopName !== "" ? (
+              <h1 className={styles.mainTitle}>
+                Monitoramento da oficina {workshopName}
+              </h1>
+            ) : (
+              <h1 className={styles.mainTitle}>Monitoramento</h1>
             )}
           </div>
+          <div className="flex flex-col gap-5 w-full">
+            <p className={styles.subtext}>
+              Para verificar as condições do veículo, selecione alguma das
+              formas de verificação abaixo
+            </p>
+            <div>
+              <DropdownComponent
+                options={verificationOptions}
+                placeholder="Selecione forma de verificação"
+                value={verification}
+                onChange={(key) => setVerification(key.toString())}
+              />
+            </div>
+            <div className={styles.searchbarContainer}>
+              {verification &&
+                (verification === "phone_residential" ? (
+                  <InputMask
+                    mask={
+                      verification === "phone_residential"
+                        ? "(99) 99999-9999"
+                        : ""
+                    }
+                    value={searchValue}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                    }}
+                    maskChar={null}
+                  >
+                    {(inputProps: any) => (
+                      <Input
+                        {...inputProps}
+                        type="text"
+                        label={`Pesquise por ${
+                          verificationOptions.find(
+                            (option) => option.key === verification
+                          )?.label
+                        }`}
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          input: ["bg-transparent text-white"],
+                          inputWrapper: [
+                            "border border-2 !border-white focus:border-white",
+                          ],
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSearch();
+                        }}
+                        endContent={
+                          <button
+                            onClick={handleSearch}
+                            className="self-center"
+                          >
+                            <FaSearch className="text-white text-lg" />
+                          </button>
+                        }
+                      />
+                    )}
+                  </InputMask>
+                ) : (
+                  <Input
+                    type="text"
+                    label={`Pesquise por ${
+                      verificationOptions.find(
+                        (option) => option.key === verification
+                      )?.label
+                    }`}
+                    variant="bordered"
+                    className="dark"
+                    classNames={{
+                      input: ["bg-transparent text-white"],
+                      inputWrapper: [
+                        "border border-2 !border-white focus:border-white",
+                      ],
+                    }}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                    }}
+                    value={searchValue}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
+                    endContent={
+                      <button onClick={handleSearch} className="self-center">
+                        <FaSearch className="text-white text-lg" />
+                      </button>
+                    }
+                  />
+                ))}
+            </div>
+          </div>
+
+          {loading && (
+            <div className="flex items-center justify-center w-full h-full my-12">
+              <Spinner color="white" />
+            </div>
+          )}
+
+          {vehicleData.length > 1 && !showMonitor && (
+            <div className="text-white flex flex-col gap-5 my-5">
+              <h2 className="text-xl font-medium">Selecione um veículo</h2>
+              <ul className="text-sm flex flex-col gap-2">
+                {vehicleData.map((vehicle) => (
+                  <li
+                    key={vehicle.id}
+                    onClick={() => handleVehicleSelect(vehicle)}
+                    className="cursor-pointer bg-[#1E1E1E] hover:bg-[#209730] p-2 rounded-md"
+                  >
+                    {vehicle.manufacturer} {vehicle.car_model} -{" "}
+                    {vehicle.license_plate}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {showMonitor && selectedVehicle && (
+            <VehicleStats readings={vehicleStats} vehicle={selectedVehicle} />
+          )}
         </div>
-        <Footer />
       </div>
-    </Suspense>
+      <Footer />
+    </div>
   );
 }
 
