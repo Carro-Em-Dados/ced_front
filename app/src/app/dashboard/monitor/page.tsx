@@ -517,7 +517,7 @@ const VehicleStats = ({
               <SpeedCard speed={reading.speed} limit={vehicle.speed} />
               <FailCard fails={0} />
               <LastReadingCard
-                lastRead={new Date(reading.createdAt).toLocaleString("pt-BR", {
+                lastRead={new Date(reading.createdAt.toDate()).toLocaleString("pt-BR", {
                   year: "numeric",
                   month: "2-digit",
                   day: "2-digit",

@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase-admin/firestore";
+
 export interface Reading {
   id?: string;
   battery_tension: number;
@@ -9,6 +11,6 @@ export interface Reading {
   gps_distance: number;
   tank_level: number;
   obd2_distance: number;
-  createdAt: string;
+  createdAt: Timestamp;
   dtc_readings: string[];
 }
