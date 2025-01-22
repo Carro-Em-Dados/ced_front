@@ -27,7 +27,7 @@ function Navbar({ isPremium, setIsOpen, selectedWorkshop }: NavbarProps) {
       </div>
       <div className={styles.buttonsContainer}>
         <NavbarButtonHome />
-        {isPremium && setIsOpen && <NavbarButtonAds setIsOpen={setIsOpen} />}
+        {isPremium && setIsOpen && selectedWorkshop && <NavbarButtonAds setIsOpen={setIsOpen} />}
         {isPremium && <NavbarButtonMonitor workshop={selectedWorkshop} />}
         <NavbarButtonRegistration />
         <NavbarButtonCalendar />
