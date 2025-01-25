@@ -42,7 +42,6 @@ export default function EraseModal({ id, type, name, state }: Props) {
         break;
       case DeleteModalTypes.vehicle:
         collectionName = "vehicles";
-        updateData = { owner: "" };
         break;
       case DeleteModalTypes.user:
         collectionName = "users";
@@ -113,6 +112,17 @@ export default function EraseModal({ id, type, name, state }: Props) {
       } else {
         await deleteDoc(docRef);
         state((prevState) => prevState.filter((item) => item.id !== id));
+        toast.success("Item excluído com sucesso!", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
       }
       if (additionalAction) {
         try {
