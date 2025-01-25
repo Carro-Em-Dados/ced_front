@@ -357,6 +357,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                   <div className="flex gap-5">
                     <BrandAutocomplete
                       options={vehiclesBrands}
+                      brandState={manufacturer}
                       onChange={(nome) => {
                         setManufacturer(nome);
                         const resultBrand =

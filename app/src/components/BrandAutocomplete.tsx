@@ -8,30 +8,36 @@ interface BrandOption {
 interface BrandAutocompleteProps {
   options: BrandOption[];
   onChange: (nome: string) => void;
+  brandState: string;
 }
 
 const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
   options: brands,
   onChange,
+  brandState
 }) => {
   const [filteredBrands, setFilteredBrands] = useState<BrandOption[]>([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(brandState);
 
   useEffect(() => {
     setFilteredBrands(brands);
   }, [brands]);
 
+  useEffect(() => {
+    setInputValue(brandState);
+  }, [brandState]);
+
   const handleSelection = (brand: BrandOption) => {
-    setInputValue(brand.nome);
     setDropdownVisible(false);
     onChange(brand.nome);
+    setInputValue(brandState);
   };
 
   const handleClear = () => {
-    setInputValue("");
     setDropdownVisible(false);
     onChange("");
+    setInputValue(brandState);
   };
 
   return (
