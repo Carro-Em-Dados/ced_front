@@ -1,49 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { IoArrowDown } from "react-icons/io5";
 
-interface ModelOption {
-  codigo: string;
+interface YearOption {
   nome: string;
+  codigo: string;
 }
 
-interface ModelAutocompleteProps {
-  models: ModelOption[];
-  setSelectedModel: (modelCode: string) => void;
-  setCarModel: (carModel: string) => void;
+interface YearAutocompleteProps {
+  years: YearOption[];
+  setSelectedYear: (year: string) => void;
   manufacturer: string;
   loadingFetch: boolean;
 }
 
-const ModelAutocomplete = ({
-  models,
-  setSelectedModel,
-  setCarModel,
+const YearAutocomplete = ({
+  years,
+  setSelectedYear,
   manufacturer,
   loadingFetch,
-}: ModelAutocompleteProps) => {
-  const [filteredModels, setFilteredModels] = useState<ModelOption[]>([]);
+}: YearAutocompleteProps) => {
+  const [filteredYears, setFilteredYears] = useState<YearOption[]>([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
     if (manufacturer && !loadingFetch) {
-      setFilteredModels(models);
+      setFilteredYears(years);
     } else {
-      setFilteredModels([]);
+      setFilteredYears([]);
     }
-  }, [models, manufacturer, loadingFetch]);
+  }, [years, manufacturer, loadingFetch]);
 
-  const handleSelection = (model: ModelOption) => {
-    setSelectedModel(model.codigo);
-    setCarModel(model.nome);
-    setInputValue(model.nome);
+  const handleSelection = (year: string) => {
+    setSelectedYear(year);
+    setInputValue(year);
     setDropdownVisible(false);
   };
 
   const handleClear = () => {
     setInputValue("");
-    setSelectedModel("");
-    setCarModel("");
+    setSelectedYear("");
     setDropdownVisible(false);
   };
 
@@ -63,9 +58,9 @@ const ModelAutocomplete = ({
             setInputValue(value);
             setDropdownVisible(true);
           }}
-          placeholder="Selecione um modelo..."
           onFocus={() => setDropdownVisible(true)}
           disabled={!manufacturer || loadingFetch}
+          placeholder="Selecione um ano..."
         />
         {inputValue && (
           <button
@@ -76,22 +71,21 @@ const ModelAutocomplete = ({
           </button>
         )}
       </div>
-
-      {isDropdownVisible && filteredModels.length > 0 && (
+      {isDropdownVisible && filteredYears.length > 0 && (
         <ul className="absolute z-30 w-auto bg-white border border-gray-300 mt-14 max-h-60 py-2 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
-          {filteredModels.map((model) => (
+          {filteredYears.map((year) => (
             <li
-              key={model.codigo}
+              key={year.codigo}
               className="p-2 rounded-xl text-black cursor-pointer hover:bg-gray-500 hover:text-white text-small"
-              onClick={() => handleSelection(model)}
+              onClick={() => handleSelection(year.nome)}
             >
-              {model.nome}
+              {year.nome}
             </li>
           ))}
         </ul>
       )}
-      {isDropdownVisible && filteredModels.length === 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-md">
+      {isDropdownVisible && filteredYears.length === 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-14 shadow-md">
           <li className="p-2 rounded-xl text-black">
             Nenhuma opção encontrada
           </li>
@@ -101,4 +95,4 @@ const ModelAutocomplete = ({
   );
 };
 
-export default ModelAutocomplete;
+export default YearAutocomplete;

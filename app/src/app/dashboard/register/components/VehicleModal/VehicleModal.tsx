@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Input,
   Modal,
@@ -28,6 +26,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import BrandAutocomplete from "@/components/BrandAutocomplete";
 import ModelAutocomplete from "@/components/ModelAutocomplete";
+import YearAutocomplete from "@/components/YearAutocomplete";
 
 interface Props {
   ownerId: string;
@@ -49,7 +48,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const [loadingFetch, setLoadingFetch] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
-  const [selectedYear, setSelectedYear] = useState<string>("");
   const [failed, setFailed] = useState({
     brand: false,
     model: false,
@@ -59,15 +57,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
 
   const addVehicle = async () => {
     if (!manufacturer || !carModel || !year || !initialKm || !licensePlate) {
-      const vehicle = {
-        manufacturer,
-        car_model: carModel,
-        year,
-        initial_km: initialKm,
-        license_plate: licensePlate,
-        vin,
-        owner: ownerId,
-      };
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
@@ -174,7 +163,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
         "https://parallelum.com.br/fipe/api/v1/carros/marcas"
       );
       const data = await response.json();
-      console.log(data)
+      console.log(data);
       setVehiclesBrands(data);
     } catch (error) {
       setFailed({ ...failed, brand: true });
@@ -285,7 +274,6 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     setVin("");
     setSelectedBrand("");
     setSelectedModel("");
-    setSelectedYear("");
     setManufacturer("");
     setVehicleYears([]);
     setVehiclesModels([]);
@@ -316,6 +304,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   }, [selectedBrand]);
 
   useEffect(() => {
+    console.log("CarModel modification", carModel);
     if (carModel) {
       const selectedModelCode = vehiclesModels.find(
         (model) => model.nome === carModel
@@ -325,19 +314,17 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   }, [carModel, vehiclesModels]);
 
   useEffect(() => {
+    console.log("selectedModel modification:", selectedModel);
     if (selectedModel) {
       fetchVehicleYears(selectedBrand || "", selectedModel);
+    } else {
+      setVehicleYears([]);
+      setYear("");
     }
-    // } else {
-    //   setVehicleYears([]);
-    //   setYear("");
-    // }
   }, [selectedModel, selectedBrand]);
 
   useEffect(() => {
-    if (year) {
-      setSelectedYear(vehicleYears.find((yr) => yr.nome === year)?.nome || "");
-    }
+    console.log("a", year);
   }, [year, vehicleYears]);
 
   return (
@@ -385,38 +372,27 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                       setSelectedBrand={setSelectedBrand}
                       onChange={(nome) => {
                         setManufacturer(nome);
-                        setSelectedBrand(
+                        const resultBrand =
                           vehiclesBrands.find((brand) => brand.nome == nome)
-                            ?.codigo || ""
-                        );
+                            ?.codigo || "";
+                        setSelectedBrand(resultBrand);
                       }}
                     />
                     <ModelAutocomplete
                       models={vehiclesModels}
+                      setCarModel={setCarModel}
                       setSelectedModel={setSelectedModel}
                       manufacturer={manufacturer}
                       loadingFetch={loadingFetch}
                     />
                   </div>
                   <div className="flex gap-5">
-                    <Autocomplete
-                      label="Ano"
-                      variant="bordered"
-                      className="dark"
-                      onKeyDown={(e: any) => e.continuePropagation()}
-                      onSelectionChange={(key) => {
-                        const keyString = key ? key.toString() : "";
-                        setYear(keyString || "");
-                      }}
-                      disabled={!manufacturer || loadingFetch}
-                      selectedKey={year}
-                    >
-                      {vehicleYears.map((years) => (
-                        <AutocompleteItem value={years.nome} key={years.nome}>
-                          {years.nome}
-                        </AutocompleteItem>
-                      ))}
-                    </Autocomplete>
+                    <YearAutocomplete
+                      setSelectedYear={setYear}
+                      years={vehicleYears}
+                      manufacturer={manufacturer}
+                      loadingFetch={loadingFetch}
+                    />
                     <Input
                       type="text"
                       label="Chassi"
@@ -456,14 +432,14 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                   color="default"
                   variant="light"
                   className="rounded-full px-5 text-white"
-                  onClick={onClose}
+                  onPress={onClose}
                 >
                   Cancelar
                 </Button>
                 <Button
                   color="success"
                   className={styles.modalButton}
-                  onClick={addVehicle}
+                  onPress={addVehicle}
                   disabled={loadingFetch || loading}
                 >
                   Adicionar
