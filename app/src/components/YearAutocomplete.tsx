@@ -7,14 +7,16 @@ interface YearOption {
 
 interface YearAutocompleteProps {
   years: YearOption[];
-  setSelectedYear: (year: string) => void;
+  onChange: (nome: string) => void;
+  yearState: string;
   manufacturer: string;
   loadingFetch: boolean;
 }
 
 const YearAutocomplete = ({
   years,
-  setSelectedYear,
+  onChange,
+  yearState,
   manufacturer,
   loadingFetch,
 }: YearAutocompleteProps) => {
@@ -30,16 +32,20 @@ const YearAutocomplete = ({
     }
   }, [years, manufacturer, loadingFetch]);
 
+  useEffect(() => {
+    setInputValue(yearState);
+  }, [yearState]);
+
   const handleSelection = (year: string) => {
-    setSelectedYear(year);
     setInputValue(year);
     setDropdownVisible(false);
+    onChange(year);
   };
 
   const handleClear = () => {
-    setInputValue("");
-    setSelectedYear("");
     setDropdownVisible(false);
+    onChange("");
+    setInputValue(yearState);
   };
 
   return (
@@ -53,11 +59,6 @@ const YearAutocomplete = ({
               : "focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
           }`}
           value={inputValue}
-          onChange={(e) => {
-            const value = e.target.value;
-            setInputValue(value);
-            setDropdownVisible(true);
-          }}
           onFocus={() => setDropdownVisible(true)}
           disabled={!manufacturer || loadingFetch}
           placeholder="Selecione um ano..."
@@ -72,7 +73,7 @@ const YearAutocomplete = ({
         )}
       </div>
       {isDropdownVisible && filteredYears.length > 0 && (
-        <ul className="absolute z-30 w-auto bg-white border border-gray-300 mt-14 max-h-60 py-2 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
+        <ul className="absolute z-30 w-auto bg-gradient-to-b from-white via-slate-200 to-slate-400 border border-gray-300 mt-14 max-h-40 py-2 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
           {filteredYears.map((year) => (
             <li
               key={year.codigo}
@@ -85,7 +86,7 @@ const YearAutocomplete = ({
         </ul>
       )}
       {isDropdownVisible && filteredYears.length === 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-14 shadow-md">
+        <ul className="absolute z-30 w-full bg-white border border-gray-300 rounded-md mt-14 shadow-md">
           <li className="p-2 rounded-xl text-black">
             Nenhuma opção encontrada
           </li>

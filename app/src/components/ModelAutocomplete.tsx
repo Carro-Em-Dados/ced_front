@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { IoArrowDown } from "react-icons/io5";
 
 interface ModelOption {
   codigo: string;
@@ -8,22 +7,22 @@ interface ModelOption {
 
 interface ModelAutocompleteProps {
   models: ModelOption[];
-  setSelectedModel: (modelCode: string) => void;
-  setCarModel: (carModel: string) => void;
+  onChange: (nome: string) => void;
+  modelState: string;
   manufacturer: string;
   loadingFetch: boolean;
 }
 
 const ModelAutocomplete = ({
   models,
-  setSelectedModel,
-  setCarModel,
+  onChange,
+  modelState,
   manufacturer,
   loadingFetch,
 }: ModelAutocompleteProps) => {
   const [filteredModels, setFilteredModels] = useState<ModelOption[]>([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(modelState);
 
   useEffect(() => {
     if (manufacturer && !loadingFetch) {
@@ -33,18 +32,20 @@ const ModelAutocomplete = ({
     }
   }, [models, manufacturer, loadingFetch]);
 
+  useEffect(() => {
+    setInputValue(modelState);
+  }, [modelState]);
+
   const handleSelection = (model: ModelOption) => {
-    setSelectedModel(model.codigo);
-    setCarModel(model.nome);
     setInputValue(model.nome);
     setDropdownVisible(false);
+    onChange(model.nome);
   };
 
   const handleClear = () => {
-    setInputValue("");
-    setSelectedModel("");
-    setCarModel("");
     setDropdownVisible(false);
+    onChange("");
+    setInputValue(modelState);
   };
 
   return (
@@ -58,11 +59,6 @@ const ModelAutocomplete = ({
               : "focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
           }`}
           value={inputValue}
-          onChange={(e) => {
-            const value = e.target.value;
-            setInputValue(value);
-            setDropdownVisible(true);
-          }}
           placeholder="Selecione um modelo..."
           onFocus={() => setDropdownVisible(true)}
           disabled={!manufacturer || loadingFetch}
@@ -78,7 +74,7 @@ const ModelAutocomplete = ({
       </div>
 
       {isDropdownVisible && filteredModels.length > 0 && (
-        <ul className="absolute z-30 w-auto bg-white border border-gray-300 mt-14 max-h-60 py-2 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
+        <ul className="absolute z-30 w-auto bg-gradient-to-b from-white via-slate-200 to-slate-500 border border-gray-300 mt-14 max-h-40 py-2 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
           {filteredModels.map((model) => (
             <li
               key={model.codigo}
@@ -91,7 +87,7 @@ const ModelAutocomplete = ({
         </ul>
       )}
       {isDropdownVisible && filteredModels.length === 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-md">
+        <ul className="absolute z-30 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-md">
           <li className="p-2 rounded-xl text-black">
             Nenhuma opção encontrada
           </li>

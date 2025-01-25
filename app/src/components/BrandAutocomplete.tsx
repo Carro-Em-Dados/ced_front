@@ -7,13 +7,11 @@ interface BrandOption {
 
 interface BrandAutocompleteProps {
   options: BrandOption[];
-  setSelectedBrand: (brand: string) => void;
   onChange: (nome: string) => void;
 }
 
 const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
   options: brands,
-  setSelectedBrand,
   onChange,
 }) => {
   const [filteredBrands, setFilteredBrands] = useState<BrandOption[]>([]);
@@ -57,7 +55,7 @@ const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
         )}
       </div>
       {isDropdownVisible && (
-        <ul className="absolute z-30 w-auto bg-white border border-gray-300 mt-2 max-h-60 py-3 overflow-y-auto rounded-xl shadow-md">
+        <ul className="absolute z-30 w-auto bg-gradient-to-b from-white via-slate-200 to-slate-500 border border-gray-300 mt-14 max-h-40 py-3 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brandFiletered) => (
               <li
