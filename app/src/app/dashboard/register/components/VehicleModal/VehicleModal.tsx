@@ -27,6 +27,7 @@ import {
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import BrandAutocomplete from "@/components/BrandAutocomplete";
+import ModelAutocomplete from "@/components/ModelAutocomplete";
 
 interface Props {
   ownerId: string;
@@ -35,7 +36,7 @@ interface Props {
 
 export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const { db } = useContext(AuthContext);
-  const [manufacturer, setManufacturer] = useState<string>();
+  const [manufacturer, setManufacturer] = useState<string>("");
   const [carModel, setCarModel] = useState<string>();
   const [year, setYear] = useState<string>();
   const [initialKm, setInitialKm] = useState(0);
@@ -47,8 +48,8 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const [vehicleYears, setVehicleYears] = useState<any[]>([]);
   const [loadingFetch, setLoadingFetch] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<string>();
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [failed, setFailed] = useState({
     brand: false,
     model: false,
@@ -173,6 +174,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
         "https://parallelum.com.br/fipe/api/v1/carros/marcas"
       );
       const data = await response.json();
+      console.log(data)
       setVehiclesBrands(data);
     } catch (error) {
       setFailed({ ...failed, brand: true });
@@ -282,9 +284,9 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
     setLicensePlate("");
     setVin("");
     setSelectedBrand("");
-    setSelectedModel(undefined);
-    setSelectedYear(undefined);
-    setManufacturer(undefined);
+    setSelectedModel("");
+    setSelectedYear("");
+    setManufacturer("");
     setVehicleYears([]);
     setVehiclesModels([]);
     onClose();
@@ -378,60 +380,23 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
                     />
                   </div>
                   <div className="flex gap-5">
-                      <BrandAutocomplete
-                        options={vehiclesBrands}
-                        setSelectedBrand={setSelectedBrand}
-                        onChange={(nome) => {
-                          setManufacturer(nome);
-                          setSelectedBrand(
-                            vehiclesBrands.find((brand) => brand.nome == nome)
-                              ?.codigo || ""
-                          );
-                        }}
-                      />
-                    {failed.model ? (
-                      <Input
-                        type="text"
-                        label="Modelo"
-                        value={carModel}
-                        onChange={(e) => setCarModel(e.target.value)}
-                        variant="bordered"
-                        className="dark"
-                        classNames={{
-                          input: ["bg-transparent text-white"],
-                          inputWrapper: [
-                            "border border-2 !border-white focus:border-white",
-                          ],
-                        }}
-                      />
-                    ) : (
-                      <Autocomplete
-                        label="Modelo"
-                        variant="bordered"
-                        className="dark"
-                        onKeyDown={(e: any) => e.continuePropagation()}
-                        onSelectionChange={(key) => {
-                          const keyString = key ? key.toString() : "";
-                          setSelectedModel(
-                            vehiclesModels.find(
-                              (model) => model.nome == keyString
-                            )?.codigo || ""
-                          );
-                          setCarModel(keyString || "");
-                        }}
-                        disabled={!manufacturer || loadingFetch}
-                        selectedKey={carModel}
-                      >
-                        {vehiclesModels?.map((models) => (
-                          <AutocompleteItem
-                            value={models.nome}
-                            key={models.nome}
-                          >
-                            {models.nome}
-                          </AutocompleteItem>
-                        ))}
-                      </Autocomplete>
-                    )}
+                    <BrandAutocomplete
+                      options={vehiclesBrands}
+                      setSelectedBrand={setSelectedBrand}
+                      onChange={(nome) => {
+                        setManufacturer(nome);
+                        setSelectedBrand(
+                          vehiclesBrands.find((brand) => brand.nome == nome)
+                            ?.codigo || ""
+                        );
+                      }}
+                    />
+                    <ModelAutocomplete
+                      models={vehiclesModels}
+                      setSelectedModel={setSelectedModel}
+                      manufacturer={manufacturer}
+                      loadingFetch={loadingFetch}
+                    />
                   </div>
                   <div className="flex gap-5">
                     <Autocomplete
