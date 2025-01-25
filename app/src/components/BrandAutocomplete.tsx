@@ -44,7 +44,7 @@ const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
     <div className="relative w-full max-w-sm">
       <input
         type="text"
-        className="w-full border bg-transparent border-gray-300 rounded-md p-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 z-100"
+        className="w-full border bg-transparent border-gray-300 rounded-md p-2 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500 z-100"
         placeholder="Selecione uma marca..."
         onChange={(e) => {
             const value = e.target.value;
@@ -56,12 +56,12 @@ const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
         value={inputValue}
       />
       {isDropdownVisible && (
-        <ul className="absolute z-30 w-full bg-black border border-gray-300 rounded-md mt-14 max-h-60 overflow-y-auto shadow-md">
+        <ul className="absolute z-30 w-auto bg-white border border-gray-300 mt-14 max-h-60 py-3 scrollbar-hide overflow-y-auto rounded-xl shadow-md">
           {filteredBrands.length > 0 ? (
             filteredBrands.map((brand) => (
               <li
                 key={brand.codigo}
-                className="p-2 cursor-pointer hover:bg-blue-500 hover:text-white"
+                className="p-2 text-black rounded-xl cursor-pointer hover:bg-gray-500 hover:text-white"
                 onClick={() => {
                   handleSelection(brand);
                 }}
@@ -70,7 +70,7 @@ const BrandAutocomplete: React.FC<BrandAutocompleteProps> = ({
               </li>
             ))
           ) : (
-            <li className="p-2 text-gray-500">Nenhuma opção encontrada</li>
+            <li className="p-2 text-gray-500 rounded-xl">Nenhuma opção encontrada</li>
           )}
         </ul>
       )}
