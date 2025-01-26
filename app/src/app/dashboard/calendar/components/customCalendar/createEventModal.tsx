@@ -1,6 +1,4 @@
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Input,
   Modal,
@@ -22,11 +20,10 @@ import { createGoogleEvent } from "@/services/google-calendar";
 import { Maintenance } from "@/interfaces/maintenances.type";
 import { MaintenanceWithName } from "./customCalendar";
 import type { Vehicle } from "@/interfaces/vehicle.type";
-import { ReadonlyURLSearchParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
-import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 
 const driverMock = [
   {
@@ -395,10 +392,10 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                     </div>
                   </div>
                   <div className="flex flex-row gap-5">
-                    {/* <GeneralObjectOptionAutocomplete
+                    <GeneralObjectOptionAutocomplete
                       placeholder="Selecione um motorista..."
                       initialValue={selectedDriver}
-                      options={driverMock.map((driver) => ({
+                      options={drivers.map((driver) => ({
                         value: driver.id,
                         label: driver.name,
                       }))}
@@ -406,32 +403,18 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                         setSelectedDriver(selectedVehicle?.value)
                         setDriverName(drivers.find((driver) => driver.id === selectedVehicle?.value)?.name || "");
                       }}
-                    /> */}
-                    <ShadAutocomplete
-                      placeholder="Selecione um motorista..."
-                      selectedValue={selectedDriver}
-                      searchValue={driverSearchValue}
-                      onSearchValueChange={(value) => setDriverSearchValue(value)}
-                      onSelectedValueChange={(key) => {
-                        setSelectedDriver(key?.value || "");
-                        setDriverName(drivers.find((driver) => driver.id === selectedVehicle?.value)?.name || "");
-                      }}
-                      items={driverMock.map((driver) => ({
-                        value: driver.id,
-                        label: driver.name,
-                      }))}
                     />
-                    {/* <GeneralObjectOptionAutocomplete
+                    <GeneralObjectOptionAutocomplete
                       placeholder="Selecione um veiculo..."
                       initialValue={selectedVehicle}
-                      options={driverMock.find((driver) => driver.id === selectedDriver)
+                      options={drivers.find((driver) => driver.id === selectedDriver)
                         ?.vehicles?.map((vehicle: Vehicle) => ({
                           value: vehicle.id,
                           label: `${vehicle.manufacturer} ${vehicle.car_model}`,
                         })) || []
                     }
                       onSelectionChange={(selectedVehicle) => setSelectedVehicle(selectedVehicle?.value)}
-                    /> */}
+                    />
                   </div>
 
                   {maintenance ? (
