@@ -176,10 +176,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
 
   useEffect(() => {
     if (manufacturer) {
-      const selectedBrandCode = vehiclesBrands.find(
-        (brand) => brand.nome === manufacturer
-      )?.codigo;
-      setSelectedBrand(selectedBrandCode || "");
+      setSelectedBrand(vehiclesBrands.find((brand) => brand.nome == manufacturer)?.codigo || "");
     }
   }, [manufacturer, vehiclesBrands]);
 

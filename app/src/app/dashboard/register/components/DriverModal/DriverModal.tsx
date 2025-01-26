@@ -1,7 +1,5 @@
 import { AuthContext } from "@/contexts/auth.context";
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Input,
   Modal,
@@ -24,6 +22,7 @@ import InputMask from "react-input-mask";
 import type { Driver } from "@/interfaces/driver.type";
 import { Role } from "@/types/enums/role.enum";
 import { Contract } from "@/interfaces/contract.type";
+import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface Props {
   setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
@@ -369,29 +368,15 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
                   </div>
                   {[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && (
                     <div>
-                      <Autocomplete
-                        label="Oficina"
-                        variant="bordered"
-                        className="dark text-white"
-                        defaultItems={workshops.map((workshop) => ({
+                      <GeneralObjectOptionAutocomplete
+                        options={workshops.map((workshop) => ({
                           value: workshop.id.toString(),
                           label: workshop.fantasy_name,
                         }))}
-                        onKeyDown={(e: any) => e.continuePropagation()}
-                        selectedKey={Role.ORGANIZATION && workshop ? workshop.id : selectedWorkshop}
-                        onSelectionChange={(key: any) => {
-                          const keyString = key ? key.toString() : "";
-                          setSelectedWorkshop(keyString || "");
-                        }}
+                        initialValue={Role.ORGANIZATION && workshop ? workshop.id : selectedWorkshop}
+                        onSelectionChange={(option) => setSelectedWorkshop(option.value)}
                         isDisabled={currentUser?.role === Role.ORGANIZATION}
-                        disabled={currentUser?.role === Role.ORGANIZATION}
-                      >
-                        {(item) => (
-                          <AutocompleteItem key={item.value} value={item.value}>
-                            {item.label}
-                          </AutocompleteItem>
-                        )}
-                      </Autocomplete>
+                      />
                     </div>
                   )}
                 </div>

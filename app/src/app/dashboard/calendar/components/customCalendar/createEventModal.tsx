@@ -15,7 +15,7 @@ import clsx from "clsx";
 import styles from "../../../register/styles.module.scss";
 import DropdownComponent from "@/custom/dropdown/Dropdown";
 import { useContext, useEffect, useState } from "react";
-import { collection, addDoc, getDocs, query, where, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, doc, getDoc, vector } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { createGoogleEvent } from "@/services/google-calendar";
@@ -25,6 +25,64 @@ import type { Vehicle } from "@/interfaces/vehicle.type";
 import { ReadonlyURLSearchParams, useRouter, useSearchParams } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
+import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import { ShadAutocomplete } from "@/components/ShadAutocomplete";
+
+const driverMock = [
+  {
+    id: "1",
+    name: "João",
+    vehicles: [
+      {
+        id: "1",
+        manufacturer: "Fiat",
+        car_model: "Uno",
+      },
+      {
+        id: "2",
+        manufacturer: "Volkswagen",
+        car_model: "Gol",
+      },
+    ],
+  },
+  {
+    id: "2",
+    name: "Maria",
+    vehicles: [
+      {
+        id: "3",
+        manufacturer: "Ford",
+        car_model: "Ka",
+      },
+    ],
+  },
+  {
+    id: "3",
+    name: "José",
+    vehicles: [
+      {
+        id: "4",
+        manufacturer: "Chevrolet",
+        car_model: "Onix",
+      },
+    ],
+  },
+];
+
+const serviceMock = [
+  {
+    id: "1",
+    service: "Troca de óleo",
+  },
+  {
+    id: "2",
+    service: "Troca de pneu",
+  },
+  {
+    id: "3",
+    service: "Troca de freio",
+  },
+];
 
 interface Props {
   events: any;
@@ -63,6 +121,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
   const [driverName, setDriverName] = useState<string>("");
   const [maintenanceTitle, setMaintenanceTitle] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [driverSearchValue, setDriverSearchValue] = useState("");
   let searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   let vehicle = searchParams.get("v");
   let driver = searchParams.get("d");
@@ -336,53 +395,43 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                     </div>
                   </div>
                   <div className="flex flex-row gap-5">
-                    <Autocomplete
-                      label="Motorista"
-                      variant="bordered"
-                      className="dark"
-                      defaultItems={drivers.map((driver) => ({
+                    {/* <GeneralObjectOptionAutocomplete
+                      placeholder="Selecione um motorista..."
+                      initialValue={selectedDriver}
+                      options={driverMock.map((driver) => ({
                         value: driver.id,
                         label: driver.name,
                       }))}
-                      onKeyDown={(e: any) => e.continuePropagation()}
-                      onSelectionChange={(key) => {
-                        const keyString = key ? key.toString() : "";
-                        setSelectedDriver(keyString);
-                        setDriverName(drivers.find((driver) => driver.id === keyString)?.name || "");
+                      onSelectionChange={(selectedVehicle) => {
+                        setSelectedDriver(selectedVehicle?.value)
+                        setDriverName(drivers.find((driver) => driver.id === selectedVehicle?.value)?.name || "");
                       }}
-                      selectedKey={selectedDriver}
-                    >
-                      {(item) => (
-                        <AutocompleteItem key={item.value} value={item.value}>
-                          {item.label}
-                        </AutocompleteItem>
-                      )}
-                    </Autocomplete>
-                    <Autocomplete
-                      label="Veículos"
-                      variant="bordered"
-                      className="dark"
-                      defaultItems={
-                        drivers
-                          .find((driver) => driver.id === selectedDriver)
-                          ?.vehicles?.map((vehicle: Vehicle) => ({
-                            value: vehicle.id,
-                            label: `${vehicle.manufacturer} ${vehicle.car_model}`,
-                          })) || []
-                      }
-                      onKeyDown={(e: any) => e.continuePropagation()}
-                      onSelectionChange={(key) => {
-                        const keyString = key ? key.toString() : "";
-                        setSelectedVehicle(keyString);
+                    /> */}
+                    <ShadAutocomplete
+                      placeholder="Selecione um motorista..."
+                      selectedValue={selectedDriver}
+                      searchValue={driverSearchValue}
+                      onSearchValueChange={(value) => setDriverSearchValue(value)}
+                      onSelectedValueChange={(key) => {
+                        setSelectedDriver(key?.value || "");
+                        setDriverName(drivers.find((driver) => driver.id === selectedVehicle?.value)?.name || "");
                       }}
-                      selectedKey={selectedVehicle}
-                    >
-                      {(item: { value: string; label: string }) => (
-                        <AutocompleteItem key={item.value} value={item.value}>
-                          {item.label}
-                        </AutocompleteItem>
-                      )}
-                    </Autocomplete>
+                      items={driverMock.map((driver) => ({
+                        value: driver.id,
+                        label: driver.name,
+                      }))}
+                    />
+                    {/* <GeneralObjectOptionAutocomplete
+                      placeholder="Selecione um veiculo..."
+                      initialValue={selectedVehicle}
+                      options={driverMock.find((driver) => driver.id === selectedDriver)
+                        ?.vehicles?.map((vehicle: Vehicle) => ({
+                          value: vehicle.id,
+                          label: `${vehicle.manufacturer} ${vehicle.car_model}`,
+                        })) || []
+                    }
+                      onSelectionChange={(selectedVehicle) => setSelectedVehicle(selectedVehicle?.value)}
+                    /> */}
                   </div>
 
                   {maintenance ? (
@@ -399,27 +448,15 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                       }}
                     />
                   ) : (
-                    <Autocomplete
-                      label="Serviço"
-                      variant="bordered"
-                      className="dark"
-                      defaultItems={services.map((service) => ({
-                        value: service.id,
-                        label: service.service,
-                      }))}
-                      onKeyDown={(e: any) => e.continuePropagation()}
-                      onSelectionChange={(key) => {
-                        const keyString = key ? key.toString() : "";
-                        setSelectedService(keyString);
-                      }}
-                      selectedKey={selectedService}
-                    >
-                      {(item) => (
-                        <AutocompleteItem key={item.value} value={item.value}>
-                          {item.label}
-                        </AutocompleteItem>
-                      )}
-                    </Autocomplete>
+                    <GeneralObjectOptionAutocomplete
+                    placeholder="Selecione um serviço..."
+                    initialValue={selectedService}
+                    options={services.map((service) => ({
+                      value: service.id,
+                      label: service.service,
+                    }))}
+                    onSelectionChange={(selectedService) => setSelectedService(selectedService?.value)}
+                  />
                   )}
                   <div className="flex flex-col gap-2 w-full">
                     <Textarea

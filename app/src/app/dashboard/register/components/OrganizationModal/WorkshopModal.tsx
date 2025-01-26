@@ -1,7 +1,5 @@
 import React, { ReactNode, useContext, useEffect, useState } from "react";
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Input,
   Modal,
@@ -30,6 +28,7 @@ import { Role } from "@/types/enums/role.enum";
 import { User } from "@/interfaces/user.type";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { getCurrentTimestamp } from "@/services/firebase-admin";
+import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface Props {
   setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -376,31 +375,16 @@ export default function WorkshopModal({ setWorkshops }: Props) {
                 {tab === "tab1" && (
                   <div className={clsx(styles.form, "flex flex-col gap-4")}>
                     <div>
-                      <Autocomplete
-                        label="Usuário responsável*"
-                        variant="bordered"
-                        className="dark text-white"
-                        defaultItems={organizationUsers.map((u) => ({
-                          value: u.id,
+                      <GeneralObjectOptionAutocomplete
+                        placeholder="Usuário responsável*"
+                        options={organizationUsers.map((u) => ({
+                          id: u.id,
                           label: u.name,
                         }))}
-                        onKeyDown={(e: any) => e.continuePropagation()}
-                        onSelectionChange={(key) => {
-                          const keyString = key ? key.toString() : "";
-                          setOwner(keyString);
-                        }}
-                        selectedKey={owner}
-                        disabled={currentUser?.role === Role.ORGANIZATION}
+                        initialValue={owner}
+                        onSelectionChange={(option) => setOwner(option?.id)}
                         isDisabled={currentUser?.role === Role.ORGANIZATION}
-                      >
-                        {(item) => {
-                          return (
-                            <AutocompleteItem key={item.value} value={item.value}>
-                              {item.label}
-                            </AutocompleteItem>
-                          );
-                        }}
-                      </Autocomplete>
+                      />
                     </div>
                     <div>
                       <Input

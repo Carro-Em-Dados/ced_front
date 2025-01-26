@@ -284,7 +284,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
       <Modal
         isOpen={isOpen}
         className={styles.modal}
-        size="2xl"
+        size="3xl"
         scrollBehavior="outside"
         onOpenChange={onOpenChange}
       >

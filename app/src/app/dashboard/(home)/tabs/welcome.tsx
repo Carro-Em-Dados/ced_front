@@ -16,6 +16,8 @@ import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Role } from "@/types/enums/role.enum";
+import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 
 interface WelcomeProps {
   selectedWorkshop: string | null;
@@ -36,6 +38,7 @@ export default function Welcome({
   console.log("selectedWorkshop:", selectedWorkshop);
   const [workshopName, setWorkshopName] = useState("");
   const { currentUser, currentWorkshop, db } = useContext(AuthContext);
+  const [workshopSearchValue, setWorkshopSearchValue] = useState("");
 
   useEffect(() => {
     getWorkshops();
@@ -103,12 +106,10 @@ export default function Welcome({
           Gostaria de conferir o status da(s) sua(s) oficina(s)?
         </p>
         <p className={styles.subtext}>Selecione alguma opção abaixo:</p>
-        <div className="flex flex-col gap-2 w-[26em] my-[2em]">
-          <Autocomplete
-            label="Selecione sua oficina"
-            variant="bordered"
-            className="dark text-white"
-            defaultItems={[
+        <div className="w-[26em] my-[2em]">
+          {/* <GeneralObjectOptionAutocomplete
+            placeholder="Selecione sua oficina"
+            options={[
               ...(currentUser?.role === "master"
                 ? [{ value: "all", label: "Geral" }]
                 : []),
@@ -119,24 +120,43 @@ export default function Welcome({
                   label: workshop.fantasy_name,
                 })),
             ]}
+            initialValue={selectedWorkshop || ""}
             onSelectionChange={(key) => {
-              const keyString = key ? key.toString() : "";
-              setSelectedWorkshop(keyString);
+              setSelectedWorkshop(key?.value || "");
               setWorkshopName(
-                keyString === "all"
+                key?.label === "all"
                   ? "Geral"
-                  : workshops.find((w) => w.id === keyString)?.fantasy_name ||
+                  : workshops.find((w) => w.id === key?.value)?.fantasy_name ||
                       ""
               );
             }}
-            value={selectedWorkshop || ""}
-          >
-            {(item) => (
-              <AutocompleteItem key={item.value} value={item.value}>
-                {item.label}
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
+          /> */}
+          <ShadAutocomplete
+            placeholder="Selecione sua oficina"
+            selectedValue={selectedWorkshop || ""}
+            searchValue={workshopSearchValue}
+            onSearchValueChange={(value) => setWorkshopSearchValue(value)}
+            onSelectedValueChange={(key) => {
+              setSelectedWorkshop(key?.value || "");
+              setWorkshopName(
+                key?.label === "all"
+                  ? "Geral"
+                  : workshops.find((w) => w.id === key?.value)?.fantasy_name ||
+                      ""
+              );
+            }}
+            items={[
+              ...(currentUser?.role === "master"
+                ? [{ value: "all", label: "Geral" }]
+                : []),
+              ...workshops
+                ?.filter((workshop) => workshop.fantasy_name && workshop.id)
+                .map((workshop) => ({
+                  value: workshop.id,
+                  label: workshop.fantasy_name,
+                })),
+            ]}
+          />
         </div>
       </div>
       {selectedWorkshop ? (
