@@ -41,13 +41,17 @@ import { WorkshopContext } from "@/contexts/workshop.context";
 import { Driver } from "@/interfaces/driver.type";
 import { get } from "http";
 import { Contract } from "@/interfaces/contract.type";
+import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 
 interface Props {
   vehicle: Vehicle;
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
+  onClose: () => void;
+  setIsOpen: (isOpen: boolean) => void;
+  isOpen: boolean;
 }
 
-export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
+export default function SeeVehicleModal({ vehicle, setVehicles, onClose, setIsOpen, isOpen }: Props) {
   const { db, currentWorkshop, currentUser, isPremium } =
     useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
@@ -55,7 +59,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
   const [maintenancesDeleting, setMaintenancesDeleting] = useState<
     Maintenance[]
   >([]);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [alarmsLeft, setAlarmsLeft] = useState<number>(0);
 
   const workshop =
@@ -83,8 +86,8 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
         } as Maintenance);
       });
       setMaintenances(maintenanceData);
+      console.log("maintenances:", maintenanceData);
     } catch (error) {
-      console.log("error:", error);
       toast.error("Erro ao buscar manutenções", {
         position: "bottom-right",
         autoClose: 5000,
@@ -256,6 +259,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
         theme: "dark",
         transition: Zoom,
       });
+      onClose();
     } catch (error) {
       toast.error("Erro ao atualizar manutenções", {
         position: "bottom-right",
@@ -278,18 +282,17 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
 
   return (
     <>
-      <Button color="success" className={styles.modalButton} onClick={onOpen}>
+      <Button color="success" className={styles.modalButton} onClick={() => setIsOpen(true)}>
         Configurações
       </Button>
       <Modal
         isOpen={isOpen}
         className={styles.modal}
+        onClose={onClose}
         size="3xl"
         scrollBehavior="outside"
-        onOpenChange={onOpenChange}
       >
         <ModalContent>
-          {(onClose) => (
             <>
               <ModalHeader
                 className={clsx("flex flex-col gap-1", styles.modalTitle)}
@@ -347,47 +350,19 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                           className="grid grid-cols-12 gap-2 items-center"
                           key={`${maintenance.id} ${index}`}
                         >
-                          {/* <Select
-                            variant="bordered"
-                            className="dark text-white col-span-5"
-                            classNames={{
-                              trigger: "!border-white rounded-medium",
-                              value: "text-white",
-                            }}
-                            aria-label="maintenance"
-                            defaultSelectedKeys={[maintenance.service]}
-                            onChange={(e) => updateMaintenance(index, "service", e.target.value)}
-                          >
-                            {defaultMaintenance.map((maintenance) => (
-                              <SelectItem key={maintenance} value={maintenance}>
-                                {maintenance}
-                              </SelectItem>
-                            ))}
-                          </Select> */}
-                          <Autocomplete
-                            variant="bordered"
-                            className="dark text-white col-span-5"
-                            aria-label="maintenance"
-                            defaultItems={defaultMaintenance.map((m) => ({
+                          <ShadAutocomplete
+                            placeholder="Serviço"
+                            items={defaultMaintenance.map((m) => ({
                               value: m,
                               label: m,
                             }))}
-                            allowsCustomValue={!!isPremium}
-                            onKeyDown={(e: any) => e.continuePropagation()}
-                            onSelectionChange={(key) => {
-                              updateMaintenance(index, "service", key);
-                            }}
-                            defaultSelectedKey={maintenance.service}
-                          >
-                            {(item) => (
-                              <AutocompleteItem
-                                key={item.value}
-                                value={item.value}
-                              >
-                                {item.label}
-                              </AutocompleteItem>
-                            )}
-                          </Autocomplete>
+                            selectedValue={maintenance.service}
+                            onSelectedValueChange={(value) =>
+                              updateMaintenance(index, "service", value?.value)
+                            }
+                            className="col-span-5"
+                            allowCustomValue={!!isPremium}
+                          />
                           <Input
                             type="number"
                             min={0}
@@ -508,7 +483,6 @@ export default function SeeVehicleModal({ vehicle, setVehicles }: Props) {
                 </Tabs>
               </ModalBody>
             </>
-          )}
         </ModalContent>
       </Modal>
     </>

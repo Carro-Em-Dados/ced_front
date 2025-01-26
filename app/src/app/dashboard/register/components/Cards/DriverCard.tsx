@@ -21,6 +21,8 @@ interface Props {
 }
 
 export default function DriverCard({ driver, setDrivers, setVehicles, vehicles, workshops }: Props) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  
   const Drivers = () => {
     return (
       <div className={styles.contentContainer}>
@@ -67,7 +69,7 @@ export default function DriverCard({ driver, setDrivers, setVehicles, vehicles, 
                     </p>
                     <p>{vehicle?.license_plate}</p>
                     <div className="justify-self-end text-xl">
-                      <SeeVehicleModal vehicle={vehicle} setVehicles={setVehicles} />
+                      <SeeVehicleModal vehicle={vehicle} setVehicles={setVehicles} onClose={() => setIsOpen(false)} setIsOpen={setIsOpen} isOpen={isOpen} />
                     </div>
                   </div>
                 ))}

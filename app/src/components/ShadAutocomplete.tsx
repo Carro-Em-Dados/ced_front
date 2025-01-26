@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { Input } from "@components/ui/input";
-import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
 import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -13,28 +12,34 @@ type Item<T> = {
 type Props<T extends string> = {
   selectedValue: T;
   onSelectedValueChange: (item: Item<T> | null) => void;
-  searchValue: string;
-  onSearchValueChange: (value: string) => void;
   items: Item<T>[];
   isLoading?: boolean;
   emptyMessage?: string;
   placeholder?: string;
   className?: string;
+  allowCustomValue?: boolean;
 };
 
 export function ShadAutocomplete<T extends string>({
   selectedValue,
   onSelectedValueChange,
-  searchValue,
-  onSearchValueChange,
   items,
   isLoading,
   emptyMessage = "No items.",
   placeholder = "Search...",
   className,
+  allowCustomValue = false,
 }: Props<T>) {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (selectedValue) {
+      const selectedItem = items.find((item) => item.value === selectedValue);
+      setSearchValue(selectedItem?.label || allowCustomValue ? selectedValue : "");
+    }
+  }, []);
 
   const filteredItems = useMemo(() => {
     if (!searchValue) return items;
@@ -43,96 +48,84 @@ export function ShadAutocomplete<T extends string>({
     );
   }, [searchValue, items]);
 
-  const labels = useMemo(
-    () =>
-      items.reduce((acc, item) => {
-        acc[item.value] = item.label;
-        return acc;
-      }, {} as Record<string, string>),
-    [items]
-  );
-
   const selectedItem = useMemo(() => {
     return items.find((item) => item.value === selectedValue) || null;
   }, [selectedValue, items]);
 
-  useEffect(() => {
-    if (isFocused && !isOpen) {
-      setIsOpen(true);
-    }
-  }, [isOpen, isFocused]);
-
   const reset = () => {
     onSelectedValueChange(null);
-    onSearchValueChange("");
+    setSearchValue("");
   };
 
   const onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (isFocused) return;
-  
-    const selectedLabel = selectedItem?.label || "";
-    if (searchValue !== selectedLabel) {
-      reset();
+    if (!dropdownRef.current?.contains(e.relatedTarget)) {
+      setIsOpen(false);
+      const selectedLabel = selectedItem?.label || "";
+      if (searchValue !== selectedLabel) {
+        if (allowCustomValue && searchValue.trim()) {
+          const customItem = { value: searchValue as T, label: searchValue };
+          onSelectedValueChange(customItem);
+        } else {
+          reset();
+        }
+      }
     }
   };
 
   const onSelectItem = (inputValue: T) => {
     const newItem = items.find((item) => item.value === inputValue) || null;
 
+    console.log("newItem", newItem);
+
     if (newItem?.value === selectedValue) {
       reset();
     } else {
       onSelectedValueChange(newItem);
-      onSearchValueChange(newItem?.label ?? "");
+      setSearchValue(newItem?.label ?? "");
     }
-    console.log("setOpen(false) triggered by onSelectItem");
     setIsOpen(false);
   };
 
-  return (
-    <div className={cn("flex items-center", className)}>
-      <Popover open={isOpen} onOpenChange={(state) => {
-        setIsOpen(state);
-      }}>
-        <PopoverAnchor asChild>
-          <div className="relative flex items-center w-full">
-            <Input
-              value={searchValue}
-              onChange={(e) => onSearchValueChange(e.target.value)}
-              onFocus={() => {
-                console.log("focus");
-                setIsFocused(true);
-              }}
-              onBlur={(e) => {
-                setIsFocused(false);
-                onInputBlur(e);
-              }}
-              placeholder={placeholder}
-              className="border-1 border-white rounded-xl text-white pr-8"
-            />
-            {searchValue && (
-              <button
-                onClick={() => reset()}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </PopoverAnchor>
+  const handleOutsideClick = (e: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(e.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
 
-        <PopoverContent
-          asChild
-          onOpenAutoFocus={(e: Event) => e.preventDefault()}
-          onInteractOutside={(e: Event) => {
-            if (
-              e.target instanceof Element &&
-              e.target.hasAttribute("cmdk-input")
-            ) {
-              e.preventDefault();
-            }
-          }}
-          className="w-[--radix-popover-trigger-width] p-0 mt-1 border bg-gradient-to-b from-white via-slate-200 to-slate-500 rounded-xl scrollbar-hide shadow-lg max-h-60 overflow-y-auto"
+  useEffect(() => {
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
+  return (
+    <div className={cn("relative flex items-center", className)}>
+      <div className="relative flex items-center w-full">
+        <Input
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onFocus={() => setIsOpen(true)}
+          onBlur={onInputBlur}
+          placeholder={placeholder}
+          className="border-1 border-white rounded-xl text-white pr-8"
+        />
+        {searchValue && (
+          <button
+            onClick={() => reset()}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          className="absolute top-full mt-1 w-full border bg-gradient-to-b from-white via-slate-200 to-slate-500 rounded-xl shadow-lg max-h-60 overflow-y-auto z-10"
         >
           <div className="flex flex-col space-y-1 max-h-60 overflow-y-auto text-black">
             {isLoading ? (
@@ -143,7 +136,10 @@ export function ShadAutocomplete<T extends string>({
               filteredItems.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => onSelectItem(option.value)}
+                  onClick={() => {
+                    console.log("a")
+                    onSelectItem(option.value);
+                  }}
                   className="flex items-center p-2 hover:bg-gray-500 w-full text-left"
                 >
                   <Check
@@ -160,8 +156,8 @@ export function ShadAutocomplete<T extends string>({
               <div className="p-2 text-gray-500">{emptyMessage}</div>
             )}
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   );
 }
