@@ -3,9 +3,9 @@ import { Workshop } from "@/interfaces/workshop.type";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { AuthContext } from "./auth.context";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Contract } from "@/interfaces/contract.type";
 import { Role } from "@/types/enums/role.enum";
+import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface WorkshopContextData {
   workshopInView: (Workshop & { contract: Contract }) | undefined;
@@ -151,32 +151,20 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
     onSelectionChange?: (key: any) => void;
   }) => {
     return (
-      <Autocomplete
-        label="Selecione a oficina"
-        variant="flat"
-        size="sm"
-        className="dark text-white w-fit"
-        defaultItems={(options || workshopOptions).map((w) => ({
+      <GeneralObjectOptionAutocomplete
+        options={(options || workshopOptions).map((w) => ({
           value: w.id,
           label: w.company_name,
         }))}
-        onKeyDown={(e: any) => e.continuePropagation()}
+        initialValue={selected || workshopInView?.id || ""}
         onSelectionChange={
           onSelectionChange ||
           ((key) => {
             if (!key) return;
-            const keyString = key ? key.toString() : "none";
-            setWorkshopInView((options || workshopOptions).find((w) => w.id === keyString));
+            setWorkshopInView((options || workshopOptions).find((w) => w.id === key));
           })
         }
-        selectedKey={selected || workshopInView?.id}
-      >
-        {(item) => (
-          <AutocompleteItem key={item.value} value={item.value}>
-            {item.label}
-          </AutocompleteItem>
-        )}
-      </Autocomplete>
+      />
     );
   };
 
