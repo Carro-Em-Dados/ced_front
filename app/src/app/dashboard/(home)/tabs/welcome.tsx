@@ -14,10 +14,8 @@ import {
 import { Workshop } from "@/interfaces/workshop.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
-import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Role } from "@/types/enums/role.enum";
 import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
-import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 
 interface WelcomeProps {
   selectedWorkshop: string | null;
@@ -107,7 +105,7 @@ export default function Welcome({
         </p>
         <p className={styles.subtext}>Selecione alguma opção abaixo:</p>
         <div className="w-[26em] my-[2em]">
-          {/* <GeneralObjectOptionAutocomplete
+          <GeneralObjectOptionAutocomplete
             placeholder="Selecione sua oficina"
             options={[
               ...(currentUser?.role === "master"
@@ -130,32 +128,6 @@ export default function Welcome({
                       ""
               );
             }}
-          /> */}
-          <ShadAutocomplete
-            placeholder="Selecione sua oficina"
-            selectedValue={selectedWorkshop || ""}
-            searchValue={workshopSearchValue}
-            onSearchValueChange={(value) => setWorkshopSearchValue(value)}
-            onSelectedValueChange={(key) => {
-              setSelectedWorkshop(key?.value || "");
-              setWorkshopName(
-                key?.label === "all"
-                  ? "Geral"
-                  : workshops.find((w) => w.id === key?.value)?.fantasy_name ||
-                      ""
-              );
-            }}
-            items={[
-              ...(currentUser?.role === "master"
-                ? [{ value: "all", label: "Geral" }]
-                : []),
-              ...workshops
-                ?.filter((workshop) => workshop.fantasy_name && workshop.id)
-                .map((workshop) => ({
-                  value: workshop.id,
-                  label: workshop.fantasy_name,
-                })),
-            ]}
           />
         </div>
       </div>
