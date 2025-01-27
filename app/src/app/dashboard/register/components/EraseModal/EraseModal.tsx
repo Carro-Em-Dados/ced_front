@@ -4,7 +4,7 @@ import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useContext, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { updateDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
+import { updateDoc, doc, deleteDoc, getDoc, collection, getDocs, where, query } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
 import { deleteUser } from "@/services/firebase-admin";
 
@@ -28,6 +28,16 @@ export default function EraseModal({ id, type, name, state }: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
+  const deleteAllVehiclesFromClient = async (clientId: string) => {
+    const vehiclesRef = collection(db, "vehicles");
+    const q = query(vehiclesRef, where("owner", "==", clientId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+  };
+
   const deleteItem = async () => {
     setLoading(true);
 
@@ -38,7 +48,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
     switch (type) {
       case DeleteModalTypes.driver:
         collectionName = "clients";
-        updateData = { workshops: "" };
+        additionalAction = async () => await deleteAllVehiclesFromClient(id);
         break;
       case DeleteModalTypes.vehicle:
         collectionName = "vehicles";
