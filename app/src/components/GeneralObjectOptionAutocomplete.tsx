@@ -7,7 +7,7 @@ interface GeneralObjectOptionAutocompleteProps {
   onSelectionChange?: (selectedOption: any | null) => void;
   defaultItems?: any[];
   isDisabled?: boolean;
-  canType?: boolean; // Enable typing
+  canType?: boolean;
 }
 
 const GeneralObjectOptionAutocomplete: React.FC<
@@ -19,7 +19,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
   onSelectionChange,
   defaultItems = [],
   isDisabled = false,
-  canType = false, // Default to false
+  canType = false,
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<any[]>([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -70,7 +70,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
       <div className="relative">
         <input
           type="text"
-          className="w-full border bg-transparent border-gray-300 rounded-md p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10"
+          className="w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10"
           placeholder={placeholder}
           onFocus={() => {
             if (!isDisabled) {
@@ -79,7 +79,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
           }}
           value={inputValue}
           disabled={isDisabled}
-          readOnly={!canType} // Prevent typing if canType is false
+          readOnly={!canType}
           onChange={(e) => {
             if (canType) {
               handleInputChange(e.target.value);
