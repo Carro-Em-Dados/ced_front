@@ -53,7 +53,7 @@ const YearAutocomplete = ({
       <div className="relative">
         <input
           type="text"
-          className={`w-full border bg-transparent border-gray-300 rounded-md p-2 outline-none pr-10 ${
+          className={`w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none pr-10 ${
             !manufacturer || loadingFetch
               ? "cursor-not-allowed"
               : "focus:border-gray-500 focus:ring-2 focus:ring-gray-500"
