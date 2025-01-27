@@ -6,8 +6,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
   signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
   setPersistence,
   browserSessionPersistence,
   Auth,
@@ -23,8 +21,6 @@ import { FirebaseStorage, getStorage } from "firebase/storage";
 
 interface AuthContextData {
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithFacebook: () => Promise<void>;
   logout: () => Promise<void>;
   signUp: (email: string, name: string, password: string) => Promise<void>;
   currentUser: User | undefined;
@@ -226,58 +222,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const userFromProvider = result.user;
-      const docRef = doc(db, "users", userFromProvider.uid);
-      const docSnap = await getDoc(docRef);
-      let user = docSnap.data();
-
-      if (!user) {
-        user = {
-          email: userFromProvider.email!,
-          name: userFromProvider.displayName!,
-          id: userFromProvider.uid,
-          role: "user",
-        };
-        await setDoc(docRef, user);
-      }
-
-      setCurrentUser(user as User);
-      localStorage.setItem("user", JSON.stringify(user));
-    } catch (error: any) {
-      console.error(`Google Login Error (${error.code}): ${error.message}`);
-    }
-  };
-
-  const loginWithFacebook = async () => {
-    const provider = new FacebookAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const userFromProvider = result.user;
-      const docRef = doc(db, "users", userFromProvider.uid);
-      const docSnap = await getDoc(docRef);
-      let user = docSnap.data();
-
-      if (!user) {
-        user = {
-          email: userFromProvider.email!,
-          name: userFromProvider.displayName!,
-          id: userFromProvider.uid,
-          role: "user",
-        };
-        await setDoc(docRef, user);
-      }
-
-      setCurrentUser(user as User);
-      localStorage.setItem("user", JSON.stringify(user));
-    } catch (error: any) {
-      console.error(`Facebook Login Error (${error.code}): ${error.message}`);
-    }
-  };
-
   const refreshUser = async () => {
     try {
       const user = auth.currentUser;
@@ -299,8 +243,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         login,
-        loginWithGoogle,
-        loginWithFacebook,
         logout,
         signUp,
         currentUser,

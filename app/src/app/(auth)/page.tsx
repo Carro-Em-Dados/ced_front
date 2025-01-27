@@ -7,12 +7,11 @@ import { MdOutlineMailOutline, MdLockOutline } from "react-icons/md";
 import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth.context";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
 import ForgotPasswordModal from "./components/ForgotPasswordModal";
 import { toast, Zoom } from "react-toastify";
 
 const Login = () => {
-  const { login, loginWithFacebook, loginWithGoogle } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [emailValid, setEmailValid] = useState<boolean>(true);
@@ -75,7 +74,7 @@ const Login = () => {
           transition: Zoom,
         });
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setIsLoginHappening(false);
         router.replace("/dashboard");
       } catch (err) {
@@ -170,7 +169,9 @@ const Login = () => {
             <h2 className={styles.infoLabel}>Senha</h2>
             <Input
               value={password}
-              onChange={(e) => (setPassword(e.target.value), setPasswordValid(true))}
+              onChange={(e) => (
+                setPassword(e.target.value), setPasswordValid(true)
+              )}
               type="password"
               placeholder="Digite sua senha"
               variant="bordered"
@@ -191,20 +192,6 @@ const Login = () => {
             <p className="text-white text-sm mt-5">
               Esqueceu sua senha? <ForgotPasswordModal />
             </p>
-          </div>
-          <div className="flex flex-row justify-center text-white gap-2">
-            <div
-              className="cursor-pointer p-2 bg-[#27A338] rounded-full"
-              onClick={loginWithGoogle}
-            >
-              <FaGoogle />
-            </div>
-            <div
-              className="cursor-pointer p-2 bg-[#27A338] rounded-full"
-              onClick={loginWithFacebook}
-            >
-              <FaFacebook />
-            </div>
           </div>
         </div>
       </div>
