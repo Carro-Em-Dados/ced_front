@@ -9,8 +9,7 @@ import CreateEventModal from "./createEventModal";
 import EditEventModal from "./editEventModal";
 import { AuthContext } from "@/contexts/auth.context";
 import { Maintenance } from "@/interfaces/maintenances.type";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { toast, Zoom } from "react-toastify";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import type { Vehicle } from "@/interfaces/vehicle.type";
 import type { AppUser } from "@/interfaces/appUser.type";
 import type { Driver } from "@/interfaces/driver.type";
@@ -18,7 +17,7 @@ import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Spinner } from "@nextui-org/react";
 
 const localizer = momentLocalizer(moment);
@@ -222,7 +221,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
         <WorkshopsByOrg
           selected={selectedWorkshop?.id}
           onSelectionChange={(key) => {
-            setSelectedWorkshop(organizationWorkshops.find((w) => w.id === key));
+            setSelectedWorkshop(organizationWorkshops.find((w) => w.id === key?.value));
           }}
         />
       )}
@@ -231,7 +230,7 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
           options={allWorkshops}
           selected={selectedWorkshop?.id}
           onSelectionChange={(key) => {
-            setSelectedWorkshop(allWorkshops.find((w) => w.id === key));
+            setSelectedWorkshop(allWorkshops.find((w) => w.id === key?.value));
           }}
         />
       )}
