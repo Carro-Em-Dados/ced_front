@@ -189,9 +189,17 @@ const Login = () => {
             >
               {isLoginHappening ? "ENTRANDO..." : "ENTRAR"}
             </Button>
-            <p className="text-white text-sm mt-5">
-              Esqueceu sua senha? <ForgotPasswordModal />
-            </p>
+            <div className="flex flex-row justify-around w-full gap-2">
+              <p className="text-white text-sm mt-5">
+                Esqueceu sua senha? <ForgotPasswordModal />
+              </p>
+              <button
+                className="text-[#27A338] underline text-sm mt-5"
+                onClick={() => router.push("/register")}
+              >
+                Criar uma conta
+              </button>
+            </div>
           </div>
         </div>
       </div>
