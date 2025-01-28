@@ -1,31 +1,68 @@
-import React, { useState, useContext } from "react";
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
+import React, {
+  useState,
+  useContext,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+} from "react";
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure,
+} from "@nextui-org/react";
 import styles from "../../styles.module.scss";
 import clsx from "clsx";
 import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
-import { updateDoc, doc, getDocs, query, collection, where } from "firebase/firestore";
-import { Driver } from "@/interfaces/driver.type";
+import {
+  updateDoc,
+  doc,
+  getDocs,
+  query,
+  collection,
+  where,
+} from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
+import { User } from "@/interfaces/user.type";
+import { Trash } from "lucide-react";
 
 interface Props {
   workshop: Workshop;
-  setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
-  drivers: Driver[];
+  setUsers: Dispatch<SetStateAction<any[]>>;
+  users: User[];
 }
 
-export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Props) {
+export default function AssociateWorkshop({
+  setUsers,
+  workshop,
+  users,
+}: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const { db } = useContext(AuthContext);
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
-  const associateDriver = async () => {
-    if (!selectedDriver) return;
+  useEffect(() => {
+    setFilteredUsers(
+      users.filter(
+        (user) =>
+          (!user.workshops || user.workshops.length === 0) &&
+          user.role === "user"
+      )
+    );
+  }, [users]);
+
+  const associateUser = async () => {
+    if (!selectedUser) return;
 
     setLoading(true);
-    if (selectedDriver.workshops && selectedDriver.workshops.length > 0) {
-      toast.error("Motorista já possui uma oficina associada", {
+    if (selectedUser.workshops && selectedUser.workshops.length > 0) {
+      toast.error("Usuário já está associado a uma oficina associada", {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: true,
@@ -40,22 +77,15 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
     }
 
     try {
-      const driverRef = doc(db, "clients", selectedDriver.id);
-      await updateDoc(driverRef, { workshops: workshop.id });
+      const userRef = doc(db, "users", selectedUser.id);
+      await updateDoc(userRef, { workshops: workshop.id });
 
-      const driverVehiclesRef = query(collection(db, "vehicles"), where("owner", "==", selectedDriver.id));
-      const driverVehiclesSnapshot = await getDocs(driverVehiclesRef);
-      const vehicleIds = driverVehiclesSnapshot.docs.map((doc) => doc.id);
-
-      if (vehicleIds.length) {
-        const maintainancesRef = query(collection(db, "maintenances"), where("car_id", "in", vehicleIds));
-        const maintainancesSnapshot = await getDocs(maintainancesRef);
-        const updatePromises = maintainancesSnapshot.docs.map((doc) => updateDoc(doc.ref, { workshop: workshop.id }));
-        await Promise.all(updatePromises);
-      }
-
-      setDrivers((prevDrivers) => prevDrivers.map((d) => (d.id === selectedDriver.id ? { ...d, workshops: workshop.id } : d)));
-      toast.success("Motorista associado com sucesso!", {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === selectedUser.id ? { ...u, workshops: workshop.id } : u
+        )
+      );
+      toast.success("Usuário associado com sucesso!", {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: true,
@@ -68,7 +98,7 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
       });
       handleClose();
     } catch (error) {
-      toast.error("Erro ao associar motorista a oficina", {
+      toast.error("Erro ao associar usuário a oficina", {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: true,
@@ -85,7 +115,7 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
   };
 
   const handleClose = () => {
-    setSelectedDriver(null);
+    setSelectedUser(null);
     onClose();
   };
 
@@ -94,33 +124,58 @@ export default function AssociateWorkshop({ setDrivers, workshop, drivers }: Pro
       <Button color="success" className={styles.addVehicleBtn} onClick={onOpen}>
         Associar usuário
       </Button>
-      <Modal isOpen={isOpen} onClose={handleClose} className={styles.modal} size={"lg"} onOpenChange={onOpenChange}>
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        className={styles.modal}
+        size={"lg"}
+        onOpenChange={onOpenChange}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className={clsx("flex flex-col gap-1", styles.modalTitle)}>Associar usuário</ModalHeader>
+              <ModalHeader
+                className={clsx("flex flex-col gap-1", styles.modalTitle)}
+              >
+                Associar usuário
+              </ModalHeader>
               <ModalBody>
                 <div className="max-h-[400px] overflow-auto flex flex-col gap-1 bg-[#030303] text-white p-2">
-                  {drivers
-                    .filter((driver) => !driver.workshops || driver.workshops.length === 0)
-                    .map((driver) => (
+                  {filteredUsers.length !== 0  ? (
+                    filteredUsers
+                    .map((user) => (
                       <div
-                        key={driver.id}
-                        className={`w-full px-2 py-1 rounded-md cursor-pointer ${
-                          selectedDriver && selectedDriver.id === driver.id ? "bg-[#209730]" : "hover:bg-neutral-800"
+                        key={user.id}
+                        className={`flex flex-row justify-between w-full px-2 py-1 rounded-md cursor-pointer ${
+                          selectedUser && selectedUser.id === user.id
+                            ? "bg-[#209730]"
+                            : "hover:bg-neutral-800"
                         }`}
-                        onClick={() => setSelectedDriver(driver)}
+                        onClick={() => setSelectedUser(user)}
                       >
-                        <p>{driver.name}</p>
+                        <p>{user.name}</p>
                       </div>
-                    ))}
+                    ))
+                  ) : (
+                    <p className="text-center">Não há usuários sem oficina associada</p>
+                  )}
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" className="rounded-full px-5 text-white" onClick={onClose}>
+                <Button
+                  color="default"
+                  variant="light"
+                  className="rounded-full px-5 text-white"
+                  onClick={onClose}
+                >
                   Cancelar
                 </Button>
-                <Button color="success" disabled={!selectedDriver || loading} className={`${styles.modalButton}`} onClick={associateDriver}>
+                <Button
+                  color="success"
+                  disabled={!selectedUser || loading}
+                  className={`${styles.modalButton}`}
+                  onClick={associateUser}
+                >
                   Associar
                 </Button>
               </ModalFooter>

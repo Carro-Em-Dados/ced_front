@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext } from "react";
+import React, { useContext, SetStateAction } from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
 import { Accordion, AccordionItem } from "@nextui-org/react";
@@ -14,7 +14,7 @@ import { roleLabel } from "@/constants/rolesLabel";
 interface Props {
   user: User;
   workshops: Workshop[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  setUsers: React.Dispatch<SetStateAction<User[]>>;
 }
 
 export default function UserCard({ user, setUsers, workshops }: Props) {

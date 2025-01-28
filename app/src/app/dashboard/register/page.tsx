@@ -201,6 +201,10 @@ const Register = () => {
     );
   };
 
+  const getUsersByWorkshop = (id: string) => {
+    return users.filter((user) => user.workshops === id);
+  };
+
   return (
     <div className={styles.page}>
       <Navbar isPremium={isPremium} selectedWorkshop={workshop?.id || ""} />
@@ -307,12 +311,12 @@ const Register = () => {
             <div className={styles.driverTab}>
               {workshops.map((workshop, key) => (
                 <OrganizationCard
-                  workshopDrivers={getDriversByWorkshop(workshop.id)}
+                  workshopUsers={getUsersByWorkshop(workshop.id)}
                   key={key}
                   workshop={workshop}
                   setWorkshops={setWorkshops}
-                  setDrivers={setDrivers}
-                  drivers={drivers}
+                  setUsers={setUsers}
+                  users={users}
                 />
               ))}
             </div>
@@ -320,18 +324,18 @@ const Register = () => {
           <Tab className={styles.tabButton} key="users" title="Usuários">
             <div className={styles.driverTab}>
               {currentUser?.role === Role.MASTER
-                ? users.map((driver, key) => (
+                ? users.map((user, key) => (
                     <UserCard
                       key={key}
-                      user={driver}
+                      user={user}
                       setUsers={setUsers}
                       workshops={workshops}
                     />
                   ))
-                : getUsersWithoutWorkshop().map((driver, key) => (
+                : getUsersWithoutWorkshop().map((user, key) => (
                     <UserCard
                       key={key}
-                      user={driver}
+                      user={user}
                       setUsers={setUsers}
                       workshops={workshops}
                     />

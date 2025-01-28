@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
 import { Accordion, AccordionItem } from "@nextui-org/react";
@@ -8,26 +7,49 @@ import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import { Workshop } from "@/interfaces/workshop.type";
 import EditOrganization from "../OrganizationModal/EditOrganizationModal";
 import AssociateWorkshop from "../OrganizationModal/AssociateWorkshop";
-import { Driver } from "@/interfaces/driver.type";
 import SeeDriverModal from "../DriverModal/SeeDriverModal";
+import { User } from "@/interfaces/user.type";
+import { X } from "lucide-react";
 
 interface Props {
   workshop: Workshop;
   setWorkshops: React.Dispatch<React.SetStateAction<Workshop[]>>;
-  setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
-  drivers: Driver[];
-  workshopDrivers: Driver[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  users: User[];
+  workshopUsers: User[];
 }
 
-export default function OrganizationCard({ workshop, setWorkshops, drivers, setDrivers, workshopDrivers }: Props) {
+export default function OrganizationCard({
+  workshop,
+  setWorkshops,
+  users,
+  setUsers,
+  workshopUsers,
+}: Props) {
   const Content = () => {
+
+    const disassociateUser = async (user: User): Promise<void> => {
+      const updatedUser = {
+        ...user,
+        workshops: "",
+      };
+
+      setUsers((prev) => [
+        ...prev.filter((prevUser) => prevUser.id !== user.id),
+        updatedUser,
+      ]);
+    }
+
     return (
       <div className={styles.contentContainer}>
         <div className={styles.cardsContainer}>
           <div className={clsx(styles.card, styles.infoCard)}>
             <div className="flex flex-row justify-between w-full">
               <h4 className={styles.cardTitle}>Dados</h4>
-              <EditOrganization workshop={workshop} setWorkshops={setWorkshops} />
+              <EditOrganization
+                workshop={workshop}
+                setWorkshops={setWorkshops}
+              />
             </div>
             <div className={styles.row}>
               <p className={styles.cardText}>Nome: {workshop.fantasy_name}</p>
@@ -45,10 +67,14 @@ export default function OrganizationCard({ workshop, setWorkshops, drivers, setD
               <p className={styles.cardText}>Telefone: {workshop.phone}</p>
             </div>
             <div className={styles.row}>
-              <p className={styles.cardText}>Razão social: {workshop.company_name}</p>
+              <p className={styles.cardText}>
+                Razão social: {workshop.company_name}
+              </p>
             </div>
             <div className={styles.row}>
-              <p className={styles.cardText}>N° de cadastro: {workshop.registration_number}</p>
+              <p className={styles.cardText}>
+                N° de cadastro: {workshop.registration_number}
+              </p>
             </div>
           </div>
           <div className={`${clsx(styles.card, styles.vehiclesCard)} gap-2`}>
@@ -59,12 +85,20 @@ export default function OrganizationCard({ workshop, setWorkshops, drivers, setD
                 <p className="font-bold">Email</p>
               </div>
               <div className="w-full flex flex-col gap-2">
-                {workshopDrivers?.map((driver, index) => (
-                  <div key={index} className="grid grid-cols-3 items-center gap-2 w-full bg-[#2D2F2D] px-6 py-3 rounded-full">
-                    <p>{driver.name}</p>
-                    <p>{driver.email}</p>
-                    <button className="justify-self-end text-2xl">
-                      <SeeDriverModal id={driver.id} setDrivers={setDrivers} workshops={[workshop]} />
+                {workshopUsers?.map((user, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-row justify-between gap-2 w-full bg-[#2D2F2D] px-6 py-3 rounded-full"
+                  >
+                    <p className="text-sm col-span-1 text-wrap">{user.name}</p>
+                    <p className="text-sm col-span-2 text-wrap">{user.email}</p>
+
+                    <button
+                      color="success"
+                      className="w-fit col-span-1 text-green-400"
+                      onClick={() => disassociateUser(user)}
+                    >
+                      <X className="text-lg"/>
                     </button>
                   </div>
                 ))}
@@ -74,10 +108,19 @@ export default function OrganizationCard({ workshop, setWorkshops, drivers, setD
         </div>
         <div className={styles.contentFooter}>
           <div className={styles.deleteBtnWrap}>
-            <EraseModal type={DeleteModalTypes.organization} name={workshop.fantasy_name} id={workshop.id} state={setWorkshops} />
+            <EraseModal
+              type={DeleteModalTypes.organization}
+              name={workshop.fantasy_name}
+              id={workshop.id}
+              state={setWorkshops}
+            />
           </div>
           <div className={styles.addVehicleBtnWrap}>
-            <AssociateWorkshop drivers={drivers} workshop={workshop} setDrivers={setDrivers} />
+            <AssociateWorkshop
+              users={users}
+              workshop={workshop}
+              setUsers={setUsers}
+            />
           </div>
         </div>
       </div>
