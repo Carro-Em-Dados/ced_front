@@ -110,7 +110,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
               </li>
             ))
           ) : (
-            <li className="p-2 text-gray-500 rounded-xl">No options found</li>
+            <li className="p-2 text-gray-500 rounded-xl">Nenhuma opção encontrada</li>
           )}
         </ul>
       )}

@@ -198,7 +198,7 @@ export default function AdsModal({
         <ModalBody className="flex flex-row justify-end gap-14 w-full">
           <div className="flex flex-col items-center py-4 gap-3">
             <div
-              className="flex flex-col justify-center items-center w-[400px] max-w-full h-[300px] max-h-[300px] border-4 border-dashed border-stone-300 rounded-2xl text-center cursor-pointer"
+              className="flex flex-col justify-center items-center w-[400px] max-w-full h-[300px] max-h-[300px] border-4 border-dashed border-stone-300 rounded-2xl text-center select-none"
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
             >
