@@ -347,7 +347,7 @@ function CustomTable(props: CustomTableProps) {
 
   return (
     <div className="flex flex-col items-center bg-black p-2 rounded-2xl border-[1px] border-[#2d2f2d] w-full">
-      <div className="p-2 rounded-lg border-2 border-[#2d2f2d] bg-gradient-to-t from-black to-slate-950">
+      <div className="p-2 rounded-2xl border-2 border-[#2d2f2d] bg-gradient-to-t from-black to-slate-950">
         <RadioGroup
           className="text-white"
           orientation="horizontal"
@@ -457,7 +457,7 @@ function CustomTable(props: CustomTableProps) {
                   className={`${styles.cell} flex flex-row justify-center`}
                 >
                   <span
-                    className={`rounded-lg px-2 py-1 text-center ${
+                    className={`rounded-xl px-2 py-1 text-center ${
                       row.status === "Próxima"
                         ? "!bg-[#D3C544] text-black font-semibold"
                         : row.status === "Vencida"
