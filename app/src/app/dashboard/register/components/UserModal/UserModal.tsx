@@ -26,12 +26,16 @@ interface Props {
 
 export default function UserModal({ setUsers }: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
-  const { db } = useContext(AuthContext);
+  const { db, currentUser } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [loading, setLoading] = useState(false);
+  const filteredRoleLabels = currentUser?.role === "master" 
+    ? roleLabel 
+    : Object.fromEntries(Object.entries(roleLabel).filter(([key]) => key === "user"));
+
 
   const addUser = async () => {
     setLoading(true);
@@ -143,7 +147,7 @@ export default function UserModal({ setUsers }: Props) {
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
                     >
-                      {Object.entries(roleLabel).map(([key, value]) => (
+                      {Object.entries(filteredRoleLabels).map(([key, value]) => (
                         <SelectItem key={key} value={key}>
                           {value}
                         </SelectItem>

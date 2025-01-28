@@ -4,7 +4,14 @@ import styles from "./styles.module.scss";
 import Image from "next/image";
 import { Tabs, Tab } from "@nextui-org/react";
 import DriverCard from "./components/Cards/DriverCard";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { Workshop } from "../../../interfaces/workshop.type";
 import { AuthContext } from "../../../contexts/auth.context";
 import { User } from "../../../interfaces/user.type";
@@ -220,7 +227,7 @@ const Register = () => {
           currentUser?.role as Role
         ) && <WorkshopModal setWorkshops={setWorkshops} />
       ) : (
-        currentUser?.role === "master" && <UserModal setUsers={setUsers} />
+        currentUser?.role !== "user" && <UserModal setUsers={setUsers} />
       )}
 
       <div className={styles.pageWrap}>
@@ -321,27 +328,29 @@ const Register = () => {
               ))}
             </div>
           </Tab>
-          <Tab className={styles.tabButton} key="users" title="Usuários">
-            <div className={styles.driverTab}>
-              {currentUser?.role === Role.MASTER
-                ? users.map((user, key) => (
-                    <UserCard
-                      key={key}
-                      user={user}
-                      setUsers={setUsers}
-                      workshops={workshops}
-                    />
-                  ))
-                : getUsersWithoutWorkshop().map((user, key) => (
-                    <UserCard
-                      key={key}
-                      user={user}
-                      setUsers={setUsers}
-                      workshops={workshops}
-                    />
-                  ))}
-            </div>
-          </Tab>
+          {currentUser?.role !== Role.USER && (
+            <Tab className={styles.tabButton} key="users" title="Usuários">
+              <div className={styles.driverTab}>
+                {currentUser?.role === Role.MASTER
+                  ? users.map((user, key) => (
+                      <UserCard
+                        key={key}
+                        user={user}
+                        setUsers={setUsers}
+                        workshops={workshops}
+                      />
+                    ))
+                  : getUsersWithoutWorkshop().map((user, key) => (
+                      <UserCard
+                        key={key}
+                        user={user}
+                        setUsers={setUsers}
+                        workshops={workshops}
+                      />
+                    ))}
+              </div>
+            </Tab>
+          )}
         </Tabs>
       </div>
       <Footer />
