@@ -227,7 +227,7 @@ const Register = () => {
           currentUser?.role as Role
         ) && <WorkshopModal setWorkshops={setWorkshops} />
       ) : (
-        currentUser?.role !== "user" && <UserModal setUsers={setUsers} />
+        currentUser?.role !== "user" && tab === "users" && <UserModal setUsers={setUsers} />
       )}
 
       <div className={styles.pageWrap}>
