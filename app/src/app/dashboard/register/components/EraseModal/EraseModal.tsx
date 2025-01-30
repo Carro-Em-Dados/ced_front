@@ -7,6 +7,7 @@ import { AuthContext } from "@/contexts/auth.context";
 import { updateDoc, doc, deleteDoc, getDoc, collection, getDocs, where, query } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
 import { deleteUser } from "@/services/firebase-admin";
+import { Role } from "@/types/enums/role.enum";
 
 export enum DeleteModalTypes {
   driver = "driver",
@@ -24,7 +25,7 @@ interface Props {
 }
 
 export default function EraseModal({ id, type, name, state }: Props) {
-  const { db } = useContext(AuthContext);
+  const { db, currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
@@ -194,10 +195,16 @@ export default function EraseModal({ id, type, name, state }: Props) {
 
   return (
     <>
-      <Button className={styles.deleteBtn} onClick={onOpen}>
+      {currentUser?.role === Role.USER || currentUser?.role === Role.ORGANIZATION
+        && (type === DeleteModalTypes.driver || type === DeleteModalTypes.appUser) ? (
+          <></>
+      ) : (
+        <Button className={styles.deleteBtn} onClick={onOpen}>
         <FaRegTrashAlt />
         {type === DeleteModalTypes.appUser ? "Desassociar" : "Excluir"}
       </Button>
+        )}
+      
       <Modal isOpen={isOpen} className={styles.modal} size="lg" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
