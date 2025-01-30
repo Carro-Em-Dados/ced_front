@@ -215,7 +215,7 @@ const Register = () => {
   return (
     <div className={styles.page}>
       <Navbar isPremium={isPremium} selectedWorkshop={workshop?.id || ""} />
-      {tab === "drivers" && isPremium ? (
+      {tab === "drivers" ? (
         <DriverModal
           workshops={workshops}
           workshop={workshop}
