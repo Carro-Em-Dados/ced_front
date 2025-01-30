@@ -28,14 +28,37 @@ export default function EraseModal({ id, type, name, state }: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
-  const deleteAllVehiclesFromClient = async (clientId: string) => {
-    const vehiclesRef = collection(db, "vehicles");
-    const q = query(vehiclesRef, where("owner", "==", clientId));
+  const deleteAllSchedulesFromDriver = async (driverId: string) => {
+    const schedulesRef = collection(db, "schedules");
+    const q = query(schedulesRef, where("driver", "==", driverId));
     const querySnapshot = await getDocs(q);
 
     querySnapshot.forEach(async (doc) => {
       await deleteDoc(doc.ref);
     });
+  }
+
+  const deleteAllMaintenancesFromVehicle = async (vehicleId: string) => {
+    const maintenancesRef = collection(db, "maintenances");
+    const q = query(maintenancesRef, where("car_id", "==", vehicleId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+  }
+
+  const deleteAllVehiclesAndSchedulesAndMaintenancesFromClient = async (clientId: string) => {
+    const vehiclesRef = collection(db, "vehicles");
+    const q = query(vehiclesRef, where("owner", "==", clientId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      deleteAllMaintenancesFromVehicle(doc.id);
+      await deleteDoc(doc.ref);
+    });
+    
+    deleteAllSchedulesFromDriver(clientId);
   };
 
   const deleteItem = async () => {
@@ -48,7 +71,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
     switch (type) {
       case DeleteModalTypes.driver:
         collectionName = "clients";
-        additionalAction = async () => await deleteAllVehiclesFromClient(id);
+        additionalAction = async () => await deleteAllVehiclesAndSchedulesAndMaintenancesFromClient(id);
         break;
       case DeleteModalTypes.vehicle:
         collectionName = "vehicles";
