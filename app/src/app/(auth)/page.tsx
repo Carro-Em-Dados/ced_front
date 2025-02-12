@@ -189,7 +189,7 @@ const Login = () => {
             >
               {isLoginHappening ? "ENTRANDO..." : "ENTRAR"}
             </Button>
-            <div className="flex flex-row justify-around w-full gap-2">
+            <div className="flex flex-row justify-between w-full gap-2">
               <p className="text-white text-sm mt-5">
                 Esqueceu sua senha? <ForgotPasswordModal />
               </p>
