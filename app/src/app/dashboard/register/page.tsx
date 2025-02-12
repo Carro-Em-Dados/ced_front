@@ -200,11 +200,11 @@ const Register = () => {
     return appUsers.filter((appUser) => appUser.preferred_workshop === id);
   };
 
-  const getUsersWithoutWorkshop = () => {
+  const getUsersFromWorkshops = () => {
     return users.filter(
       (user) =>
         user.role === Role.USER &&
-        (user.workshops === currentWorkshop?.id || !user.workshops)
+        (user.workshops === currentWorkshop?.id)
     );
   };
 
@@ -341,7 +341,7 @@ const Register = () => {
                         workshops={workshops}
                       />
                     ))
-                  : getUsersWithoutWorkshop().map((user, key) => (
+                  : getUsersFromWorkshops().map((user, key) => (
                       <UserCard
                         key={key}
                         user={user}
