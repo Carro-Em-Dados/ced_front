@@ -472,7 +472,8 @@ export default function SeeVehicleModal({ vehicle, setVehicles, onClose, setIsOp
                         </Button>
                       </div>
                     </div>
-                  </Tab>
+                </Tab>
+                {(currentUser?.role === Role.MASTER || currentUser?.role === Role.ORGANIZATION) && (
                   <Tab
                     className={`${styles.tabButton} !p-0`}
                     key="ecu"
@@ -480,6 +481,7 @@ export default function SeeVehicleModal({ vehicle, setVehicles, onClose, setIsOp
                   >
                     <EcuLimits id={vehicle.id} />
                   </Tab>
+                )}
                 </Tabs>
               </ModalBody>
             </>
