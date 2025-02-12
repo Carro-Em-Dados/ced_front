@@ -70,7 +70,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
       <div className="relative">
         <input
           type="text"
-          className="w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10"
+          className={`w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10 ${ isDisabled ? "cursor-not-allowed" : "cursor-text"}`}
           placeholder={placeholder}
           onFocus={() => {
             if (!isDisabled) {
