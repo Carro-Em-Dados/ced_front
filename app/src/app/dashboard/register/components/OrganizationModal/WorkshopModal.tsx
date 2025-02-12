@@ -27,8 +27,6 @@ import { FaArrowLeft } from "react-icons/fa";
 import { Role } from "@/types/enums/role.enum";
 import { User } from "@/interfaces/user.type";
 import { WorkshopContext } from "@/contexts/workshop.context";
-import { getCurrentTimestamp } from "@/services/firebase-admin";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface Props {
   setWorkshops: React.Dispatch<React.SetStateAction<any[]>>;
@@ -256,13 +254,14 @@ export default function WorkshopModal({ setWorkshops }: Props) {
           other2,
         },
         contract: profileType === "basic" ? "basic" : contractRef.id,
-        createdAt: Timestamp.fromMillis(await getCurrentTimestamp()),
+        createdAt: Timestamp.now(),
+        google_calendar_id: "disabled",
       };
 
-      (workshop as any).google_calendar_id = await createGoogleCalendar(`${workshop.fantasy_name} - ${workshop.cnpj}`, [
-        workshop.email,
-        "carroemdados@gmail.com",
-      ]);
+      // (workshop as any).google_calendar_id = await createGoogleCalendar(`${workshop.fantasy_name} - ${workshop.cnpj}`, [
+      //   workshop.email,
+      //   "carroemdados@gmail.com",
+      // ]);
 
       const workshopRef = await addDoc(collection(db, "workshops"), workshop);
 
@@ -374,18 +373,25 @@ export default function WorkshopModal({ setWorkshops }: Props) {
               <ModalBody>
                 {tab === "tab1" && (
                   <div className={clsx(styles.form, "flex flex-col gap-4")}>
-                    <div>
-                      <GeneralObjectOptionAutocomplete
-                        placeholder="Usuário responsável*"
-                        options={organizationUsers.map((u) => ({
-                          id: u.id,
-                          label: u.name,
-                        }))}
-                        initialValue={owner}
-                        onSelectionChange={(option) => setOwner(option?.id)}
-                        isDisabled={currentUser?.role === Role.ORGANIZATION}
-                      />
+                    {currentUser?.role === Role.MASTER && (<div>
+                      <Select
+                        label="Usuário responsável*"
+                        variant="bordered"
+                        className="dark"
+                        classNames={{
+                          trigger: "!border-white rounded-[1em]",
+                        }}
+                        value={owner}
+                        onChange={(e) => setOwner(e.target.value)}
+                      >
+                        {organizationUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name}
+                          </SelectItem>
+                        ))}
+                      </Select>
                     </div>
+                    )}
                     <div>
                       <Input
                         label="E-mail*"
