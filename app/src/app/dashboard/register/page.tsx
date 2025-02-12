@@ -324,6 +324,7 @@ const Register = () => {
                   setWorkshops={setWorkshops}
                   setUsers={setUsers}
                   users={users}
+                  isPremium={workshop.contract !== "basic"}
                 />
               ))}
             </div>

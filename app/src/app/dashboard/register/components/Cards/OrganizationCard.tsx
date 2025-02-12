@@ -17,6 +17,7 @@ interface Props {
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   users: User[];
   workshopUsers: User[];
+  isPremium: boolean;
 }
 
 export default function OrganizationCard({
@@ -25,9 +26,9 @@ export default function OrganizationCard({
   users,
   setUsers,
   workshopUsers,
+  isPremium,
 }: Props) {
   const Content = () => {
-
     const disassociateUser = async (user: User): Promise<void> => {
       const updatedUser = {
         ...user,
@@ -131,7 +132,14 @@ export default function OrganizationCard({
     <div style={{ margin: "0.5em 0" }}>
       <Accordion className={styles.accordion}>
         <AccordionItem
-          title={`${workshop.fantasy_name}`}
+          title={
+            <>
+              {workshop.fantasy_name}
+              <span className={isPremium ? "ml-2 border-2 border-green-400 p-1 rounded-full" : ""}>
+                {isPremium ? "Premium" : ""}
+              </span>
+            </>
+          }
           className={styles.item}
           startContent={<IoPersonCircle className={styles.personIcon} />}
         >
