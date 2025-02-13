@@ -173,6 +173,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
     setRegister("");
     setCNH("");
     setEmail("");
+    setSelectedWorkshop("");
     onClose();
   };
 
@@ -373,6 +374,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
                           value: workshop.id.toString(),
                           label: workshop.fantasy_name,
                         }))}
+                        placeholder="Selecione uma oficina..."
                         initialValue={Role.ORGANIZATION && workshop ? workshop.id : selectedWorkshop}
                         onSelectionChange={(option) => setSelectedWorkshop(option.value)}
                         isDisabled={currentUser?.role === Role.ORGANIZATION}
