@@ -245,7 +245,7 @@ const Register = () => {
           Adicione motoristas e associe carros a eles abaixo.
         </p>
         <div className="py-2">
-          {currentUser?.role === Role.ORGANIZATION && <WorkshopsByOrg />}
+          {currentUser?.role === Role.ORGANIZATION && tab !== "workshops" && <WorkshopsByOrg />}
         </div>
         <Tabs
           aria-label="config-tabs"
