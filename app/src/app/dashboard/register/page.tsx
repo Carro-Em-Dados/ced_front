@@ -204,7 +204,7 @@ const Register = () => {
     return users.filter(
       (user) =>
         user.role === Role.USER &&
-        (user.workshops === currentWorkshop?.id)
+        (user.workshops === workshopInView?.id)
     );
   };
 
