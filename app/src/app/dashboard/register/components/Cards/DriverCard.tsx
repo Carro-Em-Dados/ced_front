@@ -11,6 +11,7 @@ import { Driver } from "@/interfaces/driver.type";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import SeeDriverModal from "../DriverModal/SeeDriverModal";
 import { Workshop } from "@/interfaces/workshop.type";
+import AssociateDriver from "../DriverModal/AssociateDriver";
 
 interface Props {
   driver: Driver;
@@ -79,7 +80,7 @@ export default function DriverCard({ driver, setDrivers, setVehicles, vehicles, 
         </div>
         <div className={styles.contentFooter}>
           <div className={styles.deleteBtnWrap}>
-            <EraseModal type={DeleteModalTypes.driver} name={driver.name} id={driver.id} state={setDrivers} />
+            <AssociateDriver driver={driver} setDrivers={setDrivers} workshops={workshops} />
           </div>
           <div className={styles.addVehicleBtnWrap}>
             <VehicleModal ownerId={driver.id} setVehicles={setVehicles} />
