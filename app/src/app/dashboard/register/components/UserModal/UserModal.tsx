@@ -51,7 +51,7 @@ export default function UserModal({ setUsers }: Props) {
       : Object.fromEntries(
           Object.entries(roleLabel).filter(([key]) => key === "user")
         );
-  const [workshop, setWorkshop] = useState<Workshop[]>([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState("");
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function UserModal({ setUsers }: Props) {
         const workshopsList = workshopsSnapshot.docs.map(
           (doc) => doc.data() as Workshop
         );
-        setWorkshop(workshopsList);
+        setWorkshops(workshopsList);
       }
 
       if (currentUser?.role === Role.ORGANIZATION) {
@@ -72,9 +72,9 @@ export default function UserModal({ setUsers }: Props) {
         );
         const workshopsSnapshot = await getDocs(workshopsRef);
         const workshopsList = workshopsSnapshot.docs.map(
-          (doc) => doc.data() as Workshop
+          (doc) => ({ ...doc.data(), id: doc.id }  as Workshop)
         );
-        setWorkshop(workshopsList);
+        setWorkshops(workshopsList);
       }
     };
     fetchWorkshops();
@@ -245,7 +245,7 @@ export default function UserModal({ setUsers }: Props) {
                         value={workshopId}
                         onChange={(e) => setWorkshopId(e.target.value)}
                       >
-                        {workshop?.map((workshop, index) => (
+                        {workshops?.map((workshop, index) => (
                           <SelectItem key={index} value={workshop.id}>
                             {workshop.fantasy_name}
                           </SelectItem>
