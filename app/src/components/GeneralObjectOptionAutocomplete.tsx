@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-interface GeneralObjectOptionAutocompleteProps {
+interface GeneralAutocompleteProps {
   options: any[];
   initialValue: string;
   placeholder?: string;
@@ -10,8 +10,8 @@ interface GeneralObjectOptionAutocompleteProps {
   canType?: boolean;
 }
 
-const GeneralObjectOptionAutocomplete: React.FC<
-  GeneralObjectOptionAutocompleteProps
+const GeneralAutocomplete: React.FC<
+  GeneralAutocompleteProps
 > = ({
   options,
   initialValue,
@@ -52,7 +52,7 @@ const GeneralObjectOptionAutocomplete: React.FC<
     setDropdownVisible(false);
     setInputValue("");
     if (onSelectionChange) {
-      onSelectionChange(null);
+      onSelectionChange("");
     }
   };
 
@@ -118,4 +118,4 @@ const GeneralObjectOptionAutocomplete: React.FC<
   );
 };
 
-export default GeneralObjectOptionAutocomplete;
+export default GeneralAutocomplete;

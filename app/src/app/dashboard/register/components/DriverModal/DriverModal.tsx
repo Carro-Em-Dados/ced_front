@@ -22,7 +22,7 @@ import InputMask from "react-input-mask";
 import type { Driver } from "@/interfaces/driver.type";
 import { Role } from "@/types/enums/role.enum";
 import { Contract } from "@/interfaces/contract.type";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface Props {
   setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
@@ -369,7 +369,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
                   </div>
                   {[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && (
                     <div>
-                      <GeneralObjectOptionAutocomplete
+                      <GeneralAutocomplete
                         options={workshops.map((workshop) => ({
                           value: workshop.id.toString(),
                           label: workshop.fantasy_name,

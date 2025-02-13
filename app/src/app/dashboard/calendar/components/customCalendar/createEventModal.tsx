@@ -23,7 +23,7 @@ import type { Vehicle } from "@/interfaces/vehicle.type";
 import { useRouter } from "next/navigation";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 const driverMock = [
   {
@@ -392,7 +392,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                     </div>
                   </div>
                   <div className="flex flex-row gap-5">
-                    <GeneralObjectOptionAutocomplete
+                    <GeneralAutocomplete
                       placeholder="Selecione um motorista..."
                       initialValue={selectedDriver}
                       options={drivers.map((driver) => ({
@@ -404,7 +404,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                         setDriverName(drivers.find((driver) => driver.id === selectedVehicle?.value)?.name || "");
                       }}
                     />
-                    <GeneralObjectOptionAutocomplete
+                    <GeneralAutocomplete
                       placeholder="Selecione um veiculo..."
                       initialValue={selectedVehicle}
                       options={drivers.find((driver) => driver.id === selectedDriver)
@@ -431,7 +431,7 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                       }}
                     />
                   ) : (
-                    <GeneralObjectOptionAutocomplete
+                    <GeneralAutocomplete
                     placeholder="Selecione um serviço..."
                     initialValue={selectedService}
                     options={services.map((service) => ({

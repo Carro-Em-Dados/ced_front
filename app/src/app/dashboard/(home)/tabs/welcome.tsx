@@ -15,7 +15,7 @@ import { Workshop } from "@/interfaces/workshop.type";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { Role } from "@/types/enums/role.enum";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface WelcomeProps {
   selectedWorkshop: string | null;
@@ -105,7 +105,7 @@ export default function Welcome({
         </p>
         <p className={styles.subtext}>Selecione alguma opção abaixo:</p>
         <div className="w-[26em] my-[2em]">
-          <GeneralObjectOptionAutocomplete
+          <GeneralAutocomplete
             placeholder="Selecione sua oficina"
             options={[
               ...(currentUser?.role === "master"

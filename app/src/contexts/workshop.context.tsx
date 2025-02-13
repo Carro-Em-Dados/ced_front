@@ -18,7 +18,7 @@ import {
 } from "firebase/firestore";
 import { Contract } from "@/interfaces/contract.type";
 import { Role } from "@/types/enums/role.enum";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface WorkshopContextData {
   workshopInView: (Workshop & { contract: Contract }) | undefined;
@@ -203,7 +203,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
     onSelectionChange?: (key: any) => void;
   }) => {
     return (
-      <GeneralObjectOptionAutocomplete
+      <GeneralAutocomplete
         options={(options || workshopOptions).map((w) => ({
           value: w.id,
           label: w.company_name,

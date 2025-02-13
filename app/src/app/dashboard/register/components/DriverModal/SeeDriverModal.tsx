@@ -22,7 +22,7 @@ import { toast, Zoom } from "react-toastify";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
 import { Workshop } from "@/interfaces/workshop.type";
-import GeneralObjectOptionAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface Props {
   id: string;
@@ -290,7 +290,7 @@ export default function SeeDriverModal({ id, setDrivers, workshops }: Props) {
                   </div>
                   {[Role.MASTER, Role.ORGANIZATION].includes(currentUser?.role as Role) && (
                     <div>
-                      <GeneralObjectOptionAutocomplete
+                      <GeneralAutocomplete
                         placeholder="Selecione uma oficina..."
                         options={workshops.map((workshop) => ({
                           label: workshop.fantasy_name,
