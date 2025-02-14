@@ -13,8 +13,19 @@ import clsx from "clsx";
 import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
 import { Driver } from "@/interfaces/driver.type";
-import { updateDoc, doc, getDoc } from "firebase/firestore";
+import {
+  updateDoc,
+  doc,
+  getDoc,
+  collection,
+  query,
+  getDocs,
+  where,
+} from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
+import { Vehicle } from "@/interfaces/vehicle.type";
+import { get } from "http";
+import { Role } from "@/types/enums/role.enum";
 
 interface Props {
   driver: Driver;
@@ -37,12 +48,56 @@ export default function AssociateDriver({
     setWorkshop(driver?.workshops || "");
   }, [driver]);
 
+  const moveAllSchedulesFromDriver = async (
+    driverId: string,
+    workshopId: string
+  ) => {
+    const schedulesRef = collection(db, "schedules");
+    const q = query(schedulesRef, where("driver", "==", driverId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, { workshop: workshopId });
+    });
+  };
+
+  const moveAllMaintenancesFromVehicle = async (
+    vehicleId: string,
+    workshopId: string
+  ) => {
+    const maintenancesRef = collection(db, "maintenances");
+    const q = query(maintenancesRef, where("car_id", "==", vehicleId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, { workshop: workshopId });
+    });
+  };
+
+  const getAllVehiclesFromDriver = async (driverId: string) => {
+    const vehiclesRef = collection(db, "vehicles");
+    const q = query(vehiclesRef, where("owner", "==", driverId));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map((doc) => ({
+      ...(doc.data() as Vehicle),
+      id: doc.id,
+    }));
+  };
+
   const associateDriver = async () => {
     setLoading(true);
 
     const clientRef = doc(db, "clients", driver.id);
     if ((await getDoc(clientRef)).exists()) {
       try {
+        moveAllSchedulesFromDriver(driver.id, workshop);
+        const vehicles = await getAllVehiclesFromDriver(driver.id);
+        if (vehicles) {
+          vehicles.forEach((vehicle: Vehicle) => {
+            moveAllMaintenancesFromVehicle(vehicle.id, workshop);
+          });
+        }
         await updateDoc(clientRef, { workshops: workshop });
         setDrivers((prevDrivers) =>
           prevDrivers.map((d) =>
@@ -116,14 +171,22 @@ export default function AssociateDriver({
               </ModalHeader>
               <ModalBody>
                 <div className="max-h-[400px] overflow-auto flex flex-col gap-1 bg-[#030303] text-white p-2">
-                  <div
-                    className={`w-full px-2 py-1 rounded-md cursor-pointer ${
-                      workshop === "" ? "bg-[#209730]" : "hover:bg-neutral-800"
-                    }`}
-                    onClick={() => setWorkshop("")}
-                  >
-                    <p>Nenhuma</p>
-                  </div>
+                  {currentUser?.role !== Role.MASTER && (
+                    <div
+                      className={`w-full px-2 py-1 rounded-md cursor-pointer ${
+                        workshop === process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID
+                          ? "bg-[#209730]"
+                          : "hover:bg-neutral-800"
+                      }`}
+                      onClick={() =>
+                        setWorkshop(
+                          process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID!
+                        )
+                      }
+                    >
+                      <p>Nenhuma</p>
+                    </div>
+                  )}
                   {workshops.map((w) => (
                     <div
                       key={w.id}
