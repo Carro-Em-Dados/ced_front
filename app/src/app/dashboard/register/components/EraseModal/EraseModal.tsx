@@ -1,10 +1,27 @@
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure,
+} from "@nextui-org/react";
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useContext, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { updateDoc, doc, deleteDoc, getDoc, collection, getDocs, where, query } from "firebase/firestore";
+import {
+  updateDoc,
+  doc,
+  deleteDoc,
+  getDoc,
+  collection,
+  getDocs,
+  where,
+  query,
+} from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
 import { deleteUser } from "@/services/firebase-admin";
 import { Role } from "@/types/enums/role.enum";
@@ -29,37 +46,140 @@ export default function EraseModal({ id, type, name, state }: Props) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
-  const deleteAllSchedulesFromDriver = async (driverId: string) => {
+  const moveAllSchedulesFromDriver = async (driverId: string) => {
     const schedulesRef = collection(db, "schedules");
     const q = query(schedulesRef, where("driver", "==", driverId));
     const querySnapshot = await getDocs(q);
 
     querySnapshot.forEach(async (doc) => {
-      await deleteDoc(doc.ref);
+      await updateDoc(doc.ref, {
+        workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
     });
-  }
+  };
 
-  const deleteAllMaintenancesFromVehicle = async (vehicleId: string) => {
+  const moveAllMaintenancesFromVehicle = async (vehicleId: string) => {
     const maintenancesRef = collection(db, "maintenances");
     const q = query(maintenancesRef, where("car_id", "==", vehicleId));
     const querySnapshot = await getDocs(q);
 
     querySnapshot.forEach(async (doc) => {
-      await deleteDoc(doc.ref);
+      await updateDoc(doc.ref, {
+        workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
     });
-  }
+  };
 
-  const deleteAllVehiclesAndSchedulesAndMaintenancesFromClient = async (clientId: string) => {
+  const moveClientToVirtualWorkshop = async (clientId: string) => {
     const vehiclesRef = collection(db, "vehicles");
     const q = query(vehiclesRef, where("owner", "==", clientId));
     const querySnapshot = await getDocs(q);
 
     querySnapshot.forEach(async (doc) => {
-      deleteAllMaintenancesFromVehicle(doc.id);
-      await deleteDoc(doc.ref);
+      moveAllMaintenancesFromVehicle(doc.id);
     });
-    
-    deleteAllSchedulesFromDriver(clientId);
+
+    moveAllSchedulesFromDriver(clientId);
+
+    const clientRef = doc(collection(db, "clients"), clientId);
+    await updateDoc(clientRef, {
+      workshops: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+    });
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    const userRef = doc(db, "users", userId);
+    const userData = (await getDoc(userRef)).data();
+
+    if (userData?.role === Role.ORGANIZATION) {
+      const workshopsRef = collection(db, "workshops");
+      const q = query(workshopsRef, where("owner", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach(async (docWorkshop) => {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("workshops", "==", docWorkshop.id));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach(async (docUser) => {
+          const docData = docUser.data();
+          // delete all basic users from the workshop
+          if (docData.role === Role.USER) {
+            await deleteUser(docUser.id);
+            await deleteDoc(docUser.ref);
+          }
+
+          // transfer clients, appUsers, schedules and maintenances to the virtual workshop)
+          const maintenancesRef = query(
+            collection(db, "maintenances"),
+            where("workshop", "==", docWorkshop.id)
+          );
+          const schedulesRef = query(
+            collection(db, "schedules"),
+            where("workshop", "==", docWorkshop.id)
+          );
+          const clientsRef = query(
+            collection(db, "clients"),
+            where("workshops", "==", docWorkshop.id)
+          );
+          const appUsersRef = query(
+            collection(db, "appUsers"),
+            where("preferred_workshop", "==", docWorkshop.id)
+          );
+
+          const [
+            maintenancesSnapshot,
+            schedulesSnapshot,
+            clientsSnapshot,
+            appUsersSnapshot,
+          ] = await Promise.all([
+            getDocs(maintenancesRef),
+            getDocs(schedulesRef),
+            getDocs(clientsRef),
+            getDocs(appUsersRef),
+          ]);
+
+          maintenancesSnapshot.forEach(async (doc) => {
+            await updateDoc(doc.ref, {
+              workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+            });
+          });
+
+          schedulesSnapshot.forEach(async (doc) => {
+            await updateDoc(doc.ref, {
+              workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+            });
+          });
+
+          clientsSnapshot.forEach(async (doc) => {
+            await updateDoc(doc.ref, {
+              workshops: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+            });
+          });
+
+          appUsersSnapshot.forEach(async (doc) => {
+            await updateDoc(doc.ref, {
+              preferred_workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+            });
+          });
+        });
+        await deleteDoc(docWorkshop.ref);
+      });
+      // delete login info
+      deleteUser(userId);
+    } else {
+      toast.error("Erro ao deletar usuário", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    }
   };
 
   const deleteItem = async () => {
@@ -72,14 +192,14 @@ export default function EraseModal({ id, type, name, state }: Props) {
     switch (type) {
       case DeleteModalTypes.driver:
         collectionName = "clients";
-        additionalAction = async () => await deleteAllVehiclesAndSchedulesAndMaintenancesFromClient(id);
+        additionalAction = async () => await moveClientToVirtualWorkshop(id);
         break;
       case DeleteModalTypes.vehicle:
         collectionName = "vehicles";
         break;
       case DeleteModalTypes.user:
         collectionName = "users";
-        additionalAction = async () => await deleteUser(id);
+        additionalAction = async () => await handleDeleteUser(id);
         break;
       case DeleteModalTypes.organization:
         collectionName = "workshops";
@@ -99,7 +219,9 @@ export default function EraseModal({ id, type, name, state }: Props) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const hasEmptyFields = Object.keys(updateData).every((key) => data[key] === "");
+          const hasEmptyFields = Object.keys(updateData).every(
+            (key) => data[key] === ""
+          );
 
           if (hasEmptyFields) {
             await deleteDoc(docRef);
@@ -117,7 +239,11 @@ export default function EraseModal({ id, type, name, state }: Props) {
             });
           } else {
             await updateDoc(docRef, updateData);
-            state((prevState) => prevState.map((item) => (item.id === id ? { ...item, ...updateData } : item)));
+            state((prevState) =>
+              prevState.map((item) =>
+                item.id === id ? { ...item, ...updateData } : item
+              )
+            );
             toast.success("Item desassociado com sucesso!", {
               position: "bottom-right",
               autoClose: 5000,
@@ -144,8 +270,10 @@ export default function EraseModal({ id, type, name, state }: Props) {
           });
         }
       } else {
-        await deleteDoc(docRef);
         state((prevState) => prevState.filter((item) => item.id !== id));
+        if (type !== DeleteModalTypes.driver) {
+          await deleteDoc(docRef);
+        }
         toast.success("Item excluído com sucesso!", {
           position: "bottom-right",
           autoClose: 5000,
@@ -195,29 +323,43 @@ export default function EraseModal({ id, type, name, state }: Props) {
 
   return (
     <>
-      {currentUser?.role === Role.USER || currentUser?.role === Role.ORGANIZATION
-        && (type === DeleteModalTypes.driver || type === DeleteModalTypes.appUser) ? (
-          <></>
-      ) : (
-        <Button className={styles.deleteBtn} onClick={onOpen}>
+      <Button className={styles.deleteBtn} onClick={onOpen}>
         <FaRegTrashAlt />
         {type === DeleteModalTypes.appUser ? "Desassociar" : "Excluir"}
       </Button>
-        )}
-      
-      <Modal isOpen={isOpen} className={styles.modal} size="lg" onOpenChange={onOpenChange}>
+
+      <Modal
+        isOpen={isOpen}
+        className={styles.modal}
+        size="lg"
+        onOpenChange={onOpenChange}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className={clsx("flex flex-col gap-1", styles.modalTitle)}>Confirmação</ModalHeader>
+              <ModalHeader
+                className={clsx("flex flex-col gap-1", styles.modalTitle)}
+              >
+                Confirmação
+              </ModalHeader>
               <ModalBody className="text-white">
                 <p>Tem certeza que deseja excluir {name}?</p>
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" className="rounded-full px-5 text-white" onClick={onClose}>
+                <Button
+                  color="default"
+                  variant="light"
+                  className="rounded-full px-5 text-white"
+                  onClick={onClose}
+                >
                   Cancelar
                 </Button>
-                <Button color="danger" className={styles.modalButton} onClick={deleteItem} disabled={loading}>
+                <Button
+                  color="danger"
+                  className={styles.modalButton}
+                  onClick={deleteItem}
+                  disabled={loading}
+                >
                   Excluir
                 </Button>
               </ModalFooter>
