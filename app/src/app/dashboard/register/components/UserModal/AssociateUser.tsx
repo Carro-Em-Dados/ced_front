@@ -5,8 +5,9 @@ import clsx from "clsx";
 import { AuthContext } from "@/contexts/auth.context";
 import { Workshop } from "@/interfaces/workshop.type";
 import { User } from "@/interfaces/user.type";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { toast, Zoom } from "react-toastify";
+import { Role } from "@/types/enums/role.enum";
 
 interface Props {
   user: User;
@@ -30,10 +31,18 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
 
     try {
       const userRef = doc(db, "users", user.id);
-      await updateDoc(userRef, { workshops: workshop });
-      setUsers((prevUsers) => prevUsers.map((u) => (u.id === user.id ? { ...u, workshops: workshop } : u)));
-      setWorkshop("");
-      onOpenChange();
+      if (workshop === "DELETE") {
+        await deleteDoc(userRef);
+        setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+        setWorkshop("");
+        onOpenChange();
+        return;
+      } else {
+        await updateDoc(userRef, { workshops: workshop });
+        setUsers((prevUsers) => prevUsers.map((u) => (u.id === user.id ? { ...u, workshops: workshop } : u)));
+        setWorkshop("");
+        onOpenChange();
+      }
     } catch (error) {
       toast.error("Erro ao associar usuário a oficina", {
         position: "bottom-right",
@@ -64,10 +73,12 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
               <ModalBody>
                 <div className="max-h-[400px] overflow-auto flex flex-col gap-1 bg-[#030303] text-white p-2">
                   <div
-                    className={`w-full px-2 py-1 rounded-md cursor-pointer ${workshop === "" ? "bg-[#209730]" : "hover:bg-neutral-800"}`}
-                    onClick={() => setWorkshop("")}
+                    className={`w-full px-2 py-1 rounded-md cursor-pointer ${(workshop === "" || workshop === "DELETE") ? "bg-[#209730]" : "hover:bg-neutral-800"}`}
+                    onClick={() => {
+                      currentUser?.role === Role.MASTER ? setWorkshop("DELETE") : setWorkshop("");
+                    }}
                   >
-                    <p>Nenhuma</p>
+                    <p>{currentUser?.role === Role.MASTER ? "Excluir" : "Nenhuma"}</p>
                   </div>
                   {workshops.map((w) => (
                     <div
@@ -87,7 +98,7 @@ export default function AssociateUser({ setUsers, workshops, user }: Props) {
                   Cancelar
                 </Button>
                 <Button color="success" disabled={loading} className={`${styles.modalButton}`} onClick={associateUser}>
-                  {workshop === "" ? "Desassociar" : "Associar"}
+                  {workshop === "" ? "Desassociar" : workshop === "DELETE" ? "Excluir" : "Associar"}
                 </Button>
               </ModalFooter>
             </>
