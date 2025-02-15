@@ -36,16 +36,9 @@ export default function UserCard({ user, setUsers, workshops }: Props) {
         >
           <div className={styles.contentContainer}>
             <div className={styles.contentFooter}>
-              {currentUser?.role === "master" && (
-                <div className={styles.deleteBtnWrap}>
-                  <EraseModal type={DeleteModalTypes.user} name={user.name} id={user.id} state={setUsers} />
-                </div>
-              )}
-              {user.role !== Role.ORGANIZATION && (
                 <div className={styles.addVehicleBtnWrap}>
                   <AssociateUser setUsers={setUsers} workshops={workshops} user={user} />
                 </div>
-              )}
             </div>
           </div>
         </AccordionItem>
