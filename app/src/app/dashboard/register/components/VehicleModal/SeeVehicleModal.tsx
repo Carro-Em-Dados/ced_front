@@ -488,7 +488,7 @@ export default function SeeVehicleModal({
                   </div>
                 </Tab>
                 {(currentUser?.role === Role.MASTER ||
-                  currentUser?.role === Role.ORGANIZATION) && (
+                  isPremium) && (
                   <Tab
                     className={`${styles.tabButton} !p-0`}
                     key="ecu"
