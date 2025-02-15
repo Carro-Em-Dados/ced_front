@@ -7,9 +7,8 @@ import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import { Workshop } from "@/interfaces/workshop.type";
 import EditOrganization from "../OrganizationModal/EditOrganizationModal";
 import AssociateWorkshop from "../OrganizationModal/AssociateWorkshop";
-import SeeDriverModal from "../DriverModal/SeeDriverModal";
 import { User } from "@/interfaces/user.type";
-import { X } from "lucide-react";
+import AssociateUser from "../UserModal/AssociateUser";
 
 interface Props {
   workshop: Workshop;
@@ -18,6 +17,7 @@ interface Props {
   users: User[];
   workshopUsers: User[];
   isPremium: boolean;
+  workshops: Workshop[];
 }
 
 export default function OrganizationCard({
@@ -27,19 +27,9 @@ export default function OrganizationCard({
   setUsers,
   workshopUsers,
   isPremium,
+  workshops
 }: Props) {
   const Content = () => {
-    const disassociateUser = async (user: User): Promise<void> => {
-      const updatedUser = {
-        ...user,
-        workshops: "",
-      };
-
-      setUsers((prev) => [
-        ...prev.filter((prevUser) => prevUser.id !== user.id),
-        updatedUser,
-      ]);
-    }
 
     return (
       <div className={styles.contentContainer}>
@@ -94,13 +84,11 @@ export default function OrganizationCard({
                     <p className="text-sm col-span-1 text-wrap">{user.name}</p>
                     <p className="text-sm col-span-2 text-wrap">{user.email}</p>
 
-                    <button
-                      color="success"
-                      className="w-fit col-span-1 text-green-400"
-                      onClick={() => disassociateUser(user)}
-                    >
-                      <X className="text-lg"/>
-                    </button>
+                    <AssociateUser
+                      user={user}
+                      setUsers={setUsers}
+                      workshops={workshops}
+                      />
                   </div>
                 ))}
               </div>

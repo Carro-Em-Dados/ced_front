@@ -51,7 +51,6 @@ const Register = () => {
     }
 
     if (currWorkshopId) {
-      console.log(currWorkshopId);
       const currWorkshop = await getDoc(doc(db, "workshops", currWorkshopId));
 
       if (currWorkshop.exists()) {
@@ -331,6 +330,7 @@ const Register = () => {
                   setUsers={setUsers}
                   users={users}
                   isPremium={workshop.contract !== "basic"}
+                  workshops={workshops}
                 />
               ))}
             </div>
