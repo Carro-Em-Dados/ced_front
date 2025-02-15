@@ -21,6 +21,7 @@ interface Props {
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
   vehicles: Vehicle[];
   workshops: Workshop[];
+  isPremium: boolean;
 }
 
 export default function DriverCard({
@@ -29,6 +30,7 @@ export default function DriverCard({
   setVehicles,
   vehicles,
   workshops,
+  isPremium
 }: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -102,6 +104,7 @@ export default function DriverCard({
                         onClose={() => setIsOpen(false)}
                         setIsOpen={setIsOpen}
                         isOpen={isOpen}
+                        isPremium={isPremium}
                       />
                     </div>
                   </div>

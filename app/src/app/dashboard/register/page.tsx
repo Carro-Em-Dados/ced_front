@@ -274,6 +274,7 @@ const Register = () => {
                     setVehicles={setVehicles}
                     vehicles={getVehiclesByClient(driver.id)}
                     workshops={workshops}
+                    isPremium={isPremium}
                   />
                 ))}
                 {appUsers.map((appUser, key) => (
@@ -283,6 +284,8 @@ const Register = () => {
                     setAppUsers={setAppUsers}
                     vehicles={getVehiclesByClient(appUser.id)}
                     setVehicles={setVehicles}
+                    isPremium={isPremium}
+                    workshops={workshops}
                   />
                 ))}
               </div>
@@ -296,6 +299,7 @@ const Register = () => {
                     setVehicles={setVehicles}
                     vehicles={getVehiclesByClient(driver.id)}
                     workshops={workshops}
+                    isPremium={isPremium}
                   />
                 ))}
                 {getAppUsersByWorkshop(workshop.id).map((appUser, key) => (
@@ -305,6 +309,8 @@ const Register = () => {
                     setAppUsers={setAppUsers}
                     vehicles={getVehiclesByClient(appUser.id)}
                     setVehicles={setVehicles}
+                    workshops={workshops}
+                    isPremium={isPremium}
                   />
                 ))}
               </div>

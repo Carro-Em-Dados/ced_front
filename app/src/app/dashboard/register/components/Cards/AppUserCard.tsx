@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
 import { Accordion, AccordionItem } from "@nextui-org/react";
@@ -10,12 +10,18 @@ import { AppUser } from "@/interfaces/appUser.type";
 import VehicleModal from "../VehicleModal/VehicleModal";
 import SeeVehicleModal from "../VehicleModal/SeeVehicleModal";
 import EditAppUser from "../AppUserModal/EditAppUserModal";
+import AssociateAppUser from "../AppUserModal/AssociateAppUser";
+import { AuthContext } from "@/contexts/auth.context";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Role } from "@/types/enums/role.enum";
 
 interface Props {
   appUser: AppUser;
   setAppUsers: React.Dispatch<React.SetStateAction<AppUser[]>>;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
+  workshops: Workshop[];
+  isPremium: boolean;
 }
 
 export default function AppUserCard({
@@ -23,8 +29,11 @@ export default function AppUserCard({
   setAppUsers,
   vehicles,
   setVehicles,
+  workshops,
+  isPremium,
 }: Props) {
   const AppUsers = () => {
+    const { currentUser } = useContext(AuthContext);
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -69,6 +78,7 @@ export default function AppUserCard({
                         onClose={() => setIsOpen(false)}
                         setIsOpen={setIsOpen}
                         isOpen={isOpen}
+                        isPremium={isPremium}
                       />
                     </div>
                   </div>
@@ -79,12 +89,20 @@ export default function AppUserCard({
         </div>
         <div className={styles.contentFooter}>
           <div className={styles.deleteBtnWrap}>
-            <EraseModal
-              type={DeleteModalTypes.appUser}
-              name={appUser.name}
-              id={appUser.id}
-              state={setAppUsers}
-            />
+            {currentUser?.role === Role.MASTER ? (
+              <AssociateAppUser
+                appUser={appUser}
+                setAppUsers={setAppUsers}
+                workshops={workshops}
+              />
+            ) : (
+              <EraseModal
+                type={DeleteModalTypes.appUser}
+                name={appUser.name}
+                id={appUser.id}
+                state={setAppUsers}
+              />
+            )}
           </div>
           <div className={styles.addVehicleBtnWrap}>
             <VehicleModal ownerId={appUser.id} setVehicles={setVehicles} />

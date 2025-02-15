@@ -12,7 +12,7 @@ import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
-import { FaEye, FaRegEdit } from "react-icons/fa";
+import { FaRegEdit } from "react-icons/fa";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import EditVehicleModal from "./EditVehicleModal";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
@@ -36,7 +36,6 @@ import { toast, Zoom } from "react-toastify";
 import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Driver } from "@/interfaces/driver.type";
-import { get } from "http";
 import { Contract } from "@/interfaces/contract.type";
 import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 
@@ -46,6 +45,7 @@ interface Props {
   onClose: () => void;
   setIsOpen: (isOpen: boolean) => void;
   isOpen: boolean;
+  isPremium: boolean;
 }
 
 export default function SeeVehicleModal({
@@ -54,8 +54,9 @@ export default function SeeVehicleModal({
   onClose,
   setIsOpen,
   isOpen,
+  isPremium
 }: Props) {
-  const { db, currentWorkshop, currentUser, isPremium } =
+  const { db, currentWorkshop, currentUser } =
     useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);

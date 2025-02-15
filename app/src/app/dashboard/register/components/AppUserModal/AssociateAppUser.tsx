@@ -26,29 +26,30 @@ import { toast, Zoom } from "react-toastify";
 import { Vehicle } from "@/interfaces/vehicle.type";
 import { get } from "http";
 import { Role } from "@/types/enums/role.enum";
+import { AppUser } from "@/interfaces/appUser.type";
 
 interface Props {
-  driver: Driver;
-  setDrivers: React.Dispatch<React.SetStateAction<any[]>>;
+  appUser: AppUser;
+  setAppUsers: React.Dispatch<React.SetStateAction<any[]>>;
   workshops: Workshop[];
 }
 
-export default function AssociateDriver({
-  setDrivers,
+export default function AssociateAppUser({
+  setAppUsers,
   workshops,
-  driver,
+  appUser,
 }: Props) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { db } = useContext(AuthContext);
-  const [workshop, setWorkshop] = useState(driver?.workshops || "");
+  const [workshop, setWorkshop] = useState(appUser?.preferred_workshop || "");
   const [loading, setLoading] = useState(false);
   const { currentWorkshop, currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    setWorkshop(driver?.workshops || "");
-  }, [driver]);
+    setWorkshop(appUser?.preferred_workshop || "");
+  }, [appUser]);
 
-  const moveAllSchedulesFromDriver = async (
+  const moveAllSchedulesFromAppUser = async (
     driverId: string,
     workshopId: string
   ) => {
@@ -74,7 +75,7 @@ export default function AssociateDriver({
     });
   };
 
-  const getAllVehiclesFromDriver = async (driverId: string) => {
+  const getAllVehiclesFromAppUser = async (driverId: string) => {
     const vehiclesRef = collection(db, "vehicles");
     const q = query(vehiclesRef, where("owner", "==", driverId));
     const querySnapshot = await getDocs(q);
@@ -85,43 +86,34 @@ export default function AssociateDriver({
     }));
   };
 
-  const associateDriver = async () => {
+  const associateAppUser = async () => {
     setLoading(true);
-
-    const clientRef = doc(db, "clients", driver.id);
-      try {
-        moveAllSchedulesFromDriver(driver.id, workshop);
-        const vehicles = await getAllVehiclesFromDriver(driver.id);
-        if (vehicles) {
-          vehicles.forEach((vehicle: Vehicle) => {
-            moveAllMaintenancesFromVehicle(vehicle.id, workshop);
-          });
-        }
-        await updateDoc(clientRef, { workshops: workshop });
-        setDrivers((prevDrivers) =>
-          prevDrivers.map((d) =>
-            d.id === driver.id ? { ...d, workshops: workshop } : d
-          )
-        );
-        setWorkshop("");
-        onOpenChange();
-      } catch (error) {
-        toast.error("Erro ao associar motorista a oficina", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "dark",
-          transition: Zoom,
-        });
-      } finally {
-        setLoading(false);
-      }
-  
+    const appUserRef = doc(db, "appUsers", appUser.id);
+    try {
+      await updateDoc(appUserRef, { preferred_workshop: workshop });
+      setAppUsers((prevAppUser) =>
+        prevAppUser.map((a) =>
+          a.id === appUser.id ? { ...a, preferred_workshop: workshop } : a
+        )
+      );
+      setWorkshop("");
+      onOpenChange();
+    } catch (error) {
+      toast.error("Erro ao associar motorista a oficina", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
   return (
     <>
@@ -188,7 +180,7 @@ export default function AssociateDriver({
                   color="success"
                   disabled={loading}
                   className={`${styles.modalButton}`}
-                  onClick={associateDriver}
+                  onClick={associateAppUser}
                 >
                   {workshop === "" ? "Desassociar" : "Associar"}
                 </Button>
