@@ -43,7 +43,7 @@ export default function UserModal({ setUsers }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const filteredRoleLabels =
     currentUser?.role === "master"
@@ -243,10 +243,10 @@ export default function UserModal({ setUsers }: Props) {
                         }}
                         label="Workshop"
                         value={workshopId}
-                        onChange={(e) => setWorkshopId(e.target.value)}
+                        onChange={(e) => { setWorkshopId(e.target.value) }}
                       >
-                        {workshops?.map((workshop, index) => (
-                          <SelectItem key={index} value={workshop.id}>
+                        {workshops?.map((workshop) => (
+                          <SelectItem key={workshop.id} value={workshop.id}>
                             {workshop.fantasy_name}
                           </SelectItem>
                         ))}
