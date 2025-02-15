@@ -10,7 +10,7 @@ import {
 import clsx from "clsx";
 import styles from "../../styles.module.scss";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/contexts/auth.context";
 import {
   updateDoc,
@@ -45,6 +45,22 @@ export default function EraseModal({ id, type, name, state }: Props) {
   const { db, currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
+  const [showTrash, setShowTrash] = useState(true);
+
+  useEffect(() => {
+    if (type === DeleteModalTypes.vehicle) {
+      const fetchVehicle = async () => {
+        const vehicleRef = doc(db, "vehicles", id);
+        const vehicleData = (await getDoc(vehicleRef)).data();
+
+        if (vehicleData?.owner === process.env.NEXT_PUBLIC_VIRTUAL_DRIVER_ID) {
+          setShowTrash(false);
+        }
+      };
+
+      fetchVehicle();
+    }
+  }, []);
 
   const moveAllSchedulesFromDriver = async (driverId: string) => {
     const schedulesRef = collection(db, "schedules");
@@ -182,6 +198,45 @@ export default function EraseModal({ id, type, name, state }: Props) {
     }
   };
 
+  const moveAllSchedulesFromVehicle = async (
+    vehicleId: string,
+    driverId: string,
+    maintenanceId: string
+  ) => {
+    const schedulesRef = collection(db, "schedules");
+    const q = query(schedulesRef, where("vehicle", "==", vehicleId), where("maintenance", "==", maintenanceId));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return;
+    }
+
+    querySnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        driver: driverId,
+        maintenance: maintenanceId,
+      });
+    });
+  };
+
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    const maintenancesRef = collection(db, "maintenances");
+    const q = query(maintenancesRef, where("car_id", "==", vehicleId));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
+      moveAllSchedulesFromVehicle(vehicleId, process.env.NEXT_PUBLIC_VIRTUAL_DRIVER_ID!, doc.id);
+    });
+
+    const vehicleRef = doc(db, "vehicles", vehicleId);
+    await updateDoc(vehicleRef, {
+      owner: process.env.NEXT_PUBLIC_VIRTUAL_DRIVER_ID,
+    });
+  };
+
   const deleteItem = async () => {
     setLoading(true);
 
@@ -196,6 +251,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
         break;
       case DeleteModalTypes.vehicle:
         collectionName = "vehicles";
+        additionalAction = async () => await handleDeleteVehicle(id);
         break;
       case DeleteModalTypes.user:
         collectionName = "users";
@@ -271,7 +327,10 @@ export default function EraseModal({ id, type, name, state }: Props) {
         }
       } else {
         state((prevState) => prevState.filter((item) => item.id !== id));
-        if (type !== DeleteModalTypes.driver) {
+        if (
+          type !== DeleteModalTypes.driver &&
+          type !== DeleteModalTypes.vehicle
+        ) {
           await deleteDoc(docRef);
         }
         toast.success("Item excluído com sucesso!", {
@@ -322,11 +381,13 @@ export default function EraseModal({ id, type, name, state }: Props) {
   };
 
   return (
-    <>
-      <Button className={styles.deleteBtn} onClick={onOpen}>
-        <FaRegTrashAlt />
-        {type === DeleteModalTypes.appUser ? "Desassociar" : "Excluir"}
-      </Button>
+    <> 
+      {showTrash && (
+        <Button className={styles.deleteBtn} onClick={onOpen}>
+          <FaRegTrashAlt />
+          {type === DeleteModalTypes.appUser ? "Desassociar" : "Excluir"}
+        </Button>
+      )}
 
       <Modal
         isOpen={isOpen}
