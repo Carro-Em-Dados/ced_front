@@ -56,7 +56,7 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   const [loading, setLoading] = useState(false);
 
   const addVehicle = async () => {
-    if (!manufacturer || !carModel || !year || !initialKm || !licensePlate) {
+    if (!manufacturer || !carModel || !year || initialKm || !licensePlate) {
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
