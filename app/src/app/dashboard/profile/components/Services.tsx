@@ -8,9 +8,9 @@ import styles from "../../register/styles.module.scss";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Role } from "@/types/enums/role.enum";
 
-interface Props {}
+interface ServicesProps { isPremium: boolean; }
 
-export default function Services({}: Props) {
+export default function Services({ isPremium }: ServicesProps) {
   const { db, currentUser, currentWorkshop } = useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [services, setServices] = useState<Service[]>([]);
@@ -98,7 +98,7 @@ export default function Services({}: Props) {
   return (
     <div className="flex flex-col gap-5 mx-24 w-full">
       <div className="flex flex-col text-white">
-        <p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">Parametrização do contrato básico</p>
+        <p className="before:bg-[#69DF79] before:w-1 before:h-3 before:inline-block before:mr-2">{`Parametrização do contrato ${isPremium ? "" : " básico"}`}</p>
       </div>
       <div className="w-full flex flex-col gap-2">
         {services.map((service, index) => (
