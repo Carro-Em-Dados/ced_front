@@ -510,8 +510,8 @@ const VehicleStats = ({
                 limit={vehicle.battery_tension}
               />
               <OilCard
-                oilLevel={reading.oil_pressure}
-                limit={vehicle.oil_pressure}
+                oilLevel={reading.tank_level}
+                limit={vehicle.tank_level}
               />
               <RpmCard rpm={reading.rpm} limit={vehicle.rpm} />
               <SpeedCard speed={reading.speed} limit={vehicle.speed} />
