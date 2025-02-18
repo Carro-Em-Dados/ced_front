@@ -117,14 +117,14 @@ export default function DriverCard({
                 setDrivers={setDrivers}
                 workshops={workshops}
               />
-            ) : (
+            ) : ((driver.id !== process.env.NEXT_PUBLIC_VIRTUAL_DRIVER_ID) && (
               <EraseModal
                 type={DeleteModalTypes.driver}
                 name={driver.name}
                 id={driver.id}
                 state={setDrivers}
               />
-            )}
+            ))}
           </div>
           <div className={styles.addVehicleBtnWrap}>
             <VehicleModal ownerId={driver.id} setVehicles={setVehicles} />
