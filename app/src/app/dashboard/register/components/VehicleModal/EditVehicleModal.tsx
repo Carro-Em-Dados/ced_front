@@ -119,7 +119,7 @@ export default function EditVehicleModal({ vehicle, setVehicles }: Props) {
   };
 
   const updateVehicle = async () => {
-    if (!manufacturer || !carModel || !year || !initialKm || !licensePlate) {
+    if (!manufacturer || !carModel || !year || !licensePlate) {
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
