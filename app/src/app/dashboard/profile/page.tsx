@@ -85,7 +85,7 @@ const Profile = () => {
 
   return (
     <div className={styles.page}>
-      <Navbar isPremium={isPremium!} />
+      <Navbar isPremium={isPremium!} selectedWorkshop={workshop?.id} />
       <div className={styles.pageWrap}>
         <div className={styles.header}>
           <div className={styles.titleContainer}>
