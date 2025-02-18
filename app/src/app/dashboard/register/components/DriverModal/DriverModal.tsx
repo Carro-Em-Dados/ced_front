@@ -221,7 +221,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
         <MdLibraryAdd className={styles.addIcon} />
         Adicionar motorista
       </Button>
-      <Modal isOpen={isOpen} onClose={handleClose} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
+      {isOpen && (<Modal isOpen={isOpen} onClose={handleClose} onOpenChange={onOpenChange} className={styles.modal} size="2xl" scrollBehavior="outside">
         <ModalContent>
           {(onClose) => (
             <>
@@ -394,7 +394,7 @@ export default function DriverModal({ workshop, workshops, setDrivers, drivers }
             </>
           )}
         </ModalContent>
-      </Modal>
+      </Modal>)}
     </>
   );
 }
