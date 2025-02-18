@@ -39,9 +39,9 @@ import ButtonExport from "@/components/ButtonExport";
 import ButtonSend from "@/components/ButtonSend";
 import { Workshop } from "@/interfaces/workshop.type";
 import AdsModal from "@/components/AdsModal";
-import { BsFillMegaphoneFill } from "react-icons/bs";
 import { Role } from "@/types/enums/role.enum";
 import { getTotalKm } from "@/functions/kmTotal";
+import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
 interface DashboardProps {
   selectedWorkshop: string;
@@ -76,7 +76,7 @@ export default function Dashboard({
   workshopName,
   isPremium,
   isOpen,
-  setIsOpen
+  setIsOpen,
 }: DashboardProps) {
   const { db } = useContext(AuthContext);
   const [maintenances, setMaintenances] = useState<MaintenanceData[]>([]);
@@ -661,24 +661,26 @@ export default function Dashboard({
     let overdueCount = 0;
     let criticalCount = 0;
 
-    maintenances.forEach((maintenance) => {
-      switch (maintenance.status) {
-        case "Ok":
-          okCount++;
-          break;
-        case "Próxima":
-          upcomingCount++;
-          break;
-        case "Vencida":
-          overdueCount++;
-          break;
-        case "Crítica":
-          criticalCount++;
-          break;
-        default:
-          break;
-      }
-    });
+    if (maintenances.length > 0) {
+      maintenances.forEach((maintenance) => {
+        switch (maintenance.status) {
+          case "Ok":
+            okCount++;
+            break;
+          case "Próxima":
+            upcomingCount++;
+            break;
+          case "Vencida":
+            overdueCount++;
+            break;
+          case "Crítica":
+            criticalCount++;
+            break;
+          default:
+            break;
+        }
+      });
+    }
 
     return {
       ok: okCount,
@@ -687,8 +689,6 @@ export default function Dashboard({
       critical: criticalCount,
     };
   };
-
-  
 
   useEffect(() => {
     setMaintenances([]);
@@ -927,11 +927,10 @@ export default function Dashboard({
                   </Select>
                   {filterType === "vehicles" ? (
                     <div className="flex flex-row gap-5 mt-5">
-                      <Autocomplete
-                        label="Marca"
-                        variant="bordered"
-                        className="dark"
-                        defaultItems={[
+                      <GeneralAutocomplete
+                        placeholder="Marca"
+                        canType={true}
+                        options={[
                           { value: "none", label: "Nenhum" },
                           ...Object.keys(filterOptions.brand.options).map(
                             (brand) => ({
@@ -940,32 +939,25 @@ export default function Dashboard({
                             })
                           ),
                         ]}
-                        onKeyDown={(e: any) => e.continuePropagation()}
-                        onSelectionChange={(key) => {
-                          const keyString = key ? key.toString() : "none";
-                          setSelectedFilterOption({
-                            selected:
-                              keyString === "none" ? "" : keyString || "",
-                            type: keyString === "none" ? "" : "brand",
-                          });
-                        }}
-                        selectedKey={
+                        initialValue={
                           selectedFilterOption.type === "brand"
                             ? selectedFilterOption.selected
                             : "none"
                         }
-                      >
-                        {(item) => (
-                          <AutocompleteItem key={item.value} value={item.value}>
-                            {item.label}
-                          </AutocompleteItem>
-                        )}
-                      </Autocomplete>
-                      <Autocomplete
-                        label="Modelo"
-                        variant="bordered"
-                        className="dark"
-                        defaultItems={[
+                        onSelectionChange={(key) => {
+                          const keyString = key ? key.value : "none";
+                          const selectedFilter = {
+                            selected:
+                              keyString === "none" ? "" : keyString || "",
+                            type: keyString === "none" ? "" : "brand",
+                          };
+                          setSelectedFilterOption(selectedFilter);
+                        }}
+                      ></GeneralAutocomplete>
+                      <GeneralAutocomplete
+                        placeholder="Modelo"
+                        canType={true}
+                        options={[
                           { value: "none", label: "Nenhum" },
                           ...Object.keys(filterOptions.model.options).map(
                             (model) => ({
@@ -974,32 +966,24 @@ export default function Dashboard({
                             })
                           ),
                         ]}
-                        onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
-                          const keyString = key ? key.toString() : "none";
-                          setSelectedFilterOption({
+                          const keyString = key ? key.value : "none";
+                          const selectedFilter = {
                             selected:
                               keyString === "none" ? "" : keyString || "",
                             type: keyString === "none" ? "" : "model",
-                          });
+                          };
+                          setSelectedFilterOption(selectedFilter);
                         }}
-                        selectedKey={
+                        initialValue={
                           selectedFilterOption.type === "model"
                             ? selectedFilterOption.selected
                             : "none"
                         }
-                      >
-                        {(item) => (
-                          <AutocompleteItem key={item.value} value={item.value}>
-                            {item.label}
-                          </AutocompleteItem>
-                        )}
-                      </Autocomplete>
-                      <Autocomplete
-                        label="Ano"
-                        variant="bordered"
-                        className="dark"
-                        defaultItems={[
+                      ></GeneralAutocomplete>
+                      <GeneralAutocomplete
+                        placeholder="Ano"
+                        options={[
                           { value: "none", label: "Nenhum" },
                           ...Object.keys(filterOptions.year.options).map(
                             (year) => ({
@@ -1008,27 +992,21 @@ export default function Dashboard({
                             })
                           ),
                         ]}
-                        onKeyDown={(e: any) => e.continuePropagation()}
                         onSelectionChange={(key) => {
-                          const keyString = key ? key.toString() : "none";
-                          setSelectedFilterOption({
+                          const keyString = key ? key.value : "none";
+                          const selectedFilter = {
                             selected:
                               keyString === "none" ? "" : keyString || "",
                             type: keyString === "none" ? "" : "year",
-                          });
+                          };
+                          setSelectedFilterOption(selectedFilter);
                         }}
-                        selectedKey={
+                        initialValue={
                           selectedFilterOption.type === "year"
                             ? selectedFilterOption.selected
                             : "none"
                         }
-                      >
-                        {(item) => (
-                          <AutocompleteItem key={item.value} value={item.value}>
-                            {item.label}
-                          </AutocompleteItem>
-                        )}
-                      </Autocomplete>
+                      ></GeneralAutocomplete>
                     </div>
                   ) : filterType === "data" ? (
                     <>
@@ -1066,7 +1044,7 @@ export default function Dashboard({
                     ? countMaintenanceStatuses(
                         filterOptions[selectedFilterOption.type]?.options[
                           selectedFilterOption.selected
-                        ].maintenances || {}
+                        ]?.maintenances || {}
                       )
                     : countMaintenanceStatuses(maintenancesChart)
                 }
@@ -1106,7 +1084,7 @@ export default function Dashboard({
                     filterOptions !== undefined
                       ? filterOptions[selectedFilterOption.type]?.options[
                           selectedFilterOption.selected
-                        ].vehiclesCount
+                        ]?.vehiclesCount
                       : totalVehicles}
                   </h4>
                 </div>
@@ -1120,7 +1098,7 @@ export default function Dashboard({
                     filterOptions !== undefined
                       ? filterOptions[selectedFilterOption.type]?.options[
                           selectedFilterOption.selected
-                        ].totalKm
+                        ]?.totalKm
                       : counter !== ""
                       ? filterSum
                       : totalKM}
