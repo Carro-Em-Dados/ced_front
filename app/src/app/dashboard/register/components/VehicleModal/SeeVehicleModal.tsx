@@ -42,28 +42,22 @@ import { ShadAutocomplete } from "@/components/ShadAutocomplete";
 interface Props {
   vehicle: Vehicle;
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
-  onClose: () => void;
-  setIsOpen: (isOpen: boolean) => void;
-  isOpen: boolean;
   isPremium: boolean;
 }
 
 export default function SeeVehicleModal({
   vehicle,
   setVehicles,
-  onClose,
-  setIsOpen,
-  isOpen,
-  isPremium
+  isPremium,
 }: Props) {
-  const { db, currentWorkshop, currentUser } =
-    useContext(AuthContext);
+  const { db, currentWorkshop, currentUser } = useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [maintenancesDeleting, setMaintenancesDeleting] = useState<
     Maintenance[]
   >([]);
   const [alarmsLeft, setAlarmsLeft] = useState<number>(0);
+  const [isOpen, setIsOpen] = useState(false);
 
   const workshop =
     currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
@@ -90,7 +84,6 @@ export default function SeeVehicleModal({
         } as Maintenance);
       });
       setMaintenances(maintenanceData);
-      console.log("maintenances:", maintenanceData);
     } catch (error) {
       toast.error("Erro ao buscar manutenções", {
         position: "bottom-right",
@@ -270,7 +263,7 @@ export default function SeeVehicleModal({
         theme: "dark",
         transition: Zoom,
       });
-      onClose();
+      setIsOpen(false);
     } catch (error) {
       toast.error("Erro ao atualizar manutenções", {
         position: "bottom-right",
@@ -296,213 +289,219 @@ export default function SeeVehicleModal({
       <Button
         color="success"
         className={styles.modalButton}
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+        }}
       >
         Configurações
       </Button>
-      <Modal
-        isOpen={isOpen}
-        className={styles.modal}
-        onClose={onClose}
-        size="3xl"
-        scrollBehavior="outside"
-      >
-        <ModalContent>
-          <>
-            <ModalHeader
-              className={clsx("flex flex-col gap-1", styles.modalTitle)}
-            >
-              {vehicle.car_model} - {vehicle.license_plate}
-            </ModalHeader>
-            <ModalBody className="text-white">
-              <Tabs
-                aria-label="config-tabs"
-                className={`${styles.tabs} !text-xs !m-0`}
+      {isOpen && (
+        <Modal
+          isOpen={isOpen}
+          className={styles.modal}
+          onClose={() => setIsOpen(false)}
+          size="3xl"
+          scrollBehavior="outside"
+        >
+          <ModalContent>
+            <>
+              <ModalHeader
+                className={clsx("flex flex-col gap-1", styles.modalTitle)}
               >
-                <Tab
-                  className={`${styles.tabButton} !p-0`}
-                  key="info"
-                  title="Informações"
+                {vehicle.car_model} - {vehicle.license_plate}
+              </ModalHeader>
+              <ModalBody className="text-white">
+                <Tabs
+                  aria-label="config-tabs"
+                  className={`${styles.tabs} !text-xs !m-0`}
                 >
-                  <div className="flex flex-col gap-2 text-sm">
-                    <p>
-                      Placa: <span>{vehicle.license_plate}</span>
-                    </p>
-                    <p>
-                      Marca: <span>{vehicle.car_model}</span>
-                    </p>
-                    <p>
-                      Ano de fabricação: <span>{vehicle.year}</span>
-                    </p>
-                    <p>
-                      Chassi: <span>{vehicle.vin}</span>
-                    </p>
-                    <p>
-                      Odômetro: <span>{vehicle.initial_km}</span>
-                    </p>
-                    <div className="flex gap-2 mt-5">
-                      <EraseModal
-                        id={vehicle.id}
-                        type={DeleteModalTypes.vehicle}
-                        name={vehicle.car_model}
-                        state={setVehicles}
-                      />
-                      <EditVehicleModal
-                        vehicle={vehicle}
-                        setVehicles={setVehicles}
-                      />
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  className={`${styles.tabButton} !p-0`}
-                  key="alarms"
-                  title="Manutenções"
-                >
-                  <div className="flex flex-col gap-5 justify-between w-full">
-                    {maintenances?.map((maintenance, index) => (
-                      <div
-                        className="grid grid-cols-12 gap-2 items-center"
-                        key={`${maintenance.id} ${index}`}
-                      >
-                        <ShadAutocomplete
-                          placeholder="Serviço..."
-                          items={defaultMaintenance.map((m) => ({
-                            value: m,
-                            label: m,
-                          }))}
-                          selectedValue={maintenance.service}
-                          onSelectedValueChange={(value) =>
-                            updateMaintenance(index, "service", value?.value)
-                          }
-                          className="col-span-5"
-                          allowCustomValue={!!isPremium}
-                        />
-                        <Input
-                          type="number"
-                          min={0}
-                          label="KM Limite"
-                          value={maintenance.kmLimit.toString()}
-                          onChange={(e) =>
-                            updateMaintenance(
-                              index,
-                              "kmLimit",
-                              Number(e.target.value)
-                            )
-                          }
-                          variant="bordered"
-                          className="dark col-span-2"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: [
-                              "border border-2 !border-white focus:border-white",
-                            ],
-                          }}
-                        />
-                        <Input
-                          type="date"
-                          min={0}
-                          label="Data Limite"
-                          value={
-                            maintenance?.dateLimit instanceof Date
-                              ? maintenance.dateLimit
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (!value)
-                              return updateMaintenance(
-                                index,
-                                "dateLimit",
-                                null
-                              );
-                            const date = new Date(value + "T00:00:00");
-                            if (date.toString() === "Invalid Date") return;
-                            updateMaintenance(index, "dateLimit", date);
-                          }}
-                          variant="bordered"
-                          className="dark col-span-2"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: [
-                              "border border-2 !border-#373131 focus:border-white",
-                            ],
-                          }}
-                        />
-                        <Input
-                          type="number"
-                          min={0}
-                          label="Valor"
-                          value={maintenance.price.toString()}
-                          onChange={(e) =>
-                            updateMaintenance(
-                              index,
-                              "price",
-                              Number(e.target.value)
-                            )
-                          }
-                          variant="bordered"
-                          className="dark col-span-2"
-                          classNames={{
-                            input: ["bg-transparent text-white"],
-                            inputWrapper: [
-                              "border border-2 !border-white focus:border-white",
-                            ],
-                          }}
-                          startContent={
-                            <div className="pointer-events-none flex items-center">
-                              <span className="text-default-400 text-small">
-                                R$
-                              </span>
-                            </div>
-                          }
-                        />
-                        {currentUser?.role === Role.MASTER && (
-                          <button
-                            className="col-span-1 h-full w-auto flex items-center justify-center p-2 rounded-full hover:bg-white/10"
-                            onClick={() => deleteMaintenance(index)}
-                          >
-                            <FaRegTrashCan />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      className={clsx(styles.addVehicleBtn, "w-fit")}
-                      onClick={addMaintenance}
-                    >
-                      <FaRegEdit /> Adicionar manutenção
-                    </Button>
-                    <div className="flex flex-row justify-between items-center">
-                      <p className="text-sm">{alarmsLeft} alarmes restantes</p>
-                      <Button
-                        type="button"
-                        className={styles.addVehicleBtn}
-                        onClick={saveMaintenancesOnDb}
-                      >
-                        Salvar
-                      </Button>
-                    </div>
-                  </div>
-                </Tab>
-                {(currentUser?.role === Role.MASTER ||
-                  isPremium) && (
                   <Tab
                     className={`${styles.tabButton} !p-0`}
-                    key="ecu"
-                    title="Limites ECU"
+                    key="info"
+                    title="Informações"
                   >
-                    <EcuLimits id={vehicle.id} />
+                    <div className="flex flex-col gap-2 text-sm">
+                      <p>
+                        Placa: <span>{vehicle.license_plate}</span>
+                      </p>
+                      <p>
+                        Marca: <span>{vehicle.car_model}</span>
+                      </p>
+                      <p>
+                        Ano de fabricação: <span>{vehicle.year}</span>
+                      </p>
+                      <p>
+                        Chassi: <span>{vehicle.vin}</span>
+                      </p>
+                      <p>
+                        Odômetro: <span>{vehicle.initial_km}</span>
+                      </p>
+                      <div className="flex gap-2 mt-5">
+                        <EraseModal
+                          id={vehicle.id}
+                          type={DeleteModalTypes.vehicle}
+                          name={vehicle.car_model}
+                          state={setVehicles}
+                        />
+                        <EditVehicleModal
+                          vehicle={vehicle}
+                          setVehicles={setVehicles}
+                        />
+                      </div>
+                    </div>
                   </Tab>
-                )}
-              </Tabs>
-            </ModalBody>
-          </>
-        </ModalContent>
-      </Modal>
+                  <Tab
+                    className={`${styles.tabButton} !p-0`}
+                    key="alarms"
+                    title="Manutenções"
+                  >
+                    <div className="flex flex-col gap-5 justify-between w-full">
+                      {maintenances?.map((maintenance, index) => (
+                        <div
+                          className="grid grid-cols-12 gap-2 items-center"
+                          key={`${maintenance.id} ${index}`}
+                        >
+                          <ShadAutocomplete
+                            placeholder="Serviço..."
+                            items={defaultMaintenance.map((m) => ({
+                              value: m,
+                              label: m,
+                            }))}
+                            selectedValue={maintenance.service}
+                            onSelectedValueChange={(value) =>
+                              updateMaintenance(index, "service", value?.value)
+                            }
+                            className="col-span-5"
+                            allowCustomValue={!!isPremium}
+                          />
+                          <Input
+                            type="number"
+                            min={0}
+                            label="KM Limite"
+                            value={maintenance.kmLimit.toString()}
+                            onChange={(e) =>
+                              updateMaintenance(
+                                index,
+                                "kmLimit",
+                                Number(e.target.value)
+                              )
+                            }
+                            variant="bordered"
+                            className="dark col-span-2"
+                            classNames={{
+                              input: ["bg-transparent text-white"],
+                              inputWrapper: [
+                                "border border-2 !border-white focus:border-white",
+                              ],
+                            }}
+                          />
+                          <Input
+                            type="date"
+                            min={0}
+                            label="Data Limite"
+                            value={
+                              maintenance?.dateLimit instanceof Date
+                                ? maintenance.dateLimit
+                                    .toISOString()
+                                    .split("T")[0]
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value)
+                                return updateMaintenance(
+                                  index,
+                                  "dateLimit",
+                                  null
+                                );
+                              const date = new Date(value + "T00:00:00");
+                              if (date.toString() === "Invalid Date") return;
+                              updateMaintenance(index, "dateLimit", date);
+                            }}
+                            variant="bordered"
+                            className="dark col-span-2"
+                            classNames={{
+                              input: ["bg-transparent text-white"],
+                              inputWrapper: [
+                                "border border-2 !border-#373131 focus:border-white",
+                              ],
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            min={0}
+                            label="Valor"
+                            value={maintenance.price.toString()}
+                            onChange={(e) =>
+                              updateMaintenance(
+                                index,
+                                "price",
+                                Number(e.target.value)
+                              )
+                            }
+                            variant="bordered"
+                            className="dark col-span-2"
+                            classNames={{
+                              input: ["bg-transparent text-white"],
+                              inputWrapper: [
+                                "border border-2 !border-white focus:border-white",
+                              ],
+                            }}
+                            startContent={
+                              <div className="pointer-events-none flex items-center">
+                                <span className="text-default-400 text-small">
+                                  R$
+                                </span>
+                              </div>
+                            }
+                          />
+                          {currentUser?.role === Role.MASTER && (
+                            <button
+                              className="col-span-1 h-full w-auto flex items-center justify-center p-2 rounded-full hover:bg-white/10"
+                              onClick={() => deleteMaintenance(index)}
+                            >
+                              <FaRegTrashCan />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        className={clsx(styles.addVehicleBtn, "w-fit")}
+                        onClick={addMaintenance}
+                      >
+                        <FaRegEdit /> Adicionar manutenção
+                      </Button>
+                      <div className="flex flex-row justify-between items-center">
+                        <p className="text-sm">
+                          {alarmsLeft} alarmes restantes
+                        </p>
+                        <Button
+                          type="button"
+                          className={styles.addVehicleBtn}
+                          onClick={saveMaintenancesOnDb}
+                        >
+                          Salvar
+                        </Button>
+                      </div>
+                    </div>
+                  </Tab>
+                  {(currentUser?.role === Role.MASTER || isPremium) && (
+                    <Tab
+                      className={`${styles.tabButton} !p-0`}
+                      key="ecu"
+                      title="Limites ECU"
+                    >
+                      <EcuLimits id={vehicle.id} />
+                    </Tab>
+                  )}
+                </Tabs>
+              </ModalBody>
+            </>
+          </ModalContent>
+        </Modal>
+      )}
+      ;
     </>
   );
 }

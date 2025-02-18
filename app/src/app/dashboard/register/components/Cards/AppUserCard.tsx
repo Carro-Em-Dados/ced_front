@@ -34,7 +34,6 @@ export default function AppUserCard({
 }: Props) {
   const AppUsers = () => {
     const { currentUser } = useContext(AuthContext);
-    const [isOpen, setIsOpen] = useState(false);
 
     return (
       <div className={styles.contentContainer}>
@@ -75,9 +74,6 @@ export default function AppUserCard({
                       <SeeVehicleModal
                         vehicle={vehicle}
                         setVehicles={setVehicles}
-                        onClose={() => setIsOpen(false)}
-                        setIsOpen={setIsOpen}
-                        isOpen={isOpen}
                         isPremium={isPremium}
                       />
                     </div>

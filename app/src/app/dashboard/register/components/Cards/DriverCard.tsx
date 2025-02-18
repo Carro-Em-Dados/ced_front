@@ -32,7 +32,6 @@ export default function DriverCard({
   workshops,
   isPremium
 }: Props) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const { currentUser } = useContext(AuthContext);
 
   const Drivers = () => {
@@ -101,9 +100,6 @@ export default function DriverCard({
                       <SeeVehicleModal
                         vehicle={vehicle}
                         setVehicles={setVehicles}
-                        onClose={() => setIsOpen(false)}
-                        setIsOpen={setIsOpen}
-                        isOpen={isOpen}
                         isPremium={isPremium}
                       />
                     </div>
