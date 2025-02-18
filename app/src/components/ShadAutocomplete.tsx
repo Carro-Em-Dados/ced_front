@@ -125,7 +125,7 @@ export function ShadAutocomplete<T extends string>({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full mt-1 w-full border bg-gradient-to-b from-white via-slate-200 to-slate-500 rounded-xl shadow-lg max-h-60 overflow-y-auto z-10"
+          className="absolute top-full mt-1 w-full border bg-gradient-to-b from-white via-slate-200 to-slate-500 rounded-xl shadow-lg max-h-60 overflow-y-auto z-20"
         >
           <div className="flex flex-col space-y-1 max-h-60 overflow-y-auto text-black">
             {isLoading ? (
