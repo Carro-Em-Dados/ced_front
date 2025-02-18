@@ -216,6 +216,7 @@ export function WorkshopProvider({ children }: WorkshopProviderProps) {
             setWorkshopInView((options || workshopOptions).find((w) => w.id === key?.value));
           })
         }
+        canClose={false}
       />
     );
   };
