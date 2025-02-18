@@ -8,11 +8,10 @@ interface GeneralAutocompleteProps {
   defaultItems?: any[];
   isDisabled?: boolean;
   canType?: boolean;
+  canClose?: boolean;
 }
 
-const GeneralAutocomplete: React.FC<
-  GeneralAutocompleteProps
-> = ({
+const GeneralAutocomplete: React.FC<GeneralAutocompleteProps> = ({
   options,
   initialValue,
   placeholder = "Selecione uma opção...",
@@ -20,14 +19,16 @@ const GeneralAutocomplete: React.FC<
   defaultItems = [],
   isDisabled = false,
   canType = false,
+  canClose = true
 }) => {
   const [filteredOptions, setFilteredOptions] = useState<any[]>([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [inputValue, setInputValue] = useState(initialValue);
+  const items = options ? options : defaultItems;
 
   useEffect(() => {
     setFilteredOptions(defaultItems.length > 0 ? defaultItems : options);
-  }, [options, defaultItems]);
+  }, [items]);
 
   useEffect(() => {
     const selectedOption = options.find(
@@ -35,7 +36,7 @@ const GeneralAutocomplete: React.FC<
     );
     if (selectedOption) {
       setInputValue(selectedOption.label);
-    } else {
+    } else if (!canType) {
       setInputValue("");
     }
   }, [initialValue, options, defaultItems]);
@@ -58,11 +59,11 @@ const GeneralAutocomplete: React.FC<
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    // setFilteredOptions(
-    //   options.filter((option) =>
-    //     option.label.toLowerCase().includes(value.toLowerCase())
-    //   )
-    // );
+    setFilteredOptions(
+      options.filter((option) =>
+        option.label.toLowerCase().includes(value.toLowerCase())
+      )
+    );
   };
 
   return (
@@ -70,7 +71,9 @@ const GeneralAutocomplete: React.FC<
       <div className="relative">
         <input
           type="text"
-          className={`w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10 ${ isDisabled ? "cursor-not-allowed" : "cursor-text"}`}
+          className={`w-full border bg-transparent border-gray-300 rounded-xl p-2 outline-none text-white focus:border-gray-500 focus:ring-2 focus:ring-gray-500 pr-10 ${
+            isDisabled ? "cursor-not-allowed" : "cursor-text"
+          }`}
           placeholder={placeholder}
           onFocus={() => {
             if (!isDisabled) {
@@ -86,7 +89,7 @@ const GeneralAutocomplete: React.FC<
             }
           }}
         />
-        {inputValue && !isDisabled && (
+        {inputValue && !isDisabled && canClose && (
           <button
             onClick={handleClear}
             className="absolute inset-y-0 right-2 flex items-center text-gray-100 hover:text-gray-300 focus:outline-none"
@@ -110,7 +113,9 @@ const GeneralAutocomplete: React.FC<
               </li>
             ))
           ) : (
-            <li className="p-2 text-gray-500 rounded-xl">Nenhuma opção encontrada</li>
+            <li className="p-2 text-gray-500 rounded-xl">
+              Nenhuma opção encontrada
+            </li>
           )}
         </ul>
       )}
