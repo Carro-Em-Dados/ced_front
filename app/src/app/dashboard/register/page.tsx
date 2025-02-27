@@ -219,7 +219,7 @@ const Register = () => {
           workshops={workshops}
           workshop={workshop}
           setDrivers={setDrivers}
-          drivers={drivers}
+          drivers={currentUser?.role === Role.MASTER ? drivers : getDriversByWorkshop(workshop?.id || "")}
         />
       ) : tab === "workshops" ? (
         [Role.MASTER, Role.ORGANIZATION].includes(

@@ -152,6 +152,10 @@ export default function DriverModal({
         return;
       }
 
+      const workshopOfDriver = (currentUser?.role === Role.ORGANIZATION || currentUser?.role === Role.USER)
+        ? workshop?.id
+        : selectedWorkshop;
+
       let driver = {
         name: name,
         age: age,
@@ -164,17 +168,14 @@ export default function DriverModal({
         phone_commercial: phoneCom,
         role: "client",
         register: register,
-        workshops: [Role.MASTER, Role.ORGANIZATION].includes(
-          currentUser?.role as Role
-        )
-          ? selectedWorkshop
-          : workshop?.id || "",
+        workshops: workshopOfDriver,
       };
 
       const docRef = await addDoc(collection(db, "clients"), driver);
       setDrivers((drivers) => {
         return [...drivers, { ...driver, id: docRef.id }];
       });
+      handleClose();
       toast.success("Motorista adicionado com sucesso", {
         position: "bottom-right",
         autoClose: 5000,
@@ -186,7 +187,6 @@ export default function DriverModal({
         theme: "dark",
         transition: Zoom,
       });
-      handleClose();
     } catch (error) {
       toast.error("Erro ao adicionar motorista", {
         position: "bottom-right",
