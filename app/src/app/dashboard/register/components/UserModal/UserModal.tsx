@@ -72,7 +72,7 @@ export default function UserModal({ setUsers }: Props) {
         );
         const workshopsSnapshot = await getDocs(workshopsRef);
         const workshopsList = workshopsSnapshot.docs.map(
-          (doc) => ({ ...doc.data(), id: doc.id }  as Workshop)
+          (doc) => ({ ...doc.data(), id: doc.id } as Workshop)
         );
         setWorkshops(workshopsList);
       }
@@ -87,30 +87,47 @@ export default function UserModal({ setUsers }: Props) {
   }, [role]);
 
   const addUser = async () => {
-    setLoading(true);
-    try {
-      const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+    if (name && email && password && role) {
+      setLoading(true);
+      try {
+        const auth = getAuth();
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
-      const newUser = {
-        email: userCredential.user.email!,
-        name: name,
-        id: userCredential.user.uid,
-        role: role,
-        workshops: workshopId || "",
-      };
+        const newUser = {
+          email: userCredential.user.email!,
+          name: name,
+          id: userCredential.user.uid,
+          role: role,
+          workshops: workshopId || "",
+        };
 
-      const docRef = doc(db, "users", newUser.id);
-      await setDoc(docRef, newUser);
+        const docRef = doc(db, "users", newUser.id);
+        await setDoc(docRef, newUser);
 
-      setUsers((prevUsers) => [...prevUsers, newUser]);
-      handleClose();
-    } catch (error: any) {
-      toast.error("Erro ao adicionar usuário", {
+        setUsers((prevUsers) => [...prevUsers, newUser]);
+        handleClose();
+      } catch (error: any) {
+        console.error(error);
+        toast.error("Erro ao adicionar usuário", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Zoom,
+        });
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      toast.error("Preencha todos os campos", {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: true,
@@ -121,8 +138,6 @@ export default function UserModal({ setUsers }: Props) {
         theme: "dark",
         transition: Zoom,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -243,7 +258,9 @@ export default function UserModal({ setUsers }: Props) {
                         }}
                         label="Workshop"
                         value={workshopId}
-                        onChange={(e) => { setWorkshopId(e.target.value) }}
+                        onChange={(e) => {
+                          setWorkshopId(e.target.value);
+                        }}
                       >
                         {workshops?.map((workshop) => (
                           <SelectItem key={workshop.id} value={workshop.id}>
