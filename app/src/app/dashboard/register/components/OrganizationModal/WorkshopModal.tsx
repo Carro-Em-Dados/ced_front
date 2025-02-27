@@ -176,7 +176,7 @@ export default function WorkshopModal({ setWorkshops }: Props) {
     const currentFields = requiredFields[tab as keyof typeof requiredFields];
     for (const field of currentFields) {
       if (!field.value) {
-        toast.error(`Por favor, preencha todos os campos obrigatórios ${field.name}`, {
+        toast.error(`Por favor, preencha todos os campos obrigatórios: ${field.name}`, {
           position: "bottom-right",
           autoClose: 5000,
           hideProgressBar: true,

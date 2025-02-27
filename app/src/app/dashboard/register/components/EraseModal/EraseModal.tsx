@@ -125,7 +125,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
             await deleteDoc(docUser.ref);
           }
 
-          // transfer clients, appUsers, schedules and maintenances to the virtual workshop)
+          // transfer clients, appUsers, schedules and maintenances to the virtual workshop
           const maintenancesRef = query(
             collection(db, "maintenances"),
             where("workshop", "==", docWorkshop.id)
@@ -237,6 +237,75 @@ export default function EraseModal({ id, type, name, state }: Props) {
     });
   };
 
+  const handleDeleteWorkshop = async (workshopId: string) => {
+    const usersRef = query(
+      collection(db, "users"),
+      where("workshops", "==", workshopId), where("role", "==", Role.USER)
+    )
+
+    // transfer clients, appUsers, schedules and maintenances to the virtual workshop)
+    const maintenancesRef = query(
+      collection(db, "maintenances"),
+      where("workshop", "==", workshopId)
+    );
+    const schedulesRef = query(
+      collection(db, "schedules"),
+      where("workshop", "==", workshopId)
+    );
+    const clientsRef = query(
+      collection(db, "clients"),
+      where("workshops", "==", workshopId)
+    );
+    const appUsersRef = query(
+      collection(db, "appUsers"),
+      where("preferred_workshop", "==", workshopId)
+    );
+
+    const [
+      maintenancesSnapshot,
+      schedulesSnapshot,
+      clientsSnapshot,
+      appUsersSnapshot,
+      usersSnapshot
+    ] = await Promise.all([
+      getDocs(maintenancesRef),
+      getDocs(schedulesRef),
+      getDocs(clientsRef),
+      getDocs(appUsersRef),
+      getDocs(usersRef)
+    ]);
+
+    maintenancesSnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
+    });
+
+    schedulesSnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
+    });
+
+    clientsSnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        workshops: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
+    });
+
+    appUsersSnapshot.forEach(async (doc) => {
+      await updateDoc(doc.ref, {
+        preferred_workshop: process.env.NEXT_PUBLIC_VIRTUAL_WORKSHOP_ID,
+      });
+    });
+
+    usersSnapshot.forEach(async (doc) => {
+      await deleteUser(doc.id);
+      await deleteDoc(doc.ref);
+    });
+  
+  };
+
   const deleteItem = async () => {
     setLoading(true);
 
@@ -259,6 +328,7 @@ export default function EraseModal({ id, type, name, state }: Props) {
         break;
       case DeleteModalTypes.organization:
         collectionName = "workshops";
+        additionalAction = async () => await handleDeleteWorkshop(id);
         break;
       case DeleteModalTypes.appUser:
         collectionName = "appUsers";
