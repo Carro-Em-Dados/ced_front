@@ -127,7 +127,7 @@ export default function DriverCard({
             ))}
           </div>
           <div className={styles.addVehicleBtnWrap}>
-            <VehicleModal ownerId={driver.id} setVehicles={setVehicles} />
+            <VehicleModal ownerId={driver.id} workshops={workshops} vehicles={vehicles} setVehicles={setVehicles} />
           </div>
         </div>
       </div>

@@ -27,14 +27,21 @@ import { toast, Zoom } from "react-toastify";
 import BrandAutocomplete from "@/components/BrandAutocomplete";
 import ModelAutocomplete from "@/components/ModelAutocomplete";
 import YearAutocomplete from "@/components/YearAutocomplete";
+import { Workshop } from "@/interfaces/workshop.type";
+import { Role } from "@/types/enums/role.enum";
+import { WorkshopContext } from "@/contexts/workshop.context";
+import { Vehicle } from "@/interfaces/vehicle.type";
 
 interface Props {
   ownerId: string;
+  workshops: Workshop[];
+  vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-export default function VehicleModal({ ownerId, setVehicles }: Props) {
-  const { db } = useContext(AuthContext);
+export default function VehicleModal({ ownerId, workshops, vehicles, setVehicles }: Props) {
+  const { db, currentUser, currentWorkshop } = useContext(AuthContext);
+  const { workshopInView } = useContext(WorkshopContext);
   const [manufacturer, setManufacturer] = useState<string>("");
   const [carModel, setCarModel] = useState<string>("");
   const [year, setYear] = useState<string>("");
@@ -55,7 +62,23 @@ export default function VehicleModal({ ownerId, setVehicles }: Props) {
   });
   const [loading, setLoading] = useState(false);
 
+  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+
   const addVehicle = async () => {
+    if ((workshop?.contract?.maxVehiclesPerDriver ?? 0) <= vehicles.length) {
+      toast.error("Limite de veículos atingido", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Zoom,
+      });
+      return;
+    }
     if (!manufacturer || !carModel || !year || !licensePlate) {
       toast.error("Preencha todos os campos", {
         position: "bottom-right",
