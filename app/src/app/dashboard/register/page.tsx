@@ -201,9 +201,7 @@ const Register = () => {
 
   const getUsersFromWorkshops = () => {
     return users.filter(
-      (user) =>
-        user.role === Role.USER &&
-        (user.workshops === workshopInView?.id)
+      (user) => user.role === Role.USER && user.workshops === workshopInView?.id
     );
   };
 
@@ -219,14 +217,19 @@ const Register = () => {
           workshops={workshops}
           workshop={workshop}
           setDrivers={setDrivers}
-          drivers={currentUser?.role === Role.MASTER ? drivers : getDriversByWorkshop(workshop?.id || "")}
+          drivers={
+            currentUser?.role === Role.MASTER
+              ? drivers
+              : getDriversByWorkshop(workshop?.id || "")
+          }
         />
       ) : tab === "workshops" ? (
         [Role.MASTER, Role.ORGANIZATION].includes(
           currentUser?.role as Role
         ) && <WorkshopModal setWorkshops={setWorkshops} />
       ) : (
-        currentUser?.role !== "user" && tab === "users" && <UserModal setUsers={setUsers} />
+        currentUser?.role !== "user" &&
+        tab === "users" && <UserModal setUsers={setUsers} />
       )}
 
       <div className={styles.pageWrap}>
@@ -244,7 +247,9 @@ const Register = () => {
           Adicione motoristas e associe carros a eles abaixo.
         </p>
         <div className="py-2">
-          {currentUser?.role === Role.ORGANIZATION && tab !== "workshops" && <WorkshopsByOrg />}
+          {currentUser?.role === Role.ORGANIZATION && tab !== "workshops" && (
+            <WorkshopsByOrg />
+          )}
         </div>
         <Tabs
           aria-label="config-tabs"
