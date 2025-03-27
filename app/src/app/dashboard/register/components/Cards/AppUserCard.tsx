@@ -101,7 +101,7 @@ export default function AppUserCard({
             )}
           </div>
           <div className={styles.addVehicleBtnWrap}>
-            <VehicleModal ownerId={appUser.id} setVehicles={setVehicles} />
+            <VehicleModal ownerId={appUser.id} setVehicles={setVehicles} workshops={workshops} vehicles={vehicles} />
           </div>
         </div>
       </div>
