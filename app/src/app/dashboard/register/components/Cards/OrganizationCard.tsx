@@ -1,7 +1,7 @@
 "use client";
 import styles from "./DriverCard.module.scss";
 import { IoPersonCircle } from "react-icons/io5";
-import { Accordion, AccordionItem } from "@nextui-org/react";
+import { Accordion, AccordionItem, Button } from "@nextui-org/react";
 import clsx from "clsx";
 import EraseModal, { DeleteModalTypes } from "../EraseModal/EraseModal";
 import { Workshop } from "@/interfaces/workshop.type";
@@ -9,6 +9,10 @@ import EditOrganization from "../OrganizationModal/EditOrganizationModal";
 import AssociateWorkshop from "../OrganizationModal/AssociateWorkshop";
 import { User } from "@/interfaces/user.type";
 import AssociateUser from "../UserModal/AssociateUser";
+import PlanModal from "@/components/PlanModal";
+import { useContext, useState } from "react";
+import { AuthContext } from "@/contexts/auth.context";
+import { Role } from "@/types/enums/role.enum";
 
 interface Props {
   workshop: Workshop;
@@ -27,10 +31,9 @@ export default function OrganizationCard({
   setUsers,
   workshopUsers,
   isPremium,
-  workshops
+  workshops,
 }: Props) {
   const Content = () => {
-
     return (
       <div className={styles.contentContainer}>
         <div className={styles.cardsContainer}>
@@ -88,7 +91,7 @@ export default function OrganizationCard({
                       user={user}
                       setUsers={setUsers}
                       workshops={workshops}
-                      />
+                    />
                   </div>
                 ))}
               </div>
@@ -116,17 +119,37 @@ export default function OrganizationCard({
     );
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+  const { currentUser } = useContext(AuthContext);
+
   return (
     <div style={{ margin: "0.5em 0" }}>
       <Accordion className={styles.accordion}>
         <AccordionItem
           title={
-            <>
-              {workshop.fantasy_name}
-              <span className={isPremium ? "ml-2 border-2 border-green-400 p-1 rounded-full" : ""}>
-                {isPremium ? "Premium" : ""}
-              </span>
-            </>
+            <div className="flex flex-row justify-between">
+              <div className="flex flex-row justify-start items-center">
+                {workshop.fantasy_name}
+                <span
+                  className={
+                    isPremium
+                      ? "ml-2 border-2 border-green-400 p-1 rounded-full"
+                      : ""
+                  }
+                >
+                  {isPremium ? "Premium" : ""}
+                </span>
+              </div>
+
+              {currentUser?.role === Role.MASTER && (
+                <Button
+                  className="bg-gradient-to-br from-green-500 to-green-700 text-zinc-500"
+                  onClick={() => setIsOpen(true)}
+                >
+                  Atualizar Plano
+                </Button>
+              )}
+            </div>
           }
           className={styles.item}
           startContent={<IoPersonCircle className={styles.personIcon} />}
@@ -134,6 +157,13 @@ export default function OrganizationCard({
           <Content />
         </AccordionItem>
       </Accordion>
+      {isOpen && (
+        <PlanModal
+          onClose={() => setIsOpen(false)}
+          isOpen={isOpen}
+          workshopId={workshop.id}
+        />
+      )}
     </div>
   );
 }
