@@ -12,11 +12,13 @@ import clsx from "clsx";
 import styles from "../../../register/styles.module.scss";
 import DeleteEventModal from "./deleteEventModal";
 import { useState, useEffect, useContext } from "react";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
 import { updateGoogleEvent } from "@/services/google-calendar";
 import { Role } from "@/types/enums/role.enum";
+import { Driver } from "@/interfaces/driver.type";
+import { Service } from "@/interfaces/services.type";
 
 interface Props {
   selectedEvent: any;
@@ -38,6 +40,8 @@ export default function EditEventModal({
   const [end, setEnd] = useState("");
   const [note, setNote] = useState("");
   const { db, currentWorkshop, currentUser } = useContext(AuthContext);
+  const [driver, setDriver] = useState<string>("");
+  const [service, setService] = useState<string>("");
 
   const editSchedule = async () => {
     try {
@@ -105,14 +109,31 @@ export default function EditEventModal({
   };
 
   useEffect(() => {
-    if (selectedEvent) {
-      setMaintenanceDate(selectedEvent.start.toISOString().split("T")[0]);
-      setStart(
-        selectedEvent.start.toTimeString().split(" ")[0].substring(0, 5)
-      );
-      setEnd(selectedEvent.end.toTimeString().split(" ")[0].substring(0, 5));
-      setNote(selectedEvent.note);
-    }
+    const fetchEventData = async () => {
+      if (selectedEvent) {
+        setMaintenanceDate(selectedEvent.start.toISOString().split("T")[0]);
+        setStart(
+          selectedEvent.start.toTimeString().split(" ")[0].substring(0, 5)
+        );
+        setEnd(selectedEvent.end.toTimeString().split(" ")[0].substring(0, 5));
+        setNote(selectedEvent.note);
+
+        const driverRef = doc(db, "clients", selectedEvent.driver);
+        const driverSnap = await getDoc(driverRef);
+        if (driverSnap.exists()) setDriver((driverSnap.data() as Driver).name);
+
+        const appUserRef = doc(db, "appUsers", selectedEvent.driver);
+        const appUserSnap = await getDoc(appUserRef);
+        if (appUserSnap.exists())
+          setDriver((appUserSnap.data() as Driver).name);
+
+        const serviceRef = doc(db, "services", selectedEvent.service);
+        const serviceSnap = await getDoc(serviceRef);
+        if (serviceSnap.exists())
+          setService((serviceSnap.data() as Service).description);
+      }
+    };
+    fetchEventData();
   }, [selectedEvent]);
 
   const onClose = () => setOpen(false);
@@ -143,6 +164,16 @@ export default function EditEventModal({
             </ModalHeader>
             <ModalBody className="text-white">
               <div className={clsx(styles.form, "flex flex-col gap-4")}>
+                <div className="w-full flex flex-col gap-2">
+                  <p>
+                    <span className="font-semibold">Cliente: </span>
+                    {driver}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Serviço: </span>
+                    {service}
+                  </p>
+                </div>
                 <div className="flex flex-col gap-2">
                   <Input
                     label="Data de manutenção"

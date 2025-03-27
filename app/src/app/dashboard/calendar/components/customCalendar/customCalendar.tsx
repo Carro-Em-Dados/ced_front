@@ -35,6 +35,8 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
       end: Date;
       note: string;
       allDay: boolean;
+      driver: string;
+      vehicle: string;
     }[]
   >([]);
   const [maintenances, setMaintenances] = useState<MaintenanceWithName[]>([]);
@@ -77,6 +79,9 @@ export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) 
       note: doc.data().note,
       google_event_id: doc.data().google_event_id,
       allDay: false,
+      driver: doc.data().driver,
+      vehicle: doc.data().vehicle,
+      service: doc.data().service,
     }));
 
     setEvents(fetchedSchedules);
