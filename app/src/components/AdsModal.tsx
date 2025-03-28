@@ -35,6 +35,8 @@ export default function AdsModal({
   const [description, setDescription] = useState<string>("");
   const [start, setStart] = useState<Timestamp | null>(null);
   const [end, setEnd] = useState<Timestamp | null>(null);
+  const [startTime, setStartTime] = useState<string>("12:00");
+  const [endTime, setEndTime] = useState<string>("12:00");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [canSend, setCanSend] = useState<boolean>(false);
@@ -48,55 +50,6 @@ export default function AdsModal({
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length <= 280) setDescription(e.target.value);
-  };
-
-  const handleDateChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: string
-  ) => {
-    const date = new Date(e.target.value);
-
-    if (type === "start") {
-      if (end && date > end.toDate()) {
-        toast.error(
-          "A data de início não pode ser posterior à data de encerramento.",
-          {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            transition: Zoom,
-          }
-        );
-        setStart(null);
-      } else {
-        setStart(Timestamp.fromDate(date));
-      }
-    } else if (type === "end") {
-      if (start && date < start.toDate()) {
-        toast.error(
-          "A data de encerramento não pode ser anterior à data de início.",
-          {
-            position: "bottom-right",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            transition: Zoom,
-          }
-        );
-        setEnd(null);
-      } else {
-        setEnd(Timestamp.fromDate(date));
-      }
-    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +71,63 @@ export default function AdsModal({
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDateChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "start" | "end"
+  ) => {
+    const [year, month, day] = e.target.value.split("-").map(Number);
+    
+    // Create date in LOCAL time zone
+    const date = new Date(year, month - 1, day);
+  
+    // Keep previously set time (if available)
+    const [hours, minutes] = (type === "start" ? startTime : endTime).split(":").map(Number);
+    date.setHours(hours, minutes, 0, 0);
+
+    console.log("date: ", date);
+  
+    if (type === "start") {
+      if (end && date > end.toDate()) {
+        toast.error("A data de início não pode ser posterior à data de encerramento.");
+        setStart(null);
+      } else {
+        setStart(Timestamp.fromDate(date));
+      }
+    } else {
+      if (start && date < start.toDate()) {
+        toast.error("A data de encerramento não pode ser anterior à data de início.");
+        setEnd(null);
+      } else {
+        setEnd(Timestamp.fromDate(date));
+      }
+    }
+  };
+  
+
+  const handleTimeChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "start" | "end"
+  ) => {
+    const newTime = e.target.value;
+    if (type === "start") {
+      setStartTime(newTime);
+      if (start) {
+        const updatedStart = new Date(start.toDate());
+        const [hours, minutes] = newTime.split(":").map(Number);
+        updatedStart.setHours(hours, minutes, 0, 0);
+        setStart(Timestamp.fromDate(updatedStart));
+      }
+    } else {
+      setEndTime(newTime);
+      if (end) {
+        const updatedEnd = new Date(end.toDate());
+        const [hours, minutes] = newTime.split(":").map(Number);
+        updatedEnd.setHours(hours, minutes, 0, 0);
+        setEnd(Timestamp.fromDate(updatedEnd));
+      }
     }
   };
 
@@ -285,18 +295,19 @@ export default function AdsModal({
                 onChange={(e) => handleDateChange(e, "start")}
                 variant="bordered"
                 className="dark w-48"
-                classNames={{
-                  input: ["bg-transparent text-white"],
-                  inputWrapper: ["focus:border-white relative"],
-                  label: [
-                    "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
-                    start || start === ""
-                      ? "translate-y-0 scale-100"
-                      : "scale-75 -translate-y-3",
-                  ],
-                }}
               />
 
+              <Input
+                type="time"
+                label="Hora de início"
+                value={startTime}
+                onChange={(e) => handleTimeChange(e, "start")}
+                variant="bordered"
+                className="dark w-44"
+              />
+            </div>
+
+            <div className="flex flex-row gap-2">
               <Input
                 type="date"
                 label="Data de encerramento"
@@ -306,16 +317,15 @@ export default function AdsModal({
                 onChange={(e) => handleDateChange(e, "end")}
                 variant="bordered"
                 className="dark w-48"
-                classNames={{
-                  input: ["bg-transparent text-white"],
-                  inputWrapper: ["focus:border-white relative"],
-                  label: [
-                    "absolute text-white transition-all duration-200 transform -translate-y-3 scale-75 top-1 left-3 origin-[0] bg-black px-2",
-                    end || end === ""
-                      ? "translate-y-0 scale-100"
-                      : "scale-75 -translate-y-3",
-                  ],
-                }}
+              />
+
+              <Input
+                type="time"
+                label="Hora de encerramento"
+                value={endTime}
+                onChange={(e) => handleTimeChange(e, "end")}
+                variant="bordered"
+                className="dark w-44"
               />
             </div>
           </div>
