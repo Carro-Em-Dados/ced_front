@@ -83,11 +83,8 @@ export default function AdsModal({
     // Create date in LOCAL time zone
     const date = new Date(year, month - 1, day);
   
-    // Keep previously set time (if available)
     const [hours, minutes] = (type === "start" ? startTime : endTime).split(":").map(Number);
     date.setHours(hours, minutes, 0, 0);
-
-    console.log("date: ", date);
   
     if (type === "start") {
       if (end && date > end.toDate()) {

@@ -25,62 +25,6 @@ import { Workshop } from "@/interfaces/workshop.type";
 import { Contract } from "@/interfaces/contract.type";
 import GeneralAutocomplete from "@/components/GeneralObjectOptionAutocomplete";
 
-const driverMock = [
-  {
-    id: "1",
-    name: "João",
-    vehicles: [
-      {
-        id: "1",
-        manufacturer: "Fiat",
-        car_model: "Uno",
-      },
-      {
-        id: "2",
-        manufacturer: "Volkswagen",
-        car_model: "Gol",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Maria",
-    vehicles: [
-      {
-        id: "3",
-        manufacturer: "Ford",
-        car_model: "Ka",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "José",
-    vehicles: [
-      {
-        id: "4",
-        manufacturer: "Chevrolet",
-        car_model: "Onix",
-      },
-    ],
-  },
-];
-
-const serviceMock = [
-  {
-    id: "1",
-    service: "Troca de óleo",
-  },
-  {
-    id: "2",
-    service: "Troca de pneu",
-  },
-  {
-    id: "3",
-    service: "Troca de freio",
-  },
-];
-
 interface Props {
   events: any;
   setEvents: React.Dispatch<React.SetStateAction<any[]>>;

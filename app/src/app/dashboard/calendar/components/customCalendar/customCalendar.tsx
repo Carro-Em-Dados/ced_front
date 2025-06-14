@@ -26,19 +26,19 @@ export interface MaintenanceWithName extends Maintenance {
   name: string;
 }
 
+interface Event {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  note: string;
+  allDay: boolean;
+  driver: string;
+  vehicle: string;
+}
+
 export default function CustomCalendar(props: Omit<CalendarProps, "localizer">) {
-  const [events, setEvents] = useState<
-    {
-      id: string;
-      title: string;
-      start: Date;
-      end: Date;
-      note: string;
-      allDay: boolean;
-      driver: string;
-      vehicle: string;
-    }[]
-  >([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [maintenances, setMaintenances] = useState<MaintenanceWithName[]>([]);
   const [selected, setSelected] = useState();
   const [editOpen, setEditOpen] = useState(false);
