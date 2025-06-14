@@ -402,10 +402,10 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="default" variant="light" className="rounded-full px-5 text-white" onClick={onClose}>
+                <Button color="default" variant="light" className="rounded-full px-5 text-white" onPress={onClose}>
                   Cancelar
                 </Button>
-                <Button color="success" disabled={loading || !remainingSchedules} className={styles.modalButton} onClick={createEvent}>
+                <Button color="success" disabled={loading || !remainingSchedules} className={styles.modalButton} onPress={createEvent}>
                   Salvar
                 </Button>
               </ModalFooter>

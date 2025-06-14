@@ -295,7 +295,7 @@ export default function Dashboard({
         const maintenanceList: MaintenanceData[] = [];
         const maintenanceChartList: MaintenanceData[] = [];
 
-        // For the Chart
+        // For the Chart and Table
         const allMaintenancesOfCurrentWorkshop = await getDocs(baseQuery);
         for (const maint of allMaintenancesOfCurrentWorkshop.docs) {
           const maintenanceData = maint.data() as Maintenance;
@@ -402,121 +402,12 @@ export default function Dashboard({
             status: status,
             id: maintenanceData.id,
           };
-
+          maintenanceList.push(maintenance);
           maintenanceChartList.push(maintenance);
         }
         setMaintenancesChart(maintenanceChartList);
-
-        // For the Table and other stuff
-        for (const docSnap of querySnapshot.docs) {
-          const maintenanceData = docSnap.data() as Maintenance;
-          maintenanceData.id = docSnap.id;
-
-          if (!maintenanceData.car_id) {
-            continue;
-          }
-
-          let clientName = "";
-          let clientId = "";
-          let vehicleInfo = "";
-          let vehicleId = "";
-          let kmCurrent = 0;
-          let vehicleBrand = "";
-          let vehicleModel = "";
-          let vehicleYear = "";
-          let obd2Distance = 0;
-          let gpsDistance = 0;
-
-          const vehicleDocRef = doc(db, "vehicles", maintenanceData.car_id);
-          const readingDocRef = query(
-            collection(db, "readings"),
-            where("car_id", "==", maintenanceData.car_id),
-            orderBy("createdAt", "desc"),
-            limit(1)
-          );
-          const [vehicleDoc, readingDoc] = await Promise.all([
-            getDoc(vehicleDocRef),
-            getDocs(readingDocRef),
-          ]);
-
-          let isCritical = false;
-          if (vehicleDoc.exists()) {
-            const vehicleData = vehicleDoc.data() as Vehicle;
-            const readingData = readingDoc?.docs[0]?.data() as Reading;
-            vehicleInfo = `${vehicleData.car_model} - ${vehicleData.license_plate}`;
-            vehicleId = vehicleDoc.id;
-            vehicleBrand = vehicleData.manufacturer || "";
-            vehicleModel = vehicleData.car_model || "";
-            vehicleYear = vehicleData.year || "";
-            kmCurrent = getTotalKm(vehicleData, readingData);
-
-            if (readingData) {
-              for (const dtc of readingData.dtc_readings) {
-                if (dtc && dtc.length > 0) {
-                  isCritical = true;
-                  break;
-                }
-              }
-            }
-
-            if (vehicleData.owner) {
-              const appUserDocRef = doc(db, "appUsers", vehicleData.owner);
-              const appUserDoc = await getDoc(appUserDocRef);
-              if (appUserDoc.exists()) {
-                const clientData = appUserDoc.data() as AppUser;
-                clientName = clientData.name || "";
-                clientId = appUserDoc.id;
-              } else {
-                const driverDocRef = doc(db, "clients", vehicleData.owner);
-                const driverDoc = await getDoc(driverDocRef);
-                if (driverDoc.exists()) {
-                  const driverData = driverDoc.data() as Driver;
-                  clientName = driverData.name || "";
-                  clientId = driverDoc.id;
-                }
-              }
-            } else if (selectedWorkshop !== "all") {
-              continue;
-            }
-          }
-
-          const status = calculateStatus(
-            maintenanceData,
-            kmCurrent,
-            {
-              workshopKmLimitAlarm: contractInfo?.workshopKmLimitAlarm ?? 0,
-              workshopDateLimitAlarm: contractInfo?.workshopDateLimitAlarm ?? 0,
-            },
-            isCritical
-          );
-
-          const maintenance = {
-            client: clientName,
-            clientId: clientId,
-            vehicle: vehicleInfo,
-            vehicleId: vehicleId,
-            vehicleBrand: vehicleBrand,
-            vehicleModel: vehicleModel,
-            vehicleYear: vehicleYear,
-            maintenance: maintenanceData.service,
-            km_current: kmCurrent,
-            km_threshold: maintenanceData.kmLimit || 0,
-            date_threshold: maintenanceData.dateLimit
-              ? new Date(
-                  maintenanceData.dateLimit.seconds * 1000 +
-                    maintenanceData.dateLimit.nanoseconds / 1000000
-                ).toLocaleDateString("pt-BR")
-              : "",
-            status: status,
-            obd2Distance,
-            gpsDistance,
-            id: maintenanceData.id,
-          };
-
-          maintenanceList.push(maintenance);
-        }
-
         setMaintenances(maintenanceList);
+
         const lastVisibleDoc =
           querySnapshot.docs[querySnapshot.docs.length - 1];
         setLastVisibleDocs((prevMap) =>
@@ -740,6 +631,7 @@ export default function Dashboard({
 
     // Processar cada veículo da DB
     for (const vehicle of vehicles) {
+      console.log(vehicle.manufacturer, vehicle.id);
       const readingDocRef = query(
         collection(db, "readings"),
         where("car_id", "==", vehicle.id),
