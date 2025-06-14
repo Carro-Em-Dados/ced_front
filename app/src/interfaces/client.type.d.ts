@@ -3,7 +3,7 @@ export interface Client {
 	name: string;
 	email: string;
 	role: string;
-	workshops?: string[];
+	workshops?: string;
 	cpf?: string;
 	phone_residential?: string;
 	phone_commercial?: string;

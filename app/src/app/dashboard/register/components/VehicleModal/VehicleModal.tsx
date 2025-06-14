@@ -21,6 +21,7 @@ import {
   getDocs,
   updateDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { AuthContext } from "@/contexts/auth.context";
 import { toast, Zoom } from "react-toastify";
@@ -31,6 +32,8 @@ import { Workshop } from "@/interfaces/workshop.type";
 import { Role } from "@/types/enums/role.enum";
 import { WorkshopContext } from "@/contexts/workshop.context";
 import { Vehicle } from "@/interfaces/vehicle.type";
+import { Client } from "@/interfaces/client.type";
+import { Contract } from "@/interfaces/contract.type";
 
 interface Props {
   ownerId: string;
@@ -39,7 +42,12 @@ interface Props {
   setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-export default function VehicleModal({ ownerId, workshops, vehicles, setVehicles }: Props) {
+export default function VehicleModal({
+  ownerId,
+  workshops,
+  vehicles,
+  setVehicles,
+}: Props) {
   const { db, currentUser, currentWorkshop } = useContext(AuthContext);
   const { workshopInView } = useContext(WorkshopContext);
   const [manufacturer, setManufacturer] = useState<string>("");
@@ -62,9 +70,45 @@ export default function VehicleModal({ ownerId, workshops, vehicles, setVehicles
   });
   const [loading, setLoading] = useState(false);
 
-  const workshop = currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
+  let workshop =
+    currentUser?.role === Role.ORGANIZATION ? workshopInView : currentWorkshop;
 
   const addVehicle = async () => {
+    if (!workshop) {
+      const vehicleOwner = await getDoc(doc(db, "clients", ownerId));
+      if (vehicleOwner.exists()) {
+        const ownerData = vehicleOwner.data() as Client;
+        const ownerWorkshopSnap = await getDoc(
+          doc(db, "workshops", ownerData.workshops || "")
+        );
+        const ownerWorkshop = ownerWorkshopSnap.data();
+        if (ownerWorkshop && ownerWorkshopSnap.exists()) {
+          const contractRef = doc(
+            db,
+            "contracts",
+            ownerWorkshop.contract as string
+          );
+          const contractSnap = await getDoc(contractRef);
+          let contractData;
+
+          if (contractSnap.exists()) {
+            contractData = {
+              ...(contractSnap.data() as Contract),
+              id: contractRef.id,
+            };
+          } else {
+            const basicContractRef = doc(db, "contracts", "basic");
+            const basicContractSnap = await getDoc(basicContractRef);
+            contractData = {
+              ...(basicContractSnap.data() as Contract),
+              id: basicContractRef.id,
+            };
+          }
+          workshop = { ...(ownerWorkshop as Workshop), contract: contractData };
+        }
+      }
+    }
+
     if ((workshop?.contract?.maxVehiclesPerDriver ?? 0) <= vehicles.length) {
       toast.error("Limite de veículos atingido", {
         position: "bottom-right",
@@ -91,7 +135,7 @@ export default function VehicleModal({ ownerId, workshops, vehicles, setVehicles
         theme: "dark",
         transition: Zoom,
       });
-      console.error(manufacturer, carModel, year, initialKm, licensePlate)
+      console.error(manufacturer, carModel, year, initialKm, licensePlate);
       return;
     }
     setLoading(true);
@@ -398,9 +442,11 @@ export default function VehicleModal({ ownerId, workshops, vehicles, setVehicles
                       models={vehiclesModels}
                       modelState={carModel}
                       onChange={(model) => {
-                        setCarModel(model)
-                        setSelectedModel(vehiclesModels.find((model) => model.nome == model)
-                        ?.codigo || "");
+                        setCarModel(model);
+                        setSelectedModel(
+                          vehiclesModels.find((model) => model.nome == model)
+                            ?.codigo || ""
+                        );
                       }}
                       manufacturer={manufacturer}
                       loadingFetch={loadingFetch}
