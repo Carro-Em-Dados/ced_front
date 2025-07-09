@@ -206,11 +206,22 @@ export default function CreateEventModal({ events, workshop, setEvents, drivers,
       };
 
       if (maintenance) {
+        const serviceName = (await getDoc(doc(db, "maintenances", maintenance))).data()?.service;
+        const queryServiceByNameAndWorkshop = query(
+          collection(db, "services"),
+          where("service", "==", serviceName),
+          where("workshop", "==", workshop.id)
+        );
+        const serviceSnapshot = await getDocs(queryServiceByNameAndWorkshop);
+        const service = serviceSnapshot.docs[0]?.data();
+        console.log("service", service);
+
         newEvent = {
           allDay: false,
           driver: selectedDriver,
           vehicle: selectedVehicle,
           maintenance: maintenance,
+          service: service?.id,
           note,
           start: newEventStart,
           end: newEventEnd,
