@@ -5,14 +5,28 @@ import { sendEmailWithPDF } from "@/server/send-email";
 import { exportToPDF } from "@/functions/exportToPDF";
 import { useContext } from "react";
 import { AuthContext } from "@/contexts/auth.context";
+import { collection, query, where, getDocs, Firestore } from "firebase/firestore";
 
 interface ButtonProps {
   workshopName: string;
+  workshopId: string;
   maintenances: MaintenanceData[];
 }
 
-export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
-  const { currentUser } = useContext(AuthContext);
+async function getWorkshopOwnerEmail(workshopId: string, db: Firestore): Promise<string> {
+  const queryParams = where("workshops", "==", workshopId);
+  const fullQuery = query(collection(db, "users"), queryParams);
+  const snapshot = await getDocs(fullQuery);
+  if (snapshot.empty) {
+    throw new Error("No workshop owner found");
+  }
+  const ownerEmail = snapshot.docs[0].data().email;
+  return ownerEmail;
+}
+
+
+export default function SendEMail({ workshopName, workshopId, maintenances }: ButtonProps) {
+  const { db } = useContext(AuthContext);
   
   const handleSendEmail = async () => {
     try {
@@ -23,8 +37,10 @@ export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
         reader.readAsDataURL(pdfBlob);
       });
 
-      await sendEmailWithPDF(base64, currentUser?.email || "kpinheiro@carroemdados.com.br");
-      console.log("Email enviado com sucesso!", currentUser?.email);
+      const ownerEmail = await getWorkshopOwnerEmail(workshopId, db);
+
+      await sendEmailWithPDF(base64, ownerEmail || "kpinheiro@carroemdados.com.br");
+      console.log("Email enviado com sucesso!", ownerEmail);
     } catch (error) {
       console.error("Erro ao enviar email:", error);
     }

@@ -621,7 +621,7 @@ export default function Dashboard({
 
     const vehiclesSnapshot = await getDocs(collection(db, "vehicles"));
     const vehicles = vehiclesSnapshot.docs.map(
-      (doc) => ({ ...doc.data(), id: doc.id } as Vehicle)
+      (doc) => ({ ...doc.data(), id: doc.id }) as Vehicle
     );
 
     const uniqueVehicles = new Map<
@@ -992,8 +992,8 @@ export default function Dashboard({
                           selectedFilterOption.selected
                         ]?.totalKm
                       : counter !== ""
-                      ? filterSum
-                      : totalKM}
+                        ? filterSum
+                        : totalKM}
                   </h4>
                   {/* <h4>{filterSum}{totalKM}{counter}</h4> */}
                 </div>
@@ -1035,6 +1035,7 @@ export default function Dashboard({
                       />
                       <ButtonSend
                         workshopName={workshopName}
+                        workshopId={selectedWorkshop}
                         maintenances={maintenancesChart}
                       />
                     </>
