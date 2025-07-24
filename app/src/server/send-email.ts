@@ -5,11 +5,11 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.NEXT_PUBLIC_RESEND_API_KEY!);
 
-export async function sendEmailWithPDF(base64PDF: string) {
+export async function sendEmailWithPDF(base64PDF: string, emailTo: string) {
   return resend.emails.send({
     from: process.env.NEXT_PUBLIC_EMAIL_FROM!,
-    to: process.env.NEXT_PUBLIC_EMAIL_TO!,
     subject: "[CARRO EM DADOS] Relatório de Manutenções",
+    to: emailTo,
     react: await Relatorio(),
     attachments: [
       {

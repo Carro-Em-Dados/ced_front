@@ -3,6 +3,8 @@ import { FaPaperPlane } from "react-icons/fa";
 import { MaintenanceData } from "@/interfaces/maintenanceData";
 import { sendEmailWithPDF } from "@/server/send-email";
 import { exportToPDF } from "@/functions/exportToPDF";
+import { useContext } from "react";
+import { AuthContext } from "@/contexts/auth.context";
 
 interface ButtonProps {
   workshopName: string;
@@ -10,6 +12,8 @@ interface ButtonProps {
 }
 
 export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
+  const { currentUser } = useContext(AuthContext);
+  
   const handleSendEmail = async () => {
     try {
       const pdfBlob = await exportToPDF(workshopName, maintenances);
@@ -19,8 +23,8 @@ export default function SendEMail({ workshopName, maintenances }: ButtonProps) {
         reader.readAsDataURL(pdfBlob);
       });
 
-      await sendEmailWithPDF(base64);
-      console.log("Email enviado com sucesso!");
+      await sendEmailWithPDF(base64, currentUser?.email || "kpinheiro@carroemdados.com.br");
+      console.log("Email enviado com sucesso!", currentUser?.email);
     } catch (error) {
       console.error("Erro ao enviar email:", error);
     }
