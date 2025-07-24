@@ -486,7 +486,7 @@ export default function Dashboard({
         }
 
         if (selectedWorkshop === "all" || isDriverOfWorkshop) {
-          monitoredVehicles++;
+          if (readingData) monitoredVehicles++;
           totalKM += getTotalKm(vehicleData, readingData);
         }
       }
@@ -534,24 +534,10 @@ export default function Dashboard({
     if (maintenanceKm >= 0) {
       const kmThreshold = maintenanceKm - kmBeforeLimit;
 
-      if (maintenance.car_id === "Y0lEyqQVP7NZ4EX2tSSE") {
-        console.log(limits, "limits");
-        console.log("1-before",maintenance.car_id,"should be close", maintenanceKm, kmBeforeLimit, kmCurrent, kmThreshold, result);
-      }
-
       if (maintenanceKm <= kmCurrent) {
         result = "Vencida";
       } else if (kmThreshold <= kmCurrent) {
         result = result === "Vencida" ? "Vencida" : "Próxima";
-      }
-
-      // if (maintenance.car_id === "3cjmZ4yUpUotJtdqIkTT") {
-      //   console.log(maintenance.car_id,"should be ok", maintenanceKm, kmCurrent, kmThreshold, result);
-      // }
-
-      if (maintenance.car_id === "Y0lEyqQVP7NZ4EX2tSSE") {
-        console.log(limits, "limits");
-        console.log("2-after",maintenance.car_id,"should be close", maintenanceKm, kmBeforeLimit, kmCurrent, kmThreshold, result);
       }
     }
 
@@ -659,6 +645,7 @@ export default function Dashboard({
       const readingData = (
         await getDocs(readingDocRef)
       )?.docs[0]?.data() as Reading;
+
       const { manufacturer, car_model, year, id } = vehicle;
       const km_current = getTotalKm(vehicle, readingData);
 
@@ -696,9 +683,13 @@ export default function Dashboard({
         filters.model.options[car_model].totalKm += km_current || 0;
         filters.year.options[year].totalKm += km_current || 0;
 
-        filters.brand.options[manufacturer].vehiclesCount += 1;
-        filters.model.options[car_model].vehiclesCount += 1;
-        filters.year.options[year].vehiclesCount += 1;
+        if (readingData) {
+          filters.brand.options[manufacturer].vehiclesCount += 1;
+          filters.model.options[car_model].vehiclesCount += 1;
+          filters.year.options[year].vehiclesCount += 1
+        } else {
+          console.log(`Vehicle ${id} has no reading data.`);
+        }
       }
     }
 
@@ -745,9 +736,9 @@ export default function Dashboard({
         const readingData = readingDoc.docs[0].data() as Reading;
 
         if (counter === "gps") {
-          sum += readingData.gps_distance;
+          sum += vehicleData.initial_km + readingData.gps_distance;
         } else {
-          sum += readingData.obd2_distance;
+          sum += vehicleData.initial_km + readingData.obd2_distance;
         }
       }
     }
