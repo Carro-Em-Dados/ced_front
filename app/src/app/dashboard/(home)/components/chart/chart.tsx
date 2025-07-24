@@ -48,7 +48,7 @@ function CustomChart({ chartData }: CustomChartProps) {
   }, [chartData]);
 
   return (
-    <div className="relative">
+    <div className="relative min-h-[255px] w-full">
       <Doughnut
         className="z-10"
         data={data}
