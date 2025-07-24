@@ -11,6 +11,7 @@ export async function sendEmailWithPDF(base64PDF: string, emailTo: string) {
     subject: "[CARRO EM DADOS] Relatório de Manutenções",
     to: emailTo,
     react: await Relatorio(),
+    text: "Relatório de Manutenções",
     attachments: [
       {
         filename: "relatorio.pdf",
