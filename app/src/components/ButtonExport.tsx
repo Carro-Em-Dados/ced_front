@@ -4,7 +4,7 @@ import { Button } from "@nextui-org/react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { TbFileTypePdf } from "react-icons/tb";
-import logo from "../../public/logo1.png";
+import logo_black_n_white from "../../public/logo_black_n_white.png";
 
 interface ButtonProps {
   workshopName: string;
@@ -100,12 +100,6 @@ export default function ButtonExport({ workshopName, maintenances }: ButtonProps
               const imageHeight = 20;
               const imageX = (pageWidth - imageWidth) / 2;
               const imageY = pageHeight - imageHeight - 10;
-  
-              const padding = 5;
-              doc.setFillColor("gray");
-              doc.rect(imageX - padding, imageY - padding, imageWidth + 2 * padding, imageHeight + 2 * padding, "F");
-  
-              doc.addImage(logo.src, "PNG", imageX, imageY, imageWidth, imageHeight);
           },
       });
   

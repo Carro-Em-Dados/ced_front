@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import logo from "../../public/logo1.png";
+import logo_black_n_white from "../../public/logo_black_n_white.png";
 import { MaintenanceData } from "@/interfaces/maintenanceData";
 
 async function loadImage(url: string): Promise<string> {
@@ -109,27 +109,6 @@ export async function exportToPDF(
       const imageHeight = 20;
       const imageX = (pageWidth - imageWidth) / 2;
       const imageY = pageHeight - imageHeight - 10;
-
-      const padding = 5;
-      doc.setFillColor("gray");
-      doc.rect(
-        imageX - padding,
-        imageY - padding,
-        imageWidth + 2 * padding,
-        imageHeight + 2 * padding,
-        "F"
-      );
-
-      loadImage(logo.src).then((base64Image) => {
-        doc.addImage(
-          base64Image,
-          "PNG",
-          imageX,
-          imageY,
-          imageWidth,
-          imageHeight
-        );
-      });
     },
   });
 
