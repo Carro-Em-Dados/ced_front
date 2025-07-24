@@ -370,6 +370,10 @@ export default function Dashboard({
             }
           }
 
+          if (maintenanceData.car_id === "Y0lEyqQVP7NZ4EX2tSSE") {
+            console.log("+++++workshop", contractInfo);
+          }
+
           const status = calculateStatus(
             maintenanceData,
             kmCurrent,
@@ -530,10 +534,24 @@ export default function Dashboard({
     if (maintenanceKm >= 0) {
       const kmThreshold = maintenanceKm - kmBeforeLimit;
 
+      if (maintenance.car_id === "Y0lEyqQVP7NZ4EX2tSSE") {
+        console.log(limits, "limits");
+        console.log("1-before",maintenance.car_id,"should be close", maintenanceKm, kmBeforeLimit, kmCurrent, kmThreshold, result);
+      }
+
       if (maintenanceKm <= kmCurrent) {
         result = "Vencida";
       } else if (kmThreshold <= kmCurrent) {
         result = result === "Vencida" ? "Vencida" : "Próxima";
+      }
+
+      // if (maintenance.car_id === "3cjmZ4yUpUotJtdqIkTT") {
+      //   console.log(maintenance.car_id,"should be ok", maintenanceKm, kmCurrent, kmThreshold, result);
+      // }
+
+      if (maintenance.car_id === "Y0lEyqQVP7NZ4EX2tSSE") {
+        console.log(limits, "limits");
+        console.log("2-after",maintenance.car_id,"should be close", maintenanceKm, kmBeforeLimit, kmCurrent, kmThreshold, result);
       }
     }
 
@@ -590,6 +608,7 @@ export default function Dashboard({
   }, [selectedWorkshop]);
 
   useEffect(() => {
+    if (!contractInfo) return;
     fetchMaintenances();
     fetchMonitoredVehicles();
   }, [contractInfo]);
@@ -631,7 +650,6 @@ export default function Dashboard({
 
     // Processar cada veículo da DB
     for (const vehicle of vehicles) {
-      console.log(vehicle.manufacturer, vehicle.id);
       const readingDocRef = query(
         collection(db, "readings"),
         where("car_id", "==", vehicle.id),
