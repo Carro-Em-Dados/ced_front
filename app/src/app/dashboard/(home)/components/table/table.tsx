@@ -157,7 +157,7 @@ function CustomTable(props: CustomTableProps) {
               )
             );
             const readingData = readingDocRef?.docs[0]?.data() as Reading;
-            totalKm += getTotalKm(vehicleDoc.data() as Vehicle, readingData);
+            totalKm += getTotalKm(readingData);
 
             let isCritical = false;
 
@@ -181,7 +181,7 @@ function CustomTable(props: CustomTableProps) {
                 const maintenanceData = maintenanceDoc.data() as Maintenance;
                 const status = calculateStatus(
                   maintenanceData,
-                  getTotalKm(vehicleDoc.data() as Vehicle, readingData),
+                  getTotalKm(readingData),
                   {
                     workshopKmLimitAlarm: props.contractLimits.kmLimitBefore,
                     workshopDateLimitAlarm:

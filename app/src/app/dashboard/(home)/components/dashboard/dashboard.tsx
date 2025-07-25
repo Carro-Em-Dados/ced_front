@@ -193,7 +193,7 @@ export default function Dashboard({
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            kmCurrent = getTotalKm(vehicleData, readingData);
+            kmCurrent = getTotalKm(readingData);
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
@@ -338,7 +338,7 @@ export default function Dashboard({
             vehicleBrand = vehicleData.manufacturer || "";
             vehicleModel = vehicleData.car_model || "";
             vehicleYear = vehicleData.year || "";
-            kmCurrent = getTotalKm(vehicleData, readingData);
+            kmCurrent = getTotalKm(readingData);
 
             if (readingData) {
               for (const dtc of readingData.dtc_readings) {
@@ -487,7 +487,7 @@ export default function Dashboard({
 
         if (selectedWorkshop === "all" || isDriverOfWorkshop) {
           if (readingData) monitoredVehicles++;
-          totalKM += getTotalKm(vehicleData, readingData);
+          totalKM += getTotalKm(readingData);
         }
       }
 
@@ -647,7 +647,7 @@ export default function Dashboard({
       )?.docs[0]?.data() as Reading;
 
       const { manufacturer, car_model, year, id } = vehicle;
-      const km_current = getTotalKm(vehicle, readingData);
+      const km_current = getTotalKm(readingData);
 
       if (!filters.brand.options[manufacturer]) {
         filters.brand.options[manufacturer] = {
@@ -736,9 +736,9 @@ export default function Dashboard({
         const readingData = readingDoc.docs[0].data() as Reading;
 
         if (counter === "gps") {
-          sum += vehicleData.initial_km + readingData.gps_distance;
+          sum += readingData.gps_distance;
         } else {
-          sum += vehicleData.initial_km + readingData.obd2_distance;
+          sum += readingData.obd2_distance;
         }
       }
     }
